@@ -1,6 +1,6 @@
 # booklib-ai/skills
 
-18 AI agent skills grounded in canonical programming books. Each skill packages expert practices from a specific book into reusable instructions that Claude and other AI agents can apply to code generation, code review, and design decisions.
+21 AI agent skills grounded in canonical programming books. Each skill packages expert practices from a specific book into reusable instructions that Claude and other AI agents can apply to code generation, code review, and design decisions.
 
 ## Quick Install
 
@@ -21,7 +21,10 @@ npx skills add booklib-ai/skills --all -g
 | `effective-java` | Effective Java — Joshua Bloch |
 | `effective-kotlin` | Effective Kotlin — Marcin Moskała |
 | `effective-python` | Effective Python — Brett Slatkin |
+| `effective-typescript` | Effective TypeScript — Dan Vanderkam |
 | `kotlin-in-action` | Kotlin in Action |
+| `programming-with-rust` | Programming with Rust — Donis Marshall |
+| `rust-in-action` | Rust in Action — Tim McNamara |
 | `lean-startup` | The Lean Startup — Eric Ries |
 | `microservices-patterns` | Microservices Patterns — Chris Richardson |
 | `refactoring-ui` | Refactoring UI — Adam Wathan & Steve Schoger |
@@ -51,4 +54,4 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for how to add a new skill. Each skill 
 npx @booklib/skills check <skill-name>
 ```
 
-All 18 existing skills are at Platinum (13/13 checks).
+All 21 existing skills are at Platinum (13/13 checks).

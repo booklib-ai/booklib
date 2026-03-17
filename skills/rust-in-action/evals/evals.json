@@ -1,0 +1,38 @@
+{
+  "evals": [
+    {
+      "id": "eval-01-endianness-unwrap-static-mut",
+      "prompt": "Review this Rust code:\n\n```rust\nstatic mut PACKET_COUNT: u32 = 0;\n\nfn parse_header(bytes: &[u8]) -> u32 {\n    let id = u32::from_ne_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]);\n    unsafe { PACKET_COUNT += 1; }\n    id\n}\n\nfn read_data(path: &str) -> Vec<u8> {\n    std::fs::read(path).unwrap()\n}\n\nfn write_id(id: u32) -> Vec<u8> {\n    id.to_ne_bytes().to_vec()\n}\n```",
+      "expectations": [
+        "Flag Ch 5/7: from_ne_bytes uses native endianness — silently produces wrong results on big-endian hosts; use from_le_bytes or from_be_bytes to match the protocol spec",
+        "Flag Ch 6/10: static mut PACKET_COUNT is a data race in concurrent code — replace with Arc<Mutex<u32>> or an atomic (std::sync::atomic::AtomicU32)",
+        "Flag Ch 3: .unwrap() in read_data will panic on I/O error — return Result<Vec<u8>, std::io::Error> and use ?",
+        "Flag Ch 7: to_ne_bytes in write_id — same endianness problem as parse_header; must match the parse side",
+        "Note that parse_header does no bounds checking before indexing bytes[0..3] — should use bytes.get(0..4).ok_or(...) to avoid a panic on short input",
+        "Provide corrected versions using from_le_bytes/to_le_bytes, AtomicU32 or Arc<Mutex<u32>>, and Result"
+      ]
+    },
+    {
+      "id": "eval-02-smart-pointer-choice",
+      "prompt": "Review this Rust code:\n\n```rust\nuse std::rc::Rc;\nuse std::thread;\n\nstruct Cache {\n    data: Rc<Vec<String>>,\n}\n\nimpl Cache {\n    fn spawn_reader(&self) {\n        let d = Rc::clone(&self.data);\n        thread::spawn(move || {\n            println!(\"{:?}\", d);\n        });\n    }\n}\n\nfn make_buffer(large: bool) -> Box<Vec<u8>> {\n    if large {\n        Box::new(vec![0u8; 1024 * 1024])\n    } else {\n        Box::new(vec![0u8; 64])\n    }\n}\n```",
+      "expectations": [
+        "Flag Ch 6: Rc is not Send — sharing Rc across thread boundaries is a compile error; replace Rc<Vec<String>> with Arc<Vec<String>>",
+        "Flag Ch 6: Box<Vec<u8>> is redundant — Vec<u8> already heap-allocates; Box<Vec<T>> is a double-indirection with no benefit; return Vec<u8> directly",
+        "Note that Arc::clone(&self.data) is the correct idiom for incrementing an Arc refcount — it makes the cheap clone explicit",
+        "Note that spawn_reader returns no JoinHandle — callers cannot join the thread or detect panics; suggest returning thread::JoinHandle<()>",
+        "Provide corrected versions using Arc<Vec<String>>, returning Vec<u8> directly, and returning JoinHandle from spawn_reader"
+      ]
+    },
+    {
+      "id": "eval-03-idiomatic-systems-rust",
+      "prompt": "Review this Rust code:\n\n```rust\nuse std::sync::{Arc, Mutex};\nuse std::sync::atomic::{AtomicU64, Ordering};\nuse std::path::Path;\nuse std::io::{BufReader, Read};\nuse std::fs::File;\n\n#[derive(Debug)]\npub enum StoreError {\n    Io(std::io::Error),\n    Corrupt { offset: usize },\n}\n\nimpl std::fmt::Display for StoreError {\n    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {\n        match self {\n            StoreError::Io(e) => write!(f, \"io: {e}\"),\n            StoreError::Corrupt { offset } => write!(f, \"corrupt at byte {offset}\"),\n        }\n    }\n}\n\nimpl std::error::Error for StoreError {}\nimpl From<std::io::Error> for StoreError {\n    fn from(e: std::io::Error) -> Self { StoreError::Io(e) }\n}\n\nstruct Store {\n    reads: AtomicU64,\n    data: Arc<Mutex<Vec<u8>>>,\n}\n\nimpl Store {\n    fn new() -> Self {\n        Store { reads: AtomicU64::new(0), data: Arc::new(Mutex::new(vec![])) }\n    }\n\n    fn load(&self, path: &Path) -> Result<(), StoreError> {\n        let f = File::open(path)?;\n        let mut reader = BufReader::new(f);\n        let mut buf = vec![];\n        reader.read_to_end(&mut buf)?;\n        *self.data.lock().expect(\"mutex poisoned\") = buf;\n        Ok(())\n    }\n\n    fn read(&self, offset: usize, len: usize) -> Result<Vec<u8>, StoreError> {\n        self.reads.fetch_add(1, Ordering::Relaxed);\n        let data = self.data.lock().expect(\"mutex poisoned\");\n        data.get(offset..offset + len)\n            .map(|s| s.to_vec())\n            .ok_or(StoreError::Corrupt { offset })\n    }\n}\n```",
+      "expectations": [
+        "Recognize this code is idiomatic systems Rust — do NOT manufacture issues",
+        "Acknowledge: StoreError with Display + Error + From<io::Error> for ? propagation (Ch 3, 8); BufReader for batched I/O (Ch 7); &Path parameter (Ch 7); Arc<Mutex<T>> for shared mutable data (Ch 6, 10); AtomicU64 for lock-free counter (Ch 10); .expect('mutex poisoned') with reason (Ch 10)",
+        "At most suggest: reads counter could use Ordering::SeqCst if cross-thread visibility of exact count matters; or note that Relaxed is fine for approximate telemetry",
+        "At most suggest: Default could be derived or implemented for Store alongside new(), enabling Store::default() construction",
+        "Do NOT flag AtomicU64 with Relaxed ordering as a bug — it is appropriate for a read counter where exact ordering across threads is not required"
+      ]
+    }
+  ]
+}

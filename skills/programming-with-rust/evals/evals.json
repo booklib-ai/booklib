@@ -1,0 +1,37 @@
+{
+  "evals": [
+    {
+      "id": "eval-01-unwrap-clone-ownership",
+      "prompt": "Review this Rust code:\n\n```rust\nfn process_users(users: Vec<String>) -> Vec<String> {\n    let copy = users.clone();\n    let mut result = Vec::new();\n    for i in 0..copy.len() {\n        result.push(copy[i].clone());\n    }\n    result\n}\n\nfn read_file(path: String) -> String {\n    std::fs::read_to_string(path).unwrap()\n}\n\nfn find(map: HashMap<String, u32>, key: String) -> u32 {\n    map.get(&key).unwrap().clone()\n}\n```",
+      "expectations": [
+        "Flag Ch 8: users.clone() is unnecessary — borrow &[String] instead of taking ownership of Vec<String>",
+        "Flag Ch 6: manual index loop should be replaced with iterator adapters (.iter().cloned().collect())",
+        "Flag Ch 12: .unwrap() in read_file will panic on I/O error — should return Result<String, std::io::Error> and use ?",
+        "Flag Ch 8: find takes owned HashMap — borrows &HashMap<String, u32> instead",
+        "Flag Ch 12: .unwrap() in find panics on missing key — return Option<u32> or Result",
+        "Provide corrected versions using &[String], iterators, Result, ?, and &HashMap"
+      ]
+    },
+    {
+      "id": "eval-02-subtle-trait-dispatch",
+      "prompt": "Review this Rust code:\n\n```rust\nuse std::fmt;\n\ntrait Summarize {\n    fn summary(&self) -> String;\n}\n\nstruct Article { title: String, body: String }\nstruct Tweet { content: String }\n\nimpl Summarize for Article {\n    fn summary(&self) -> String { self.title.clone() }\n}\nimpl Summarize for Tweet {\n    fn summary(&self) -> String { self.content.clone() }\n}\n\n// Returns a trait object\nfn make_summary(is_article: bool) -> Box<dyn Summarize> {\n    if is_article {\n        Box::new(Article { title: String::from(\"news\"), body: String::from(\"...\") })\n    } else {\n        Box::new(Tweet { content: String::from(\"hello\") })\n    }\n}\n\n// Takes a trait object\nfn print_all(items: &Vec<Box<dyn Summarize>>) {\n    for item in items {\n        println!(\"{}\", item.summary());\n    }\n}\n```",
+      "expectations": [
+        "Note that Box<dyn Summarize> in make_summary is actually appropriate here because the function must return one of two different concrete types — this is a valid use of dynamic dispatch (Ch 17)",
+        "Flag &Vec<Box<dyn Summarize>> in print_all — prefer &[Box<dyn Summarize>] (a slice reference is more general than a Vec reference)",
+        "Suggest that if only one type were returned, impl Summarize would be preferred over Box<dyn Summarize> for zero-cost static dispatch (Ch 17)",
+        "Note .clone() in summary() implementations — title/body could be returned as &str with lifetime annotation to avoid allocation (Ch 8, 9)",
+        "Do NOT flag the dynamic dispatch in make_summary as wrong — it is the correct choice when returning heterogeneous types"
+      ]
+    },
+    {
+      "id": "eval-03-idiomatic-rust-already-good",
+      "prompt": "Review this Rust code:\n\n```rust\nuse std::fmt;\nuse std::sync::{Arc, Mutex};\n\n#[derive(Debug)]\npub enum StoreError {\n    NotFound(String),\n    Io(std::io::Error),\n}\n\nimpl fmt::Display for StoreError {\n    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {\n        match self {\n            StoreError::NotFound(k) => write!(f, \"key not found: {k}\"),\n            StoreError::Io(e) => write!(f, \"io error: {e}\"),\n        }\n    }\n}\n\nimpl std::error::Error for StoreError {}\n\nimpl From<std::io::Error> for StoreError {\n    fn from(e: std::io::Error) -> Self { StoreError::Io(e) }\n}\n\n#[derive(Debug, Clone)]\npub struct Record {\n    pub key: String,\n    pub value: String,\n}\n\npub struct Store {\n    records: Arc<Mutex<Vec<Record>>>,\n}\n\nimpl Store {\n    pub fn new() -> Self {\n        Store { records: Arc::new(Mutex::new(Vec::new())) }\n    }\n\n    pub fn insert(&self, key: &str, value: &str) {\n        let mut records = self.records.lock().expect(\"mutex poisoned\");\n        records.push(Record { key: key.to_string(), value: value.to_string() });\n    }\n\n    pub fn find(&self, key: &str) -> Result<Record, StoreError> {\n        let records = self.records.lock().expect(\"mutex poisoned\");\n        records\n            .iter()\n            .find(|r| r.key == key)\n            .cloned()\n            .ok_or_else(|| StoreError::NotFound(key.to_string()))\n    }\n}\n```",
+      "expectations": [
+        "Recognize this code is idiomatic Rust — do NOT manufacture issues",
+        "Acknowledge: custom StoreError with Display + Error + From (Ch 12), Arc<Mutex<T>> for shared state (Ch 19), &str parameters with .to_string() conversion (Ch 4), iterator .find().cloned() over manual loops (Ch 6), .expect('mutex poisoned') with reason string (Ch 19)",
+        "At most note that Default could be derived or implemented for Store alongside new()",
+        "Do not flag .cloned() on the found record — cloning a single found item is correct and intentional"
+      ]
+    }
+  ]
+}

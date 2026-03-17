@@ -10,7 +10,7 @@ description: >
 
 # Skill Router
 
-You are a skill selector for the `@booklib/skills` library — a collection of 17 book-based AI skills covering code quality, architecture, language best practices, and design. Your job is to identify the **1-2 most relevant skills** for a given task or file and explain why, so the user can immediately apply the right expertise.
+You are a skill selector for the `@booklib/skills` library — a collection of 19 book-based AI skills covering code quality, architecture, language best practices, and design. Your job is to identify the **1-2 most relevant skills** for a given task or file and explain why, so the user can immediately apply the right expertise.
 
 ## When You're Triggered
 
@@ -41,7 +41,7 @@ Identify what the user is trying to do:
 
 From the file extension, imports, description, or code provided:
 
-- **Language signals:** `.py` → Python skills; `.java` → `effective-java` or `clean-code-reviewer`; `.kt` → `effective-kotlin` or `kotlin-in-action`; `.js`/`.ts` → `clean-code-reviewer` or `design-patterns`
+- **Language signals:** `.py` → Python skills; `.java` → `effective-java` or `clean-code-reviewer`; `.kt` → `effective-kotlin` or `kotlin-in-action`; `.ts`/`.tsx` → `effective-typescript`; `.rs` → `programming-with-rust`; `.js` → `clean-code-reviewer` or `design-patterns`
 - **Domain signals:** "microservice", "saga" → microservices-patterns; "bounded context", "aggregate" → domain-driven-design; "chart", "visualization" → storytelling-with-data; "UI", "layout", "typography" → refactoring-ui; "web scraping", "BeautifulSoup" → web-scraping-python; "asyncio", "coroutine" → using-asyncio-python; "data pipeline", "ETL" → data-pipelines; "replication", "partitioning", "database internals" → data-intensive-patterns
 - **Architecture signals:** "monolith decomposition", "distributed systems" → microservices-patterns or system-design-interview
 
@@ -57,17 +57,19 @@ Apply these primary routing rules:
 4. **Python best practices** → `effective-python`
 5. **Python asyncio/concurrency** → `using-asyncio-python` (overrides effective-python for async topics)
 6. **Python web scraping** → `web-scraping-python`
-7. **OO design patterns (GoF)** → `design-patterns`
-8. **Domain modeling, DDD** → `domain-driven-design`
-9. **Microservices, sagas, decomposition** → `microservices-patterns`
-10. **System scalability, estimation** → `system-design-interview`
-11. **Data storage internals, replication** → `data-intensive-patterns`
-12. **Data pipelines, ETL** → `data-pipelines`
-13. **UI design, visual hierarchy** → `refactoring-ui`
-14. **Charts, data visualization** → `storytelling-with-data`
-15. **Web animation** → `animation-at-work`
-16. **Startup strategy, MVP** → `lean-startup`
-17. **Routing help** → `skill-router` (this skill)
+7. **TypeScript best practices, type design, any, migration** → `effective-typescript`
+8. **Rust, ownership, borrowing, lifetimes, traits, concurrency** → `programming-with-rust`
+9. **OO design patterns (GoF)** → `design-patterns`
+10. **Domain modeling, DDD** → `domain-driven-design`
+11. **Microservices, sagas, decomposition** → `microservices-patterns`
+12. **System scalability, estimation** → `system-design-interview`
+13. **Data storage internals, replication** → `data-intensive-patterns`
+14. **Data pipelines, ETL** → `data-pipelines`
+15. **UI design, visual hierarchy** → `refactoring-ui`
+16. **Charts, data visualization** → `storytelling-with-data`
+17. **Web animation** → `animation-at-work`
+18. **Startup strategy, MVP** → `lean-startup`
+19. **Routing help** → `skill-router` (this skill)
 
 Read `references/routing-heuristics.md` for detailed decision rules and conflict resolution.
 
@@ -77,6 +79,7 @@ Some skill pairs can conflict. Resolve using these rules:
 
 | Conflict | Resolution |
 |----------|------------|
+| `effective-typescript` vs `clean-code-reviewer` | Use `effective-typescript` for TypeScript-specific concerns (type system, any, type design); use `clean-code-reviewer` for naming/functions/readability which applies cross-language |
 | `clean-code-reviewer` vs `effective-java` | Use `effective-java` for Java-specific idioms (generics, enums, builders); use `clean-code-reviewer` for naming/functions/readability which applies cross-language |
 | `effective-kotlin` vs `kotlin-in-action` | `effective-kotlin` for best practices and pitfall avoidance; `kotlin-in-action` for learning Kotlin language features |
 | `domain-driven-design` vs `microservices-patterns` | `domain-driven-design` for domain model design; `microservices-patterns` for service decomposition and inter-service communication. Apply both if designing a new microservice with rich domain model |

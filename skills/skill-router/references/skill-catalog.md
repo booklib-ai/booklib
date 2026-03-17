@@ -1,6 +1,6 @@
 # Skill Catalog
 
-All 17 skills in the `@booklib/skills` library with routing metadata.
+All 19 skills in the `@booklib/skills` library with routing metadata.
 
 ## animation-at-work
 - **Source:** *Animation at Work* by Rachel Nabors
@@ -73,6 +73,24 @@ All 17 skills in the `@booklib/skills` library with routing metadata.
 - **Anti-triggers:** Non-Kotlin code, architecture concerns
 - **Works well with:** kotlin-in-action (best practices + language features), clean-code-reviewer (Kotlin idioms + readability)
 - **Conflicts with:** kotlin-in-action (effective-kotlin for best practices; kotlin-in-action for language learning — if user knows Kotlin and wants advice, use effective-kotlin)
+
+## effective-typescript
+- **Source:** *Effective TypeScript* by Dan Vanderkam
+- **Domain:** TypeScript best practices, type system, type design, any, migration
+- **Language:** TypeScript only
+- **Trigger keywords:** "effective typescript", "typescript best practices", "type safety", "any type", "type assertions", "type design", "strict mode", "typescript review", "migrate to typescript", "unknown vs any", "type declarations", "tagged union", "branded types", "typescript item"
+- **Anti-triggers:** Non-TypeScript code, plain JavaScript without types, architecture concerns
+- **Works well with:** clean-code-reviewer (TypeScript idioms + readability), design-patterns (type-safe pattern implementations)
+- **Conflicts with:** clean-code-reviewer (effective-typescript wins for TypeScript-specific type system concerns; clean-code-reviewer for general readability)
+
+## programming-with-rust
+- **Source:** *Programming with Rust* by Donis Marshall
+- **Domain:** Rust language, ownership, borrowing, lifetimes, error handling, traits, concurrency
+- **Language:** Rust only
+- **Trigger keywords:** "rust", "ownership", "borrow checker", "lifetimes", "Result", "Option", "traits", "fearless concurrency", "cargo", "crate", "unwrap", "move semantics", "Arc", "Mutex", "pattern matching rust", ".rs"
+- **Anti-triggers:** Non-Rust code, architecture concerns, domain modeling
+- **Works well with:** clean-code-reviewer (Rust idioms + readability), design-patterns (Rust implementation of patterns)
+- **Conflicts with:** clean-code-reviewer (programming-with-rust wins for Rust-specific concerns like ownership, lifetimes, and the borrow checker)
 
 ## effective-python
 - **Source:** *Effective Python* (2nd Edition) by Brett Slatkin

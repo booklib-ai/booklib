@@ -131,6 +131,9 @@ This means skills compose: `skill-router` acts as an orchestrator that picks the
 | ☕ [effective-java](./skills/effective-java/) | Java best practices from Joshua Bloch's *Effective Java* (3rd Edition) — object creation, generics, enums, lambdas, and concurrency |
 | 🛡️ [effective-kotlin](./skills/effective-kotlin/) | Best practices from Marcin Moskała's *Effective Kotlin* (2nd Ed) — safety, readability, reusability, and abstraction |
 | 🐍 [effective-python](./skills/effective-python/) | Python best practices from Brett Slatkin's *Effective Python* (2nd Edition) — Pythonic thinking, functions, classes, concurrency, and testing |
+| 🔷 [effective-typescript](./skills/effective-typescript/) | TypeScript best practices from Dan Vanderkam's *Effective TypeScript* — type system, type design, avoiding any, type declarations, and migration |
+| 🦀 [programming-with-rust](./skills/programming-with-rust/) | Rust practices from Donis Marshall's *Programming with Rust* — ownership, borrowing, lifetimes, error handling, traits, and fearless concurrency |
+| ⚙️ [rust-in-action](./skills/rust-in-action/) | Systems programming from Tim McNamara's *Rust in Action* — smart pointers, endianness, memory, file formats, TCP networking, concurrency, and OS fundamentals |
 | ⚡ [kotlin-in-action](./skills/kotlin-in-action/) | Practices from *Kotlin in Action* (2nd Ed) — functions, classes, lambdas, nullability, and coroutines |
 | 🚀 [lean-startup](./skills/lean-startup/) | Practices from Eric Ries' *The Lean Startup* — MVP testing, validated learning, Build-Measure-Learn loop, and pivots |
 | 🔧 [microservices-patterns](./skills/microservices-patterns/) | Expert guidance on microservices patterns from Chris Richardson's *Microservices Patterns* — decomposition, sagas, API gateways, event sourcing, CQRS, and service mesh |

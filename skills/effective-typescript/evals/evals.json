@@ -1,0 +1,36 @@
+{
+  "evals": [
+    {
+      "id": "eval-01-any-assertions-string-types",
+      "prompt": "Review this TypeScript code:\n\n```typescript\nasync function loadConfig(env: string): Promise<any> {\n  const res = await fetch(`/config/${env}`);\n  const data = res.json() as any;\n  return data;\n}\n\ninterface AppState {\n  loading: boolean;\n  result?: any;\n  error?: string;\n}\n\nfunction applyTheme(theme: string) {\n  document.body.className = theme;\n}\n```",
+      "expectations": [
+        "Flag Item 42: return type should be unknown or a typed interface, not any",
+        "Flag Item 9: res.json() as any is a type assertion — prefer a type declaration or typed wrapper",
+        "Flag Item 28/32: AppState is an interface of unions — loading:true with result/error present is representable; suggest a tagged union instead",
+        "Flag Item 33: theme parameter should be a string literal union (e.g. 'light' | 'dark'), not plain string",
+        "Provide a fixed version using unknown, a tagged union, and a literal union type"
+      ]
+    },
+    {
+      "id": "eval-02-subtle-interface-of-unions",
+      "prompt": "Review this TypeScript code:\n\n```typescript\ninterface FetchState {\n  isLoading: boolean;\n  data?: User[];\n  errorMessage?: string;\n  lastUpdated?: Date;\n}\n\nfunction render(state: FetchState) {\n  if (state.isLoading) {\n    showSpinner();\n  } else if (state.errorMessage) {\n    showError(state.errorMessage);\n  } else {\n    showData(state.data!); // non-null assertion\n  }\n}\n```",
+      "expectations": [
+        "Flag Item 32: FetchState is an interface of unions — data and errorMessage have an implicit relationship that the type doesn't enforce",
+        "Flag Item 28: states like { isLoading: false, data: [...], errorMessage: 'oops' } are representable but invalid",
+        "Flag the non-null assertion (!) on state.data — it's a symptom of the type not representing valid states",
+        "Suggest a tagged union: type FetchState = { status: 'loading' } | { status: 'success'; data: User[]; lastUpdated: Date } | { status: 'error'; message: string }",
+        "Show how the fixed type makes the render function exhaustive and removes the need for the non-null assertion"
+      ]
+    },
+    {
+      "id": "eval-03-already-well-typed",
+      "prompt": "Review this TypeScript code:\n\n```typescript\ntype OrderId = string & { readonly __brand: 'OrderId' };\n\ntype OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';\n\ntype OrderResult =\n  | { status: 'success'; order: Order }\n  | { status: 'not_found' }\n  | { status: 'error'; message: string };\n\ninterface Order {\n  readonly id: OrderId;\n  readonly customerId: string;\n  status: OrderStatus;\n  items: readonly OrderItem[];\n}\n\n/**\n * Fetches an order by ID.\n * @param id - The branded order identifier\n * @returns The order result discriminated union\n */\nasync function fetchOrder(id: OrderId): Promise<OrderResult> {\n  const response = await fetch(`/api/orders/${id}`);\n  if (response.status === 404) return { status: 'not_found' };\n  if (!response.ok) return { status: 'error', message: `HTTP ${response.status}` };\n  const raw: unknown = await response.json();\n  return { status: 'success', order: raw as Order };\n}\n```",
+      "expectations": [
+        "Recognize that this code is already applying Effective TypeScript principles correctly",
+        "Acknowledge Item 37 (branded OrderId), Item 33 (OrderStatus literal union), Item 28/32 (tagged union OrderResult), Item 17 (readonly fields), Item 42 (unknown from JSON), Item 40 (assertion inside well-typed function), Item 25 (async/await), Item 48 (TSDoc)",
+        "Do NOT manufacture issues — the code is well-typed",
+        "At most offer minor suggestions, clearly marked as optional polish"
+      ]
+    }
+  ]
+}
