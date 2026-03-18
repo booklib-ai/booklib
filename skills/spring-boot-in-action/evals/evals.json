@@ -1,0 +1,39 @@
+{
+  "evals": [
+    {
+      "id": "eval-01-autoconfig-injection-hardcoding",
+      "prompt": "Review this Spring Boot code:\n\n```java\n@Configuration\npublic class AppConfig {\n    @Bean\n    public DataSource dataSource() {\n        DriverManagerDataSource ds = new DriverManagerDataSource();\n        ds.setUrl(\"jdbc:postgresql://prod-db.internal/orders\");\n        ds.setUsername(\"orders_user\");\n        ds.setPassword(\"S3cr3tP@ss\");\n        return ds;\n    }\n\n    @Bean\n    public ObjectMapper objectMapper() {\n        return new ObjectMapper();\n    }\n}\n\n@RestController\npublic class OrderController {\n    @Autowired\n    private OrderRepository orderRepository;\n\n    @Autowired\n    private OrderService orderService;\n\n    @GetMapping(\"/orders/{id}\")\n    public Order getOrder(@PathVariable Long id) {\n        return orderRepository.findById(id).orElse(null);\n    }\n\n    @PostMapping(\"/orders\")\n    public Order createOrder(@RequestBody Order order) {\n        return orderService.place(order);\n    }\n}\n```",
+      "expectations": [
+        "Flag Ch 2/3: Manual DataSource @Bean fights Spring Boot auto-configuration — delete AppConfig.dataSource() and move connection details to application.properties using spring.datasource.url/username/password",
+        "Flag Ch 3: Credentials hardcoded in source code — must be externalized to environment variables: spring.datasource.password=${DB_PASS}",
+        "Flag Ch 2: ObjectMapper @Bean is unnecessary — Spring Boot auto-configures Jackson; only define a custom ObjectMapper when you need to change behavior",
+        "Flag Ch 2: @Autowired field injection on OrderRepository and OrderService — replace with constructor injection for testability",
+        "Flag Ch 2: getOrder returns null (200 with null body) when not found — use Optional.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build()) or throw ResponseStatusException(NOT_FOUND)",
+        "Flag Ch 2: createOrder returns 200 — POST that creates a resource should return 201 Created with a Location header; use ResponseEntity.created(uri).body(saved)"
+      ]
+    },
+    {
+      "id": "eval-02-testing-antipatterns",
+      "prompt": "Review this Spring Boot test code:\n\n```java\n@SpringBootTest\npublic class ProductControllerTest {\n    @Autowired\n    private ProductController controller;\n\n    @Autowired\n    private ProductRepository repo;\n\n    @Test\n    public void testGetProduct() {\n        Product p = new Product(null, \"Widget\", 9.99);\n        repo.save(p);\n        Product result = controller.getProduct(p.getId());\n        assertNotNull(result);\n        assertEquals(\"Widget\", result.getName());\n    }\n\n    @Test\n    public void testCreateProduct() {\n        Product p = new Product(null, \"Gadget\", 19.99);\n        Product result = controller.createProduct(p);\n        assertNotNull(result.getId());\n    }\n\n    @Test\n    public void testAdminEndpoint() {\n        // No auth setup — just calls controller directly\n        String result = controller.adminDashboard();\n        assertNotNull(result);\n    }\n}\n```",
+      "expectations": [
+        "Flag Ch 4: @SpringBootTest loads the full application context for what are simple controller tests — use @WebMvcTest(ProductController.class) with MockMvc for fast, isolated controller tests",
+        "Flag Ch 4: Directly calling controller.getProduct() bypasses HTTP layer — no status code, content-type, or header assertions are possible; use MockMvc.perform(get(...)).andExpect(status().isOk())",
+        "Flag Ch 4: testAdminEndpoint calls controller directly with no authentication context — use @WithMockUser(roles='ADMIN') and MockMvc to assert 403 for unauthorized and 200 for authorized access",
+        "Flag Ch 4: Tests use a real ProductRepository writing to the database — in a @WebMvcTest test, use @MockBean ProductService to isolate the controller from persistence",
+        "Flag Ch 4: No negative test cases — missing test for product not found (expect 404), and no test verifying createProduct returns 201 with a Location header",
+        "Provide corrected test class using @WebMvcTest, MockMvc, @MockBean, @WithMockUser, and assertions on HTTP status codes and response JSON"
+      ]
+    },
+    {
+      "id": "eval-03-idiomatic-spring-boot",
+      "prompt": "Review this Spring Boot code:\n\n```java\n@SpringBootApplication\npublic class LibraryApp {\n    public static void main(String[] args) {\n        SpringApplication.run(LibraryApp.class, args);\n    }\n}\n\n@RestController\n@RequestMapping(\"/api/books\")\npublic class BookController {\n    private final BookService service;\n\n    public BookController(BookService service) {\n        this.service = service;\n    }\n\n    @GetMapping(\"/{id}\")\n    public ResponseEntity<Book> getBook(@PathVariable Long id) {\n        return ResponseEntity.ok(service.findById(id));\n    }\n\n    @PostMapping\n    public ResponseEntity<Book> createBook(@RequestBody Book book) {\n        Book saved = service.save(book);\n        URI location = URI.create(\"/api/books/\" + saved.getId());\n        return ResponseEntity.created(location).body(saved);\n    }\n}\n\n@Service\npublic class BookService {\n    private static final Logger log = LoggerFactory.getLogger(BookService.class);\n    private final BookRepository repo;\n\n    public BookService(BookRepository repo) { this.repo = repo; }\n\n    public Book findById(Long id) {\n        return repo.findById(id)\n                   .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));\n    }\n\n    public Book save(Book book) { return repo.save(book); }\n}\n```\n\n```properties\nspring.datasource.url=${DB_URL:jdbc:h2:mem:library}\nspring.datasource.username=${DB_USER:sa}\nspring.datasource.password=${DB_PASS:}\nspring.jpa.hibernate.ddl-auto=validate\nmanagement.endpoints.web.exposure.include=health,info\n```",
+      "expectations": [
+        "Recognize this code is idiomatic Spring Boot — do NOT manufacture issues",
+        "Acknowledge correct patterns: @SpringBootApplication (Ch 1), constructor injection in both controller and service (Ch 2), ResponseEntity with correct 200/201 status codes and Location header (Ch 2), Optional.orElseThrow with ResponseStatusException for clean 404 (Ch 2), SLF4J logger (Ch 3), externalized config with env-var defaults (Ch 3), Actuator locked to health+info (Ch 7)",
+        "At most note: ResponseStatusException could include a descriptive message like 'Book ' + id + ' not found' for better client error messages",
+        "At most suggest: adding spring-boot-starter-actuator dependency if not already present to enable the management.endpoints config",
+        "Do NOT flag the absence of @Autowired — constructor injection is the preferred style and Spring auto-wires single constructors without any annotation"
+      ]
+    }
+  ]
+}
