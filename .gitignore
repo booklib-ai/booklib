@@ -3,3 +3,5 @@ node_modules/
 __pycache__/
 *.pyc
 *.png
+!docs/*.png
+!assets/*.png
