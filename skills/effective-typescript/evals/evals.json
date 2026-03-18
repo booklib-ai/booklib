@@ -29,6 +29,7 @@
         "Recognize that this code is already applying Effective TypeScript principles correctly",
         "Acknowledge Item 37 (branded OrderId), Item 33 (OrderStatus literal union), Item 28/32 (tagged union OrderResult), Item 17 (readonly fields), Item 42 (unknown from JSON), Item 40 (assertion inside well-typed function), Item 25 (async/await), Item 48 (TSDoc)",
         "Do NOT manufacture issues — the code is well-typed",
+        "At most note: raw as Order on the last line is a narrowly scoped assertion (Item 40) — acceptable inside a well-typed wrapper, but mention that a runtime validator (e.g. zod) would catch malformed API responses that TypeScript cannot",
         "At most offer minor suggestions, clearly marked as optional polish"
       ]
     }
