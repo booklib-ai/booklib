@@ -108,7 +108,7 @@
     }
     .skills-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
       gap: 14px;
     }
 
@@ -308,9 +308,12 @@
       const url = `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&fields=items(volumeInfo(imageLinks))&maxResults=1`;
       const d = await fetch(url).then(r => r.json());
       const links = d.items?.[0]?.volumeInfo?.imageLinks;
-      // Prefer largest available size; force HTTPS
-      const src = (links?.extraLarge || links?.large || links?.medium || links?.thumbnail || "")
-        .replace(/^http:/, "https:");
+      // thumbnail/smallThumbnail are the only sizes returned by a search query.
+      // Replacing zoom=1 with zoom=0 fetches the largest available version of the same image.
+      const src = (links?.thumbnail || links?.smallThumbnail || "")
+        .replace(/^http:/, "https:")
+        .replace("zoom=1", "zoom=0")
+        .replace("&edge=curl", "");
       if (src) {
         img.onload = () => img.classList.remove("loading");
         img.onerror = () => showFb(img);
