@@ -312,7 +312,7 @@
       // Replacing zoom=1 with zoom=0 fetches the largest available version of the same image.
       const src = (links?.thumbnail || links?.smallThumbnail || "")
         .replace(/^http:/, "https:")
-        .replace("zoom=1", "zoom=0")
+        .replace("zoom=1", "zoom=5")
         .replace("&edge=curl", "");
       if (src) {
         img.onload = () => img.classList.remove("loading");
