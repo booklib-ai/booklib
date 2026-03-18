@@ -283,6 +283,29 @@
     return name.split(/[\s-]+/).map(w => w[0]).join("").toUpperCase().slice(0, 3);
   }
 
+  // Cover image loading with two-step fallback:
+  // Open Library → Google Books → initials placeholder
+  // Open Library returns a 1×1 transparent pixel (HTTP 200) for missing covers,
+  // so we must check naturalWidth in onload, not just onerror.
+  function gbUrl(isbn) {
+    return `https://books.google.com/books/content?vid=ISBN${isbn}&printsec=frontcover&img=1&zoom=1&source=gbs_api`;
+  }
+  function showFb(img) {
+    img.style.display = "none";
+    const fb = img.nextElementSibling;
+    if (fb) fb.style.display = "flex";
+  }
+  function coverLoad(img) {
+    if (img.naturalWidth <= 1 || img.naturalHeight <= 1) coverErr(img);
+  }
+  function coverErr(img) {
+    if (img.dataset.tried === "gb") { showFb(img); return; }
+    img.dataset.tried = "gb";
+    img.onload = function() { if (this.naturalWidth <= 1 || this.naturalHeight <= 1) showFb(this); };
+    img.onerror = function() { showFb(this); };
+    img.src = gbUrl(img.dataset.isbn);
+  }
+
   function buildCard(skill) {
     const card = document.createElement("a");
     card.className = "skill-card";
@@ -292,9 +315,11 @@
 
     const coverHtml = skill.isbn
       ? `<img
-           src="https://covers.openlibrary.org/b/isbn/${skill.isbn}-M.jpg"
+           src="https://covers.openlibrary.org/b/isbn/${skill.isbn}-L.jpg"
+           data-isbn="${skill.isbn}"
            alt="${skill.book} cover"
-           onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
+           onload="coverLoad(this)"
+           onerror="coverErr(this)"
          />
          <div class="cover-fallback" style="display:none">
            <div class="initials">${initials(skill.book)}</div>
