@@ -153,6 +153,15 @@
       object-fit: cover;
       display: block;
     }
+    .cover-wrap img.loading {
+      background: linear-gradient(90deg, #161625 25%, #1e1e38 50%, #161625 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite linear;
+    }
+    @keyframes shimmer {
+      0%   { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
     .cover-fallback {
       width: 100%;
       height: 100%;
@@ -283,27 +292,35 @@
     return name.split(/[\s-]+/).map(w => w[0]).join("").toUpperCase().slice(0, 3);
   }
 
-  // Cover image loading with two-step fallback:
-  // Open Library → Google Books → initials placeholder
-  // Open Library returns a 1×1 transparent pixel (HTTP 200) for missing covers,
-  // so we must check naturalWidth in onload, not just onerror.
-  function gbUrl(isbn) {
-    return `https://books.google.com/books/content?vid=ISBN${isbn}&printsec=frontcover&img=1&zoom=1&source=gbs_api`;
-  }
+  // Fetch cover URL from Google Books JSON API.
+  // Using the API (not direct hotlinking) avoids false-positive placeholder images
+  // ("No preview available" hatch / "image not available" text) that Google returns
+  // as HTTP 200 responses — the API simply omits imageLinks when no cover exists.
   function showFb(img) {
     img.style.display = "none";
     const fb = img.nextElementSibling;
     if (fb) fb.style.display = "flex";
   }
-  function coverLoad(img) {
-    if (img.naturalWidth <= 1 || img.naturalHeight <= 1) coverErr(img);
-  }
-  function coverErr(img) {
-    if (img.dataset.tried === "gb") { showFb(img); return; }
-    img.dataset.tried = "gb";
-    img.onload = function() { if (this.naturalWidth <= 1 || this.naturalHeight <= 1) showFb(this); };
-    img.onerror = function() { showFb(this); };
-    img.src = gbUrl(img.dataset.isbn);
+
+  async function loadCover(img) {
+    const isbn = img.dataset.isbn;
+    try {
+      const url = `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&fields=items(volumeInfo(imageLinks))&maxResults=1`;
+      const d = await fetch(url).then(r => r.json());
+      const links = d.items?.[0]?.volumeInfo?.imageLinks;
+      // Prefer largest available size; force HTTPS
+      const src = (links?.extraLarge || links?.large || links?.medium || links?.thumbnail || "")
+        .replace(/^http:/, "https:");
+      if (src) {
+        img.onload = () => img.classList.remove("loading");
+        img.onerror = () => showFb(img);
+        img.src = src;
+      } else {
+        showFb(img);
+      }
+    } catch {
+      showFb(img);
+    }
   }
 
   function buildCard(skill) {
@@ -315,11 +332,9 @@
 
     const coverHtml = skill.isbn
       ? `<img
-           src="https://covers.openlibrary.org/b/isbn/${skill.isbn}-L.jpg"
+           class="loading"
            data-isbn="${skill.isbn}"
            alt="${skill.book} cover"
-           onload="coverLoad(this)"
-           onerror="coverErr(this)"
          />
          <div class="cover-fallback" style="display:none">
            <div class="initials">${initials(skill.book)}</div>
@@ -381,6 +396,8 @@
   // Build grid
   const grid = document.getElementById("grid");
   SKILLS.forEach(skill => grid.appendChild(buildCard(skill)));
+  // Kick off async cover loading after DOM is populated
+  document.querySelectorAll("img[data-isbn]").forEach(loadCover);
 </script>
 
 </body>
