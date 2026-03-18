@@ -4,7 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>booklib-ai/skills — Book-grounded AI agent skills</title>
-  <meta name="description" content="18 AI agent skills grounded in canonical programming books. Give your AI coding assistant expert knowledge from Clean Code, Effective Java, DDD, and more."/>
+  <meta name="description" content="22 AI agent skills grounded in canonical programming books. Give your AI coding assistant expert knowledge from Clean Code, Effective Java, DDD, and more."/>
   <meta property="og:title" content="booklib-ai/skills"/>
   <meta property="og:description" content="Book-grounded AI agent skills for Claude Code, Cursor, Copilot, and Windsurf."/>
   <meta property="og:image" content="https://booklib-ai.github.io/skills/logo.png"/>
@@ -28,7 +28,7 @@
       max-width: 720px;
       margin: 0 auto;
     }
-    .hero img { width: 96px; height: 96px; margin-bottom: 24px; }
+    .hero img.logo { width: 96px; height: 96px; margin-bottom: 24px; }
     .hero h1 { font-size: 2.5rem; font-weight: 700; color: #f1f5f9; letter-spacing: -0.03em; }
     .hero p {
       font-size: 1.125rem;
@@ -40,7 +40,7 @@
     }
 
     /* Install */
-    .install {
+    #install {
       display: flex;
       align-items: center;
       justify-content: center;
@@ -58,6 +58,11 @@
       color: #a5b4fc;
       cursor: pointer;
       user-select: all;
+      transition: border-color 0.2s;
+    }
+    .install-box.highlighted {
+      border-color: #6366f1;
+      color: #c7d2fe;
     }
     .copy-btn {
       background: #6366f1;
@@ -84,7 +89,7 @@
 
     /* Skills grid */
     .skills-section {
-      max-width: 900px;
+      max-width: 1100px;
       margin: 64px auto;
       padding: 0 24px;
     }
@@ -92,28 +97,117 @@
       font-size: 1.5rem;
       font-weight: 700;
       color: #f1f5f9;
-      margin-bottom: 24px;
+      margin-bottom: 8px;
       text-align: center;
+    }
+    .skills-section .subtitle {
+      text-align: center;
+      color: #64748b;
+      font-size: 0.9rem;
+      margin-bottom: 32px;
     }
     .skills-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 16px;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 20px;
     }
+
+    /* Card */
     .skill-card {
       background: #11111f;
       border: 1px solid #1e1e35;
       border-radius: 12px;
-      padding: 20px;
-      transition: border-color 0.15s, transform 0.15s;
+      overflow: hidden;
+      cursor: pointer;
+      transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+      display: flex;
+      flex-direction: column;
+      text-decoration: none;
+      color: inherit;
     }
     .skill-card:hover {
       border-color: #6366f1;
-      transform: translateY(-2px);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(99, 102, 241, 0.15);
+      text-decoration: none;
     }
-    .skill-card .icon { font-size: 1.5rem; margin-bottom: 10px; }
-    .skill-card h3 { font-size: 0.95rem; font-weight: 600; color: #e2e8f0; margin-bottom: 6px; }
-    .skill-card p { font-size: 0.825rem; color: #64748b; line-height: 1.5; }
+    .skill-card.active {
+      border-color: #818cf8;
+      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3);
+    }
+
+    /* Book cover area */
+    .cover-wrap {
+      width: 100%;
+      aspect-ratio: 2 / 3;
+      background: #161625;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+    .cover-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .cover-fallback {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      text-align: center;
+      gap: 8px;
+    }
+    .cover-fallback .initials {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #6366f1;
+      line-height: 1;
+    }
+    .cover-fallback .fallback-title {
+      font-size: 0.75rem;
+      color: #64748b;
+      line-height: 1.3;
+    }
+
+    /* Card body */
+    .card-body {
+      padding: 14px 16px 16px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .card-body .skill-name {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #a5b4fc;
+      font-family: "SF Mono", "Fira Code", monospace;
+      word-break: break-all;
+    }
+    .card-body .book-title {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #e2e8f0;
+      line-height: 1.3;
+      margin-top: 2px;
+    }
+    .card-body .book-author {
+      font-size: 0.75rem;
+      color: #64748b;
+    }
+    .card-body .card-desc {
+      font-size: 0.775rem;
+      color: #475569;
+      line-height: 1.45;
+      margin-top: 6px;
+    }
 
     /* Footer */
     footer {
@@ -129,13 +223,13 @@
 <body>
 
 <section class="hero">
-  <img src="https://raw.githubusercontent.com/booklib-ai/skills/main/assets/logo.svg" alt="booklib-ai skills logo"/>
+  <img class="logo" src="https://raw.githubusercontent.com/booklib-ai/skills/main/assets/logo.svg" alt="booklib-ai skills logo"/>
   <h1>Skills</h1>
   <p>Book-grounded AI agent skills — expert knowledge from canonical programming books, packaged for Claude Code, Cursor, Copilot, and Windsurf.</p>
 
-  <div class="install">
+  <div id="install">
     <div class="install-box" id="cmd">npx skills add booklib-ai/skills --all -g</div>
-    <button class="copy-btn" onclick="copy()">Copy</button>
+    <button class="copy-btn" onclick="copyCmd()">Copy</button>
   </div>
 
   <div class="badges">
@@ -147,40 +241,121 @@
 </section>
 
 <section class="skills-section">
-  <h2>18 skills, 18 books</h2>
-  <div class="skills-grid">
-    <div class="skill-card"><div class="icon">🎬</div><h3>animation-at-work</h3><p>Web animation principles from Rachel Nabors — motion perception, 12 animation principles, performance.</p></div>
-    <div class="skill-card"><div class="icon">🧹</div><h3>clean-code-reviewer</h3><p>Code review against Robert C. Martin's Clean Code — naming, functions, comments, classes.</p></div>
-    <div class="skill-card"><div class="icon">🗄️</div><h3>data-intensive-patterns</h3><p>Reliable, scalable systems from Martin Kleppmann — storage engines, replication, transactions.</p></div>
-    <div class="skill-card"><div class="icon">🔀</div><h3>data-pipelines</h3><p>Pipeline practices from James Densmore — ingestion, streaming, transformation, orchestration.</p></div>
-    <div class="skill-card"><div class="icon">🏗️</div><h3>design-patterns</h3><p>GoF design patterns from Head First Design Patterns — creational, structural, behavioral.</p></div>
-    <div class="skill-card"><div class="icon">🧩</div><h3>domain-driven-design</h3><p>Eric Evans' DDD — Aggregates, Value Objects, Bounded Contexts, Ubiquitous Language.</p></div>
-    <div class="skill-card"><div class="icon">☕</div><h3>effective-java</h3><p>Joshua Bloch's Effective Java — object creation, generics, enums, lambdas, concurrency.</p></div>
-    <div class="skill-card"><div class="icon">🛡️</div><h3>effective-kotlin</h3><p>Marcin Moskała's Effective Kotlin — safety, readability, reusability, abstraction.</p></div>
-    <div class="skill-card"><div class="icon">🐍</div><h3>effective-python</h3><p>Brett Slatkin's Effective Python — Pythonic thinking, functions, classes, concurrency.</p></div>
-    <div class="skill-card"><div class="icon">⚡</div><h3>kotlin-in-action</h3><p>Kotlin in Action — functions, classes, lambdas, nullability, coroutines, flows.</p></div>
-    <div class="skill-card"><div class="icon">🚀</div><h3>lean-startup</h3><p>Eric Ries' The Lean Startup — MVP testing, validated learning, Build-Measure-Learn.</p></div>
-    <div class="skill-card"><div class="icon">🔧</div><h3>microservices-patterns</h3><p>Chris Richardson — decomposition, sagas, API gateways, event sourcing, CQRS.</p></div>
-    <div class="skill-card"><div class="icon">🎨</div><h3>refactoring-ui</h3><p>Refactoring UI by Wathan &amp; Schoger — visual hierarchy, layout, typography, color.</p></div>
-    <div class="skill-card"><div class="icon">🗺️</div><h3>skill-router</h3><p><strong>Meta-skill.</strong> Automatically selects the 1–2 most relevant skills for any task.</p></div>
-    <div class="skill-card"><div class="icon">📊</div><h3>storytelling-with-data</h3><p>Cole Nussbaumer Knaflic — effective visuals, decluttering, narrative structure.</p></div>
-    <div class="skill-card"><div class="icon">🏛️</div><h3>system-design-interview</h3><p>Alex Xu — scaling, estimation, load balancing, caching, sharding, real-world designs.</p></div>
-    <div class="skill-card"><div class="icon">🔄</div><h3>using-asyncio-python</h3><p>Caleb Hattingh — coroutines, event loop, tasks, signal handling, aiohttp.</p></div>
-    <div class="skill-card"><div class="icon">🕷️</div><h3>web-scraping-python</h3><p>Ryan Mitchell — BeautifulSoup, Scrapy, Selenium, data storage, anti-detection.</p></div>
-  </div>
+  <h2>22 skills, 22 books</h2>
+  <p class="subtitle">Click any skill to see its install command</p>
+  <div class="skills-grid" id="grid"></div>
 </section>
 
 <footer>
-  <p>MIT License · <a href="https://github.com/booklib-ai/skills">GitHub</a> · <a href="https://github.com/booklib-ai/skills/blob/main/CONTRIBUTING.md">Contributing</a> · <a href="https://github.com/booklib-ai/skills/blob/main/AGENTS.md">Agent Setup</a></p>
+  <p>MIT License &middot; <a href="https://github.com/booklib-ai/skills">GitHub</a> &middot; <a href="https://github.com/booklib-ai/skills/blob/main/CONTRIBUTING.md">Contributing</a> &middot; <a href="https://github.com/booklib-ai/skills/blob/main/AGENTS.md">Agent Setup</a></p>
 </footer>
 
 <script>
-  function copy() {
-    navigator.clipboard.writeText(document.getElementById('cmd').textContent);
-    const btn = document.querySelector('.copy-btn');
-    btn.textContent = 'Copied!';
-    setTimeout(() => btn.textContent = 'Copy', 2000);
+  const SKILLS = [
+    { name: "animation-at-work",      book: "Animation at Work",                   author: "Rachel Nabors",          isbn: "9781937557942", desc: "Motion perception, 12 animation principles, CSS transitions, and performance." },
+    { name: "clean-code-reviewer",    book: "Clean Code",                           author: "Robert C. Martin",       isbn: "9780132350884", desc: "Naming, functions, comments, classes, and the Boy Scout Rule." },
+    { name: "data-intensive-patterns",book: "Designing Data-Intensive Applications",author: "Martin Kleppmann",       isbn: "9781449373320", desc: "Storage engines, replication, transactions, and distributed systems." },
+    { name: "data-pipelines",         book: "Data Pipelines Pocket Reference",      author: "James Densmore",         isbn: "9781492087601", desc: "Ingestion, streaming, transformation, and orchestration." },
+    { name: "design-patterns",        book: "Head First Design Patterns",           author: "Freeman & Robson",       isbn: "9781492078005", desc: "GoF creational, structural, and behavioral patterns in depth." },
+    { name: "domain-driven-design",   book: "Domain-Driven Design",                author: "Eric Evans",             isbn: "9780321125217", desc: "Aggregates, Value Objects, Bounded Contexts, Ubiquitous Language." },
+    { name: "effective-java",         book: "Effective Java",                       author: "Joshua Bloch",           isbn: "9780134685991", desc: "Object creation, generics, enums, lambdas, and concurrency." },
+    { name: "effective-kotlin",       book: "Effective Kotlin",                     author: "Marcin Moskala",         isbn: "9781803248776", desc: "Safety, readability, reusability, and abstraction." },
+    { name: "effective-python",       book: "Effective Python",                     author: "Brett Slatkin",          isbn: "9780134853987", desc: "Pythonic thinking, functions, classes, concurrency, and testing." },
+    { name: "effective-typescript",   book: "Effective TypeScript",                 author: "Dan Vanderkam",          isbn: "9781492053743", desc: "Type system, type design, avoiding any, declarations, and migration." },
+    { name: "kotlin-in-action",       book: "Kotlin in Action",                     author: "Elizarov & Isakova",     isbn: "9781617293290", desc: "Functions, classes, lambdas, nullability, coroutines, and flows." },
+    { name: "lean-startup",           book: "The Lean Startup",                     author: "Eric Ries",              isbn: "9780307887894", desc: "MVP testing, validated learning, Build-Measure-Learn loop." },
+    { name: "microservices-patterns", book: "Microservices Patterns",               author: "Chris Richardson",       isbn: "9781617294549", desc: "Decomposition, sagas, API gateways, event sourcing, and CQRS." },
+    { name: "programming-with-rust",  book: "Programming with Rust",                author: "Donis Marshall",         isbn: "9780137889655", desc: "Ownership, borrowing, lifetimes, error handling, traits, concurrency." },
+    { name: "refactoring-ui",         book: "Refactoring UI",                       author: "Wathan & Schoger",       isbn: null,            desc: "Visual hierarchy, layout, typography, color, and spacing." },
+    { name: "rust-in-action",         book: "Rust in Action",                       author: "Tim McNamara",           isbn: "9781617294556", desc: "Systems programming — smart pointers, memory, networking, OS." },
+    { name: "skill-router",           book: "Meta-skill",                           author: "booklib-ai",             isbn: null,            desc: "Automatically routes to the most relevant skill for any task." },
+    { name: "spring-boot-in-action",  book: "Spring Boot in Action",                author: "Craig Walls",            isbn: "9781617292545", desc: "Auto-configuration, starters, testing, Actuator, and deployment." },
+    { name: "storytelling-with-data", book: "Storytelling with Data",               author: "Cole Nussbaumer Knaflic",isbn: "9781119002253", desc: "Effective visuals, decluttering, and narrative structure." },
+    { name: "system-design-interview",book: "System Design Interview",              author: "Alex Xu",                isbn: "9798664653403", desc: "Scaling, estimation, load balancing, caching, and sharding." },
+    { name: "using-asyncio-python",   book: "Using Asyncio in Python",              author: "Caleb Hattingh",         isbn: "9781492075325", desc: "Coroutines, event loop, tasks, and signal handling." },
+    { name: "web-scraping-python",    book: "Web Scraping with Python",             author: "Ryan Mitchell",          isbn: "9781491985564", desc: "BeautifulSoup, Scrapy, Selenium, and data storage." },
+  ];
+
+  const ALL_CMD = "npx skills add booklib-ai/skills --all -g";
+  let activeCard = null;
+
+  function initials(name) {
+    return name.split(/[\s-]+/).map(w => w[0]).join("").toUpperCase().slice(0, 3);
   }
+
+  function buildCard(skill) {
+    const card = document.createElement("a");
+    card.className = "skill-card";
+    card.href = `https://github.com/booklib-ai/skills/tree/main/skills/${skill.name}`;
+    card.target = "_blank";
+    card.rel = "noopener";
+
+    const coverHtml = skill.isbn
+      ? `<img
+           src="https://covers.openlibrary.org/b/isbn/${skill.isbn}-M.jpg"
+           alt="${skill.book} cover"
+           onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
+         />
+         <div class="cover-fallback" style="display:none">
+           <div class="initials">${initials(skill.book)}</div>
+           <div class="fallback-title">${skill.book}</div>
+         </div>`
+      : `<div class="cover-fallback">
+           <div class="initials">${initials(skill.book)}</div>
+           <div class="fallback-title">${skill.book}</div>
+         </div>`;
+
+    card.innerHTML = `
+      <div class="cover-wrap">${coverHtml}</div>
+      <div class="card-body">
+        <div class="skill-name">${skill.name}</div>
+        <div class="book-title">${skill.book}</div>
+        <div class="book-author">${skill.author}</div>
+        <div class="card-desc">${skill.desc}</div>
+      </div>
+    `;
+
+    card.addEventListener("click", (e) => {
+      e.preventDefault();
+      selectSkill(skill, card);
+    });
+
+    return card;
+  }
+
+  function selectSkill(skill, card) {
+    // Deactivate previous
+    if (activeCard && activeCard !== card) {
+      activeCard.classList.remove("active");
+    }
+    const cmdEl = document.getElementById("cmd");
+
+    if (activeCard === card) {
+      // Deselect — back to install all
+      activeCard.classList.remove("active");
+      activeCard = null;
+      cmdEl.textContent = ALL_CMD;
+      cmdEl.classList.remove("highlighted");
+    } else {
+      activeCard = card;
+      card.classList.add("active");
+      cmdEl.textContent = `npx skills add booklib-ai/skills ${skill.name} -g`;
+      cmdEl.classList.add("highlighted");
+      document.getElementById("install").scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }
+
+  function copyCmd() {
+    const text = document.getElementById("cmd").textContent;
+    navigator.clipboard.writeText(text);
+    const btn = document.querySelector(".copy-btn");
+    btn.textContent = "Copied!";
+    setTimeout(() => btn.textContent = "Copy", 2000);
+  }
+
+  // Build grid
+  const grid = document.getElementById("grid");
+  SKILLS.forEach(skill => grid.appendChild(buildCard(skill)));
 </script>
 
 </body>
