@@ -24,6 +24,14 @@ You are a skill selector for the `@booklib/skills` library — a collection of 1
 
 ## Routing Process
 
+### Step 0 — Establish Input Scope
+
+Before routing, pin what you're actually reviewing:
+
+1. **Prefer `git diff` as default scope.** If the user asks to review code without specifying files, default to the current diff — not the entire codebase. Routing a skill against 10,000 lines of unchanged code wastes context and dilutes findings.
+2. **Check for a CLAUDE.md.** If one exists, read it before routing. Project conventions (language standards, test requirements, banned patterns) affect which skill is most relevant and what the selected skill should prioritize.
+3. **Identify the specific files or scope** from the user's message. If genuinely ambiguous, ask before routing.
+
 ### Step 1 — Classify the Work Type
 
 Identify what the user is trying to do:
@@ -92,11 +100,17 @@ Some skill pairs can conflict. Resolve using these rules:
 Format your output as:
 
 ```
+**Scope:** [files or git diff being reviewed]
 **Primary skill:** `skill-name`
 **Why:** [1-2 sentence rationale tying the task to the skill's domain]
 **Secondary (optional):** `skill-name` — [brief rationale] OR none
 **Don't apply:** `skill-name` — [why it would produce irrelevant feedback]
 ```
+
+When instructing the selected skill(s), tell them to:
+- Classify each finding as **HIGH** (correctness/security/data loss), **MEDIUM** (design/maintainability), or **LOW** (style/naming)
+- Reference findings as `file.ext:line` — not just "line 42" or "the function"
+- Skip findings below the threshold for the work type: **review** → HIGH + MEDIUM; **migrate/design** → all tiers
 
 If you're genuinely uncertain between two equally applicable skills, say so and recommend applying both in sequence, primary first.
 
@@ -118,28 +132,37 @@ Do NOT route to a skill if:
 ```
 User: "Review my Python class for code quality"
 
+Scope: orders/service.py (specified file)
 Primary skill: clean-code-reviewer
 Why: Language-agnostic code quality review is exactly Clean Code's domain — naming, functions, comments, classes.
 Secondary: none
 Don't apply: effective-python — Python-specific idioms are not the concern here; effective-python would focus on list comprehensions and context managers, not the general code quality issues Clean Code addresses.
+
+→ Instruct clean-code-reviewer to classify findings as HIGH/MEDIUM/LOW and reference each as orders/service.py:line.
 ```
 
 **Example 2 — Conflict case:**
 ```
 User: "I'm building a new microservice for our e-commerce platform. Review the domain model."
 
+Scope: git diff (new files in src/domain/)
 Primary skill: domain-driven-design
 Why: The request is about domain model design — Aggregates, Value Objects, Bounded Contexts. DDD is the authoritative source.
 Secondary: microservices-patterns — apply after DDD review to check service boundaries, database ownership, and communication patterns.
 Don't apply: clean-code-reviewer — code quality review is premature at the design stage; apply later when implementation code exists.
+
+→ Instruct both skills to classify findings as HIGH/MEDIUM/LOW and reference each as file:line.
 ```
 
 **Example 3 — Already routed (positive case):**
 ```
 User: "Use the effective-java skill to review my builder pattern"
 
+Scope: user specified — confirm with them if files aren't clear
 Primary skill: effective-java (already specified by user — confirm and proceed)
 Why: User correctly identified the skill. effective-java Item 2 covers the Builder pattern directly.
 Secondary: none
 Don't apply: design-patterns — GoF Builder pattern is covered, but Effective Java's opinionated take on Java-specific Builder is more directly applicable.
+
+→ Instruct effective-java to classify findings as HIGH/MEDIUM/LOW and reference each as file:line.
 ```

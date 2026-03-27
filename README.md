@@ -118,6 +118,8 @@ User: "Review my order processing service"
 
 This means skills compose: `skill-router` acts as an orchestrator that picks the right specialist skills for the context, without requiring the user to know the library upfront.
 
+**See it in action:** The [`benchmark/`](./benchmark/) folder contains a head-to-head comparison — same buggy Node.js file reviewed by the native PR toolkit vs. `skill-router` routing to `clean-code-reviewer` + `design-patterns`. The skill-router pipeline finds ~47% more unique issues and adds a full refactor roadmap with pattern sequence.
+
 ## Skills
 
 | Skill | Description |
@@ -144,6 +146,24 @@ This means skills compose: `skill-router` acts as an orchestrator that picks the
 | 🏛️ [system-design-interview](./skills/system-design-interview/) | System design principles from Alex Xu's *System Design Interview* — scaling, estimation, and real-world system designs |
 | 🔄 [using-asyncio-python](./skills/using-asyncio-python/) | Asyncio practices from Caleb Hattingh's *Using Asyncio in Python* — coroutines, event loop, tasks, and signal handling |
 | 🕷️ [web-scraping-python](./skills/web-scraping-python/) | Web scraping practices from Ryan Mitchell's *Web Scraping with Python* — BeautifulSoup, Scrapy, and data storage |
+
+## Contributing a skill
+
+If you've read a book that belongs here, you can add it. The bar is lower than you think:
+
+```bash
+# 1. Copy an existing skill as a template
+cp -r skills/clean-code-reviewer skills/your-book-name
+
+# 2. Edit SKILL.md, examples/, and evals/
+
+# 3. Validate before opening a PR
+npx @booklib/skills check your-book-name
+```
+
+The `check` command runs all evals and reports what passes and fails — you get a quality signal before anyone else sees the PR. See [CONTRIBUTING.md](./CONTRIBUTING.md) for the full guide.
+
+**Books with open issues** (tagged `good first issue`): [The Pragmatic Programmer](https://github.com/booklib-ai/skills/issues/2) · [Clean Architecture](https://github.com/booklib-ai/skills/issues/3) · [A Philosophy of Software Design](https://github.com/booklib-ai/skills/issues/4) · [Accelerate](https://github.com/booklib-ai/skills/issues/8) · [and more →](https://github.com/booklib-ai/skills/issues?q=is%3Aopen+label%3A%22good+first+issue%22)
 
 ## License
 
