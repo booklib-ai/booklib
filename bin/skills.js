@@ -13,6 +13,55 @@ const skillsRoot    = path.join(__dirname, '..', 'skills');
 const commandsRoot  = path.join(__dirname, '..', 'commands');
 const agentsRoot    = path.join(__dirname, '..', 'agents');
 
+// ─── Installation profiles ────────────────────────────────────────────────────
+const PROFILES = {
+  core: {
+    description: 'Routing + general code quality — a good starting point for any project',
+    skills: ['skill-router', 'clean-code-reviewer'],
+    agents: ['booklib-reviewer'],
+  },
+  python: {
+    description: 'Python best practices, async patterns, and web scraping',
+    skills: ['effective-python', 'using-asyncio-python', 'web-scraping-python'],
+    agents: ['python-reviewer'],
+  },
+  jvm: {
+    description: 'Java, Kotlin, and Spring Boot best practices',
+    skills: ['effective-java', 'effective-kotlin', 'kotlin-in-action', 'spring-boot-in-action'],
+    agents: ['jvm-reviewer'],
+  },
+  rust: {
+    description: 'Rust ownership, systems programming, and idiomatic patterns',
+    skills: ['programming-with-rust', 'rust-in-action'],
+    agents: ['rust-reviewer'],
+  },
+  ts: {
+    description: 'TypeScript type system and clean code for JS/TS projects',
+    skills: ['effective-typescript', 'clean-code-reviewer'],
+    agents: ['ts-reviewer'],
+  },
+  architecture: {
+    description: 'DDD, microservices, system design, and data-intensive patterns',
+    skills: ['domain-driven-design', 'microservices-patterns', 'system-design-interview', 'data-intensive-patterns'],
+    agents: ['architecture-reviewer'],
+  },
+  data: {
+    description: 'Data pipelines, ETL, and storage system patterns',
+    skills: ['data-intensive-patterns', 'data-pipelines'],
+    agents: ['data-reviewer'],
+  },
+  ui: {
+    description: 'UI design, data visualization, and web animations',
+    skills: ['refactoring-ui', 'storytelling-with-data', 'animation-at-work'],
+    agents: ['ui-reviewer'],
+  },
+  lean: {
+    description: 'Lean Startup methodology for product and feature decisions',
+    skills: ['lean-startup'],
+    agents: [],
+  },
+};
+
 // ─── ANSI helpers ─────────────────────────────────────────────────────────────
 const c = {
   bold:   s => `\x1b[1m${s}\x1b[0m`,
@@ -726,9 +775,23 @@ async function main() {
       const noCommands = args.includes('--no-commands');
       const noAgents   = args.includes('--no-agents');
       const agentArg   = args.find(a => a.startsWith('--agent='))?.split('=')[1];
+      const profileArg = args.find(a => a.startsWith('--profile='))?.split('=')[1];
       const skillName  = args.find(a => !a.startsWith('--') && a !== 'add');
 
-      if (agentArg) {
+      if (profileArg) {
+        const profile = PROFILES[profileArg];
+        if (!profile) {
+          console.error(c.red(`✗ Profile "${profileArg}" not found.`) + ' Run ' + c.cyan('skills profiles') + ' to see available profiles.');
+          process.exit(1);
+        }
+        profile.skills.forEach(s => copySkill(s, targetDir));
+        if (!noCommands) profile.skills.forEach(s => copyCommand(s));
+        if (!noAgents)   profile.agents.forEach(a => copyAgent(a));
+        const agentStr = profile.agents.length
+          ? `, ${profile.agents.length} agent${profile.agents.length > 1 ? 's' : ''}`
+          : '';
+        console.log(c.dim(`\nInstalled profile "${profileArg}": ${profile.skills.length} skills${agentStr}`));
+      } else if (agentArg) {
         // explicit: skills add --agent=booklib-reviewer
         const agents = getAvailableAgents();
         if (!agents.includes(agentArg)) {
@@ -853,20 +916,39 @@ async function main() {
       break;
     }
 
+    case 'profiles': {
+      const nameW = Math.max(...Object.keys(PROFILES).map(k => k.length)) + 2;
+      console.log('');
+      console.log(c.bold('  Installation profiles'));
+      console.log('  ' + c.line(60));
+      for (const [name, profile] of Object.entries(PROFILES)) {
+        const skillCount = `${profile.skills.length} skill${profile.skills.length !== 1 ? 's' : ''}`;
+        const agentPart  = profile.agents.length ? ` + ${profile.agents.length} agent` : '';
+        console.log(`  ${c.cyan(name.padEnd(nameW))}${c.dim(skillCount + agentPart)}`);
+        console.log(`  ${' '.repeat(nameW)}${profile.description}`);
+        console.log('');
+      }
+      console.log(c.dim(`  Install: ${c.cyan('skills add --profile=<name>')}`));
+      console.log('');
+      break;
+    }
+
     default:
       console.log(`
 ${c.bold('  @booklib/skills')} — book knowledge distilled into AI agent skills
 
 ${c.bold('  Usage:')}
     ${c.cyan('skills list')}                       list all available skills
+    ${c.cyan('skills profiles')}                   list available profiles
     ${c.cyan('skills info')}  ${c.dim('<name>')}               full description of a skill
     ${c.cyan('skills demo')}  ${c.dim('<name>')}               before/after example
-    ${c.cyan('skills add')}   ${c.dim('<name>')}               install skill + /command to .claude/
-    ${c.cyan('skills add --all')}                  install all skills + commands + agents
+    ${c.cyan('skills add')}   ${c.dim('--profile=<name>')}     install a profile (skills + commands + agent)
+    ${c.cyan('skills add')}   ${c.dim('<name>')}               install a single skill + /command
+    ${c.cyan('skills add --all')}                  install everything (skills + commands + agents)
     ${c.cyan('skills add')}   ${c.dim('<name> --global')}      install globally (~/.claude/)
-    ${c.cyan('skills add')}   ${c.dim('<name> --no-commands')} install skill only, skip command
     ${c.cyan('skills add')}   ${c.dim('--agent=<name>')}       install a single agent to .claude/agents/
-    ${c.cyan('skills add --all --no-agents')}      install skills + commands, skip agents
+    ${c.cyan('skills add')}   ${c.dim('--no-commands')}        skip /command installation
+    ${c.cyan('skills add')}   ${c.dim('--no-agents')}          skip agent installation
     ${c.cyan('skills check')} ${c.dim('<name>')}               quality check (Bronze/Silver/Gold/Platinum)
     ${c.cyan('skills check --all')}                quality summary for all skills
     ${c.cyan('skills update-readme')}              refresh README quality table from results.json files
