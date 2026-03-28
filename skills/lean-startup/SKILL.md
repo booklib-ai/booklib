@@ -53,7 +53,7 @@ Read `references/api_reference.md` for the full chapter-by-chapter catalog. Quic
 | Learning what customers want | Ch 3: Validated learning, value vs. waste, empirical evidence over opinions |
 | Running first experiments | Ch 4: Strategic planning through experimentation, Zappos-style MVP tests |
 | Identifying risky assumptions | Ch 5: Leap-of-faith assumptions, value hypothesis, growth hypothesis, genchi gembutsu |
-| Building the first product | Ch 6: MVP types (video, concierge, Wizard of Oz), quality in MVP context |
+| Building the first product | Ch 6: MVP types (video, concierge, Wizard of Oz, fake-door/smoke-test), quality in MVP context |
 | Measuring progress | Ch 7: Innovation accounting, actionable vs. vanity metrics, cohort analysis, funnel metrics |
 | Deciding pivot vs. persevere | Ch 8: Pivot catalog (zoom-in, zoom-out, customer segment, platform, etc.), runway as pivots remaining |
 | Optimizing development speed | Ch 9: Small batches, continuous deployment, single-piece flow, IMVU pull model |
@@ -73,7 +73,7 @@ Every strategy application should honor these principles:
 4. **Build-Measure-Learn** — Turn ideas into products, measure customer response, learn whether to pivot or persevere
 5. **Innovation accounting** — Hold entrepreneurs accountable with metrics that matter, not vanity metrics
 6. **Test the riskiest assumption first** — Identify and test leap-of-faith assumptions before building more
-7. **MVP is for learning, not launching** — The MVP tests a hypothesis; it's the fastest way to get through the Build-Measure-Learn loop
+7. **MVP is for learning, not launching** — The MVP tests a hypothesis; it's the fastest way to get through the Build-Measure-Learn loop. MVP types: video MVP (demonstrate value), concierge MVP (deliver value manually for a few users), Wizard of Oz (fake automation with humans behind the curtain), fake-door/smoke-test (measure demand before building — e.g., a "Coming soon — join waitlist" button to quantify click-through interest)
 8. **Actionable metrics over vanity metrics** — Use cohort analysis and split tests, not total signups or page views
 9. **Pivot or persevere is a structured decision** — Use innovation accounting data to make this call, not gut feeling
 10. **Sustainable growth comes from engines** — Identify which engine of growth (sticky, viral, paid) drives your business
@@ -83,7 +83,7 @@ Every strategy application should honor these principles:
 Follow these guidelines:
 
 - **Hypothesis-driven** — Frame every initiative as a testable hypothesis with clear success/failure criteria
-- **Smallest experiment** — Design the minimum experiment to test the riskiest assumption
+- **Smallest experiment** — Design the minimum experiment to test the riskiest assumption. When the assumption is *demand* (will users want this feature?), a fake-door test (prominent UI button leading to a "Coming soon — join waitlist" modal, measuring click-through rate) is often smaller and faster than a concierge or Wizard of Oz MVP
 - **Measurable outcomes** — Define actionable metrics before running the experiment
 - **Time-boxed** — Set clear deadlines for pivot/persevere decisions
 - **Learning-focused** — The goal is validated learning, not just building features
@@ -180,9 +180,18 @@ When reviewing startup/product strategies, read `references/review-checklist.md`
 
 **Before listing issues, determine the overall quality of the strategy:**
 
-- If the strategy **correctly applies** Lean Startup principles (falsifiable hypothesis, identified riskiest assumption, appropriate MVP type, quantified metrics, defined pivot/persevere criteria, tight learning cycle) → **lead with explicit praise for each correct practice**, then offer at most 1-2 minor optional improvements. Do NOT manufacture problems or apply nitpicks as "meaningful gaps."
+- If the strategy **correctly applies** Lean Startup principles (falsifiable hypothesis, identified riskiest assumption, appropriate MVP type, quantified metrics, defined pivot/persevere criteria, tight learning cycle) → **lead with explicit praise for each correct practice**, then offer at most 1-2 minor optional improvements framed as "optional enhancement" or "could consider." Do NOT manufacture problems, assign urgent priority labels (Priority 1, Priority 2), or frame optional tweaks as "genuine issues worth fixing."
 - If the strategy has **significant violations** (no user testing, no hypothesis, no MVP, vanity metrics, gut-feel decisions) → identify each issue clearly with the book chapter and a concrete fix.
 - Do not fill all review sections with content if some areas are handled well — an empty "Issues" section is correct when there are no issues.
+
+**Praising specific Lean Startup practices explicitly:**
+
+- When a hypothesis names a specific user segment, measurable behavior, and is falsifiable → praise this as exemplary validated learning (Ch 3).
+- When the riskiest assumption is **explicitly called out as a separate named item** (even if you might word it slightly differently) → praise the act of identifying it separately; do NOT critique the wording as "misframed." The Lean Startup skill is identifying the assumption — that is the right practice (Ch 5).
+- When an MVP avoids building real infrastructure and tests the value hypothesis through manual/human means (concierge, Wizard of Oz) → praise this explicitly (Ch 6).
+- When success metrics have **specific numerical thresholds** (e.g., "70% open rate", "5 of 8 users", "3 conversion signals") → praise the quantification as actionable metrics, even if you would personally choose different metrics (Ch 7). Do not flag specific metrics as "weak" when the strategy has clearly set measurable thresholds.
+- When pivot/persevere criteria are **defined before the experiment runs** → praise this as structured decision-making (Ch 8).
+- When the learning cycle is short (≤6 weeks) → praise the tight timeline (Ch 9).
 
 ### Review Output Format
 
@@ -213,7 +222,7 @@ Each recommendation references the specific chapter/concept.
 
 - **Building without testing assumptions** → Ch 5: Identify and test leap-of-faith assumptions before building
 - **Vanity metrics as success indicators** → Ch 7: Replace total signups/pageviews with cohort analysis and actionable metrics
-- **MVP as "version 1.0"** → Ch 6: MVP is an experiment, not a product launch; it tests a hypothesis
+- **MVP as "version 1.0"** → Ch 6: MVP is an experiment, not a product launch; it tests a hypothesis. For demand validation before any build, prefer a fake-door/smoke-test (a "Coming soon" button measuring click-through rate) over committing to a full concierge or Wizard of Oz build
 - **No innovation accounting** → Ch 7: Establish baseline, tune engine, then pivot or persevere
 - **Gut-feel pivot decisions** → Ch 8: Use data from innovation accounting to decide; hold regular pivot meetings
 - **Big-batch development** → Ch 9: Ship in small batches; continuous deployment over big releases
@@ -236,7 +245,7 @@ Each recommendation references the specific chapter/concept.
 - **Metrics must be actionable, accessible, and auditable** — The three A's of good metrics
 - **Pivots are not failures** — They are structured course corrections based on learning
 - **The goal is sustainable business, not just product** — Business model validation matters
-- **Calibrate feedback to the quality of the work** — A well-designed experiment deserves explicit praise; do not manufacture issues to appear thorough
-- **Praise correct application explicitly** — When a hypothesis is falsifiable, say so. When an MVP type is correctly chosen, say so. When pivot/persevere criteria are pre-defined, say so. Naming what is correct is as important as naming what is wrong.
+- **Calibrate feedback to the quality of the work** — A well-designed experiment deserves explicit praise; do not manufacture issues to appear thorough. If a strategy correctly applies Lean Startup principles, do NOT add "Priority 1" or "Priority 2" labels to minor observations — frame them as optional enhancements or leave the Issues section empty.
+- **Praise correct application explicitly** — When a hypothesis is falsifiable, say so. When a riskiest assumption is named separately (even if worded differently than you would choose), praise the identification. When an MVP type is correctly chosen, say so. When pivot/persevere criteria are pre-defined, say so. When metrics have specific numerical thresholds, praise the quantification. Naming what is correct is as important as naming what is wrong.
 - For deeper practice details, read `references/api_reference.md` before applying strategy.
 - For review checklists, read `references/review-checklist.md` before reviewing strategy.

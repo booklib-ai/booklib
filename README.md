@@ -160,28 +160,28 @@ Skills are evaluated with and without the skill active, using `claude-haiku-4-5`
 <!-- quality-table-start -->
 | Skill | Pass Rate | Baseline | Delta | Evals | Last Run |
 |-------|-----------|----------|-------|-------|----------|
-| animation-at-work | — | — | — | — | — |
-| clean-code-reviewer | 91% ⚠ | 59% | +33pp | 15 | 2026-03-28 |
-| data-intensive-patterns | — | — | — | — | — |
-| data-pipelines | — | — | — | — | — |
-| design-patterns | — | — | — | — | — |
-| domain-driven-design | — | — | — | — | — |
-| effective-java | — | — | — | — | — |
-| effective-kotlin | — | — | — | — | — |
-| effective-python | — | — | — | — | — |
-| effective-typescript | — | — | — | — | — |
-| kotlin-in-action | — | — | — | — | — |
-| lean-startup | — | — | — | — | — |
-| microservices-patterns | — | — | — | — | — |
-| programming-with-rust | — | — | — | — | — |
-| refactoring-ui | — | — | — | — | — |
-| rust-in-action | — | — | — | — | — |
-| skill-router | — | — | — | — | — |
-| spring-boot-in-action | — | — | — | — | — |
-| storytelling-with-data | — | — | — | — | — |
-| system-design-interview | — | — | — | — | — |
-| using-asyncio-python | — | — | — | — | — |
-| web-scraping-python | — | — | — | — | — |
+| animation-at-work | 96% | 64% | +32pp | 3 | 2026-03-28 |
+| clean-code-reviewer | 91% | 59% | +33pp | 15 | 2026-03-28 |
+| data-intensive-patterns | 86% | 67% | +19pp | 3 | 2026-03-28 |
+| data-pipelines | 96% | 30% | +65pp | 3 | 2026-03-28 |
+| design-patterns | 100% | 67% | +33pp | 3 | 2026-03-28 |
+| domain-driven-design | 100% | 65% | +35pp | 3 | 2026-03-28 |
+| effective-java | 92% | 67% | +25pp | 3 | 2026-03-28 |
+| effective-kotlin | 100% | 56% | +44pp | 3 | 2026-03-28 |
+| effective-python | 91% | 50% | +41pp | 3 | 2026-03-28 |
+| effective-typescript | 93% | 27% | +67pp | 3 | 2026-03-28 |
+| kotlin-in-action | 95% | 57% | +38pp | 3 | 2026-03-28 |
+| lean-startup | 100% | 52% | +48pp | 3 | 2026-03-28 |
+| microservices-patterns | 100% | 70% | +30pp | 3 | 2026-03-28 |
+| programming-with-rust | 100% | 73% | +27pp | 3 | 2026-03-28 |
+| refactoring-ui | 91% | 39% | +52pp | 3 | 2026-03-28 |
+| rust-in-action | 94% | 63% | +31pp | 3 | 2026-03-28 |
+| skill-router | 94% | 69% | +25pp | 3 | 2026-03-28 |
+| spring-boot-in-action | 100% | 65% | +35pp | 3 | 2026-03-28 |
+| storytelling-with-data | 100% | 100% | +0pp | 3 | 2026-03-28 |
+| system-design-interview | 100% | 52% | +48pp | 3 | 2026-03-28 |
+| using-asyncio-python | 91% | 67% | +24pp | 3 | 2026-03-28 |
+| web-scraping-python | 96% | 38% | +58pp | 3 | 2026-03-28 |
 <!-- quality-table-end -->
 
 Run evals: `ANTHROPIC_API_KEY=... npx @booklib/skills eval <name>`

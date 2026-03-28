@@ -168,14 +168,13 @@ applied: the Order aggregate is the write model, SearchIndexProjection is the re
 "optimistic concurrency control via expected_version prevents lost updates").
 
 ## Issues Found
-For each issue:
+For each genuine issue:
 - **What**: describe the problem
 - **Why it matters**: explain the reliability/scalability/maintainability risk
 - **Pattern to apply**: which data-intensive pattern addresses this
 - **Suggested fix**: concrete code change or restructuring
 
-If the code is well-designed and has no genuine issues, say so clearly.
-Do NOT manufacture issues to appear thorough.
+Only include genuine anti-patterns actually present in the code. Do NOT manufacture issues.
 
 ## Recommendations (optional)
 For well-designed code, any suggestions are optional future considerations, not required
@@ -199,13 +198,24 @@ Key patterns to recognize and praise explicitly when present:
 - **Snapshotting** — when suggested, frame it as a future optimization for performance, not a current deficiency
 
 For well-designed systems: if you have no genuine concerns, state that clearly. Any
-suggestions (e.g., snapshotting for long event streams) must be framed as optional future
-optimizations, not as production-blocking issues or required fixes.
+suggestions for well-designed code must go in the **Recommendations** section and must be
+framed as optional future optimizations — never as "Issues Found", never described as
+"worth addressing before production."
+
+**Specific false positives to reject when the code correctly uses event sourcing with idempotent consumers:**
+
+- **Schema evolution** — In-process Python/Java dataclasses with no Avro/Protobuf/JSON
+  serialization layer do NOT need a schema registry. Absence of a serialization format is
+  NOT a defect. Only flag schema evolution when there is an explicit encoding format present.
+- **Atomicity gap** — If projections implement `_already_processed(event_id)` or similar
+  deduplication, the atomicity gap is handled. This is the correct pattern; do NOT flag it
+  as a production-blocking issue.
+- **Snapshotting** — Always a future performance optimization, never a current deficiency.
 
 ### Common Anti-Patterns to Flag
 
 - **Wrong storage engine for the workload** — Using B-tree for append-heavy logging; using LSM-tree where point reads dominate
-- **Missing schema evolution strategy** — Encoding formats without backward/forward compatibility
+- **Missing schema evolution strategy** — Encoding formats (Avro/Protobuf/JSON) without backward/forward compatibility; only applicable when there is an explicit serialization layer
 - **Inappropriate isolation level** — Using READ COMMITTED where snapshot isolation is needed, or paying for SERIALIZABLE when not required
 - **Shared mutable state across services** — Multiple services writing to the same database table
 - **Synchronous replication where async suffices** — Unnecessary latency from waiting for all replicas

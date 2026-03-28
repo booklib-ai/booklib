@@ -206,7 +206,7 @@ When you see these, call them out as strengths by name:
 - **Sealed hierarchy discriminating subtypes** — when a sealed class models distinct states (Success/Failure/Pending), praise designs where the type system enforces correct behavior (e.g., only retrying `Failure(NETWORK_ERROR)`, not `Pending` or non-retriable failures)
 - **`require()` / `check()` in init blocks** — Item 5: contracts baked into construction, prevents invalid objects
 - **Data class with `copy()`** — immutable value types with structural equality; praise over mutable classes with manual equality
-- **Extension functions for domain operations** — e.g., `Point.translate()` is cleaner than a standalone `translatePoints()` function; places behavior close to the type it extends (Item 44)
+- **Extension functions for domain operations** — e.g., `fun Point.translate(dx: Double, dy: Double) = copy(x = x + dx, y = y + dy)` is cleaner than a standalone `translatePoints()` function; places behavior on the type it extends and can leverage `copy()` for immutable update (Item 44)
 - **`minByOrNull`, `map`, `filter`, `fold` from stdlib** — Item 20: using existing algorithms instead of hand-rolled loops
 - **Variable scope tightly matched to usage** — Item 2: class-wide properties that are only meaningful in a subset of states (e.g., logged-in fields that become null on logout) violate scope minimization; praise when fields are scoped correctly or redesigned via sealed states
 
@@ -223,16 +223,19 @@ When you see these, call them out as strengths by name:
 - **Unclosed resources** → Item 9: Use use() or useLines()
 - **No tests** → Item 10: Add unit tests
 - **Clever but unreadable code** → Item 11: Simplify, prefer clarity
+- **String concatenation with `+`** → Item 17 / coding conventions: use string templates (`"Hello, $name"` or `"Point($x, $y)"`) instead of `"Hello, " + name` — always flag `toString()` implementations using `+` concatenation
 - **Meaningless operator overloading** → Item 12: Operator meaning must match function name convention
 - **Properties with side effects** → Item 16: Properties for state, functions for behavior
-- **Magic numbers / unnamed booleans** → Item 17: Use named arguments
+- **Magic numbers / unnamed booleans / ambiguous positional parameters** → Item 17: Use named arguments; flag any function with 3+ parameters of the same or similar type where argument order could be confused (e.g., multiple `String` or `Int` params) — suggest named arguments at call sites or a data class
 - **Copy-pasted logic** → Item 19: Extract shared logic, respect DRY
 - **Hand-rolled stdlib algorithms** → Item 20: Use existing stdlib functions
 - **Deep inheritance for code reuse** → Item 36: Prefer composition and delegation
 - **Tagged class with type enum** → Item 39: Replace with sealed class hierarchy
 - **Broken equals/hashCode** → Items 40-41: Ensure contract compliance
 - **Member extensions** → Item 44: Avoid; use top-level or local extensions
-- **Standalone utility functions that belong to a type** → Prefer extension functions; e.g., `fun translatePoints(points, dx, dy)` → `fun Point.translate(dx, dy)` places behavior on the type it extends, enabling chaining and cleaner call sites
+- **Standalone utility functions that belong to a type** → Prefer extension functions; e.g., `fun translatePoints(points, dx, dy)` → `fun Point.translate(dx: Double, dy: Double) = copy(x = x + dx, y = y + dy)` places behavior on the type it extends, uses `copy()` for immutable update, and enables chaining and cleaner call sites
+- **String concatenation with `+` in `toString()`** → Item 17 / coding conventions: use string templates instead, e.g., `"Point($x, $y)"` rather than `"Point(" + x + ", " + y + ")"` — string templates are idiomatic Kotlin and more readable
+- **Functions with multiple positional parameters of the same type** → Item 17 (Use named arguments): when a function takes 3+ parameters or has multiple parameters of the same type (e.g., `login(userId, userName, email, token, level: Int)`), named arguments or a data class parameter should be used to prevent silent argument-order mistakes
 - **Unnecessary object creation in loops** → Item 45: Cache, reuse, use primitives
 - **Lambda overhead in hot paths** → Item 46: Use inline modifier
 - **Eager collection processing on large data** → Item 49: Switch to Sequence

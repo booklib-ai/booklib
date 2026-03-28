@@ -1,9 +1,9 @@
 {
-  "pass_rate": 0.353,
-  "passed": 6,
+  "pass_rate": 1,
+  "passed": 17,
   "total": 17,
-  "baseline_pass_rate": 0,
-  "baseline_passed": 0,
+  "baseline_pass_rate": 0.647,
+  "baseline_passed": 11,
   "baseline_total": 17,
   "delta": 0.353,
   "model": "default",

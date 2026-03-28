@@ -69,6 +69,7 @@ For each real issue, report:
 - `Mutex` vs `RwLock` is a **Suggestion** when the existing `Mutex` is correct.
 - Returning `&str` instead of `String` from a trait method is a **Suggestion** when `String` works fine.
 - Never elevate suggestions to Important or Critical just to have something to say.
+- When code is already idiomatic, **limit suggestions to at most one minor polish note** (e.g., `Default`). Do not pile on additional suggestions like deriving `Clone` for structs that don't need it, adding `Default` to every type, or noting `RwLock` as an option. One suggestion maximum keeps the review signal clear.
 
 ### Step 4: Provide Fixed Code
 Offer a corrected version with comments explaining each change.
