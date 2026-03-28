@@ -1,111 +1,137 @@
-# Skills
-
 <p align="center">
-  <img src="assets/logo.svg" width="120" alt="booklib-ai skills logo"/>
+  <img src="assets/logo.svg" width="100" alt="booklib-ai skills"/>
 </p>
 
-[![npm version](https://img.shields.io/npm/v/@booklib/skills.svg)](https://www.npmjs.com/package/@booklib/skills)
-[![npm downloads](https://img.shields.io/npm/dw/@booklib/skills.svg)](https://www.npmjs.com/package/@booklib/skills)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![GitHub stars](https://img.shields.io/github/stars/booklib-ai/skills?style=flat)](https://github.com/booklib-ai/skills/stargazers)
-[![Website](https://img.shields.io/badge/website-booklib--ai.github.io%2Fskills-6366f1)](https://booklib-ai.github.io/skills/)
+<h1 align="center">booklib-ai/skills</h1>
 
-Book-grounded AI agent skills — each skill packages expert practices from a canonical programming book into reusable instructions that Claude and other AI agents can apply to code generation, code review, and design decisions.
+<p align="center">
+  Book-grounded AI agent skills for Claude Code, Cursor, Copilot, and Windsurf.<br/>
+  Expert knowledge from canonical programming books — packaged as skills, agents, and rules.
+</p>
 
-![Demo](demo.gif)
+<p align="center">
+  <a href="https://www.npmjs.com/package/@booklib/skills"><img src="https://img.shields.io/npm/v/@booklib/skills.svg" alt="npm version"/></a>
+  <a href="https://www.npmjs.com/package/@booklib/skills"><img src="https://img.shields.io/npm/dw/@booklib/skills.svg" alt="downloads"/></a>
+  <a href="https://github.com/booklib-ai/skills/stargazers"><img src="https://img.shields.io/github/stars/booklib-ai/skills?style=flat" alt="stars"/></a>
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="license"/></a>
+</p>
 
-## Architecture
+<p align="center">
+  <b>22 skills</b> &nbsp;·&nbsp; <b>8 agents</b> &nbsp;·&nbsp; <b>6 rules</b> &nbsp;·&nbsp; <b>22 commands</b> &nbsp;·&nbsp; <b>9 profiles</b>
+</p>
 
-The library is organized into three tiers that work together:
+---
 
-| Tier | Count | What it does |
-|------|-------|--------------|
-| **Skills** | 22 | Passive context loaded from `.claude/skills/` — triggered automatically when the AI detects a matching file or task |
-| **Commands** | 22 | Explicit slash commands — `/effective-python`, `/design-patterns`, etc. — one per skill |
-| **Agents** | 8 | Autonomous reviewers that combine multiple skills and run end-to-end reviews |
+## What it is
 
-**Profiles** bundle all three tiers by language or domain so you install everything you need in one command.
-
-## Quick Start
+Each skill packages the key practices from a specific programming book into structured instructions an AI agent can apply directly to code. Instead of one generic "be a good programmer" prompt, you get targeted expertise grounded in sources like *Effective Java*, *Designing Data-Intensive Applications*, and *Clean Code*.
 
 ```bash
-# Pick your language or domain
-npx @booklib/skills add --profile=python        # Python skills + commands + python-reviewer agent
-npx @booklib/skills add --profile=ts            # TypeScript skills + commands + ts-reviewer agent
-npx @booklib/skills add --profile=rust          # Rust skills + commands + rust-reviewer agent
-npx @booklib/skills add --profile=jvm           # Java/Kotlin skills + commands + jvm-reviewer agent
-npx @booklib/skills add --profile=architecture  # DDD/microservices/system design
-npx @booklib/skills add --profile=data          # Data pipelines + DDIA
-npx @booklib/skills add --profile=ui            # Refactoring UI + animations + data viz
-npx @booklib/skills add --profile=lean          # Lean Startup practices
+# Install everything globally
+npx @booklib/skills add --all --global
 
-# Or install everything
-npx @booklib/skills add --all
+# Or install just what your stack needs
+npx @booklib/skills add --profile=ts --global       # TypeScript
+npx @booklib/skills add --profile=python --global   # Python
+npx @booklib/skills add --profile=rust --global     # Rust
+npx @booklib/skills add --profile=jvm --global      # Java / Kotlin
 ```
 
-Skills are installed to `.claude/skills/` in your project, or `~/.claude/skills/` with `--global`.
+## Four tiers
 
-## Agents
+| Tier | Count | How it activates | Install path |
+|------|-------|-----------------|--------------|
+| **Skills** | 22 | Automatically, based on file type and task context | `.claude/skills/` |
+| **Commands** | 22 | Explicit — `/effective-python`, `/design-patterns`, etc. | `.claude/commands/` |
+| **Agents** | 8 | On demand — `@python-reviewer`, `@architecture-reviewer` | `.claude/agents/` |
+| **Rules** | 6 | Always — loaded every session, no trigger needed | `.claude/rules/` |
 
-Eight autonomous reviewers that run end-to-end reviews combining the most relevant skills for each domain:
+**Profiles** bundle all four tiers by language or domain:
 
-| Agent | Skills used | Use when |
-|-------|-------------|----------|
-| `booklib-reviewer` | skill-router (auto-selects) | Unsure which skill applies — routes automatically |
-| `python-reviewer` | effective-python · asyncio · web-scraping | Reviewing any Python code |
-| `jvm-reviewer` | effective-java · effective-kotlin · kotlin-in-action · spring-boot | Java or Kotlin code reviews |
-| `rust-reviewer` | programming-with-rust · rust-in-action | Rust ownership, safety, and systems code |
-| `ts-reviewer` | effective-typescript · clean-code-reviewer | TypeScript and TSX reviews |
-| `architecture-reviewer` | domain-driven-design · microservices-patterns · system-design · data-intensive | System design, domain models, service boundaries |
-| `data-reviewer` | data-intensive-patterns · data-pipelines | Schemas, ETL pipelines, stream processing |
-| `ui-reviewer` | refactoring-ui · storytelling-with-data · animation-at-work | UI components, dashboards, data visualizations |
+```bash
+npx @booklib/skills add --profile=python        # Python skills + commands + agent + rules
+npx @booklib/skills add --profile=ts            # TypeScript
+npx @booklib/skills add --profile=rust          # Rust
+npx @booklib/skills add --profile=jvm           # Java + Kotlin + Spring Boot
+npx @booklib/skills add --profile=architecture  # DDD + microservices + system design
+npx @booklib/skills add --profile=data          # Data pipelines + DDIA
+npx @booklib/skills add --profile=ui            # Refactoring UI + animations + data viz
+npx @booklib/skills add --profile=lean          # Lean Startup
+npx @booklib/skills add --profile=core          # Skill router + clean code — good default
+```
 
-Invoke an agent in Claude Code with `@booklib-reviewer` or the specific agent name.
-
-## Profiles
-
-| Profile | Skills + agents included |
-|---------|--------------------------|
-| `python` | effective-python · using-asyncio-python · web-scraping-python · python-reviewer |
-| `ts` | effective-typescript · clean-code-reviewer · ts-reviewer |
-| `jvm` | effective-java · effective-kotlin · kotlin-in-action · spring-boot-in-action · jvm-reviewer |
-| `rust` | programming-with-rust · rust-in-action · rust-reviewer |
-| `architecture` | domain-driven-design · microservices-patterns · system-design-interview · data-intensive-patterns · architecture-reviewer |
-| `data` | data-intensive-patterns · data-pipelines · data-reviewer |
-| `ui` | refactoring-ui · storytelling-with-data · animation-at-work · ui-reviewer |
-| `lean` | lean-startup · design-patterns · clean-code-reviewer |
-| `core` | clean-code-reviewer · design-patterns · skill-router · booklib-reviewer |
+---
 
 ## Skills
 
-| Skill | Book |
-|-------|------|
-| [animation-at-work](./skills/animation-at-work/) | *Animation at Work* — Rachel Nabors |
-| [clean-code-reviewer](./skills/clean-code-reviewer/) | *Clean Code* — Robert C. Martin |
-| [data-intensive-patterns](./skills/data-intensive-patterns/) | *Designing Data-Intensive Applications* — Martin Kleppmann |
-| [data-pipelines](./skills/data-pipelines/) | *Data Pipelines Pocket Reference* — James Densmore |
-| [design-patterns](./skills/design-patterns/) | *Head First Design Patterns* |
-| [domain-driven-design](./skills/domain-driven-design/) | *Domain-Driven Design* — Eric Evans |
-| [effective-java](./skills/effective-java/) | *Effective Java* (3rd ed) — Joshua Bloch |
-| [effective-kotlin](./skills/effective-kotlin/) | *Effective Kotlin* (2nd ed) — Marcin Moskała |
-| [effective-python](./skills/effective-python/) | *Effective Python* (2nd ed) — Brett Slatkin |
-| [effective-typescript](./skills/effective-typescript/) | *Effective TypeScript* — Dan Vanderkam |
-| [kotlin-in-action](./skills/kotlin-in-action/) | *Kotlin in Action* (2nd ed) |
-| [lean-startup](./skills/lean-startup/) | *The Lean Startup* — Eric Ries |
-| [microservices-patterns](./skills/microservices-patterns/) | *Microservices Patterns* — Chris Richardson |
-| [programming-with-rust](./skills/programming-with-rust/) | *Programming with Rust* — Donis Marshall |
-| [refactoring-ui](./skills/refactoring-ui/) | *Refactoring UI* — Adam Wathan & Steve Schoger |
-| [rust-in-action](./skills/rust-in-action/) | *Rust in Action* — Tim McNamara |
-| [skill-router](./skills/skill-router/) | Meta-skill — routes to the right skill automatically |
-| [spring-boot-in-action](./skills/spring-boot-in-action/) | *Spring Boot in Action* — Craig Walls |
-| [storytelling-with-data](./skills/storytelling-with-data/) | *Storytelling with Data* — Cole Nussbaumer Knaflic |
-| [system-design-interview](./skills/system-design-interview/) | *System Design Interview* — Alex Xu |
-| [using-asyncio-python](./skills/using-asyncio-python/) | *Using Asyncio in Python* — Caleb Hattingh |
-| [web-scraping-python](./skills/web-scraping-python/) | *Web Scraping with Python* — Ryan Mitchell |
+| Skill | Book | Author |
+|-------|------|--------|
+| [animation-at-work](./skills/animation-at-work/) | *Animation at Work* | Rachel Nabors |
+| [clean-code-reviewer](./skills/clean-code-reviewer/) | *Clean Code* | Robert C. Martin |
+| [data-intensive-patterns](./skills/data-intensive-patterns/) | *Designing Data-Intensive Applications* | Martin Kleppmann |
+| [data-pipelines](./skills/data-pipelines/) | *Data Pipelines Pocket Reference* | James Densmore |
+| [design-patterns](./skills/design-patterns/) | *Head First Design Patterns* | Freeman & Robson |
+| [domain-driven-design](./skills/domain-driven-design/) | *Domain-Driven Design* | Eric Evans |
+| [effective-java](./skills/effective-java/) | *Effective Java* (3rd ed) | Joshua Bloch |
+| [effective-kotlin](./skills/effective-kotlin/) | *Effective Kotlin* (2nd ed) | Marcin Moskała |
+| [effective-python](./skills/effective-python/) | *Effective Python* (3rd ed) | Brett Slatkin |
+| [effective-typescript](./skills/effective-typescript/) | *Effective TypeScript* (2nd ed) | Dan Vanderkam |
+| [kotlin-in-action](./skills/kotlin-in-action/) | *Kotlin in Action* (2nd ed) | Elizarov & Isakova |
+| [lean-startup](./skills/lean-startup/) | *The Lean Startup* | Eric Ries |
+| [microservices-patterns](./skills/microservices-patterns/) | *Microservices Patterns* | Chris Richardson |
+| [programming-with-rust](./skills/programming-with-rust/) | *Programming with Rust* | Donis Marshall |
+| [refactoring-ui](./skills/refactoring-ui/) | *Refactoring UI* | Wathan & Schoger |
+| [rust-in-action](./skills/rust-in-action/) | *Rust in Action* | Tim McNamara |
+| [skill-router](./skills/skill-router/) | Meta-skill — routes to the right skill automatically | booklib-ai |
+| [spring-boot-in-action](./skills/spring-boot-in-action/) | *Spring Boot in Action* | Craig Walls |
+| [storytelling-with-data](./skills/storytelling-with-data/) | *Storytelling with Data* | Cole Nussbaumer Knaflic |
+| [system-design-interview](./skills/system-design-interview/) | *System Design Interview* | Alex Xu |
+| [using-asyncio-python](./skills/using-asyncio-python/) | *Using Asyncio in Python* | Caleb Hattingh |
+| [web-scraping-python](./skills/web-scraping-python/) | *Web Scraping with Python* | Ryan Mitchell |
 
-## Automatic Skill Routing
+---
 
-You don't need to know which skill to apply — the **[skill-router](./skills/skill-router/)** meta-skill does it for you. When invoked, it reads the file, language, domain, and task type, then returns a ranked recommendation with rationale.
+## Agents
+
+Autonomous reviewers that apply multiple skills in a single pass. Invoke with `@agent-name` in Claude Code.
+
+| Agent | Model | Skills applied |
+|-------|-------|----------------|
+| `@booklib-reviewer` | sonnet | Auto-routes to the best skill — use this when unsure |
+| `@python-reviewer` | sonnet | effective-python · asyncio · web-scraping |
+| `@ts-reviewer` | sonnet | effective-typescript · clean-code-reviewer |
+| `@jvm-reviewer` | sonnet | effective-java · effective-kotlin · kotlin-in-action · spring-boot |
+| `@rust-reviewer` | sonnet | programming-with-rust · rust-in-action |
+| `@architecture-reviewer` | opus | domain-driven-design · microservices-patterns · system-design · data-intensive |
+| `@data-reviewer` | sonnet | data-intensive-patterns · data-pipelines |
+| `@ui-reviewer` | sonnet | refactoring-ui · storytelling-with-data · animation-at-work |
+
+---
+
+## Rules
+
+Always-on coding standards — installed to `.claude/rules/` and loaded every session without any trigger conditions.
+
+| Rule | Language | Source |
+|------|----------|--------|
+| `clean-code` | all | *Clean Code* — naming, functions, comments, structure |
+| `effective-python` | Python | *Effective Python* — Pythonic style, types, error handling |
+| `effective-typescript` | TypeScript | *Effective TypeScript* — types, inference, null safety |
+| `effective-java` | Java | *Effective Java* — creation, classes, generics, concurrency |
+| `effective-kotlin` | Kotlin | *Effective Kotlin* — safety, coroutines, collections |
+| `rust` | Rust | *Programming with Rust* + *Rust in Action* — ownership, errors, idioms |
+
+```bash
+npx @booklib/skills add --rules             # install all rules
+npx @booklib/skills add --rules=python      # install one language
+npx @booklib/skills add --hooks             # install the skill suggestion hook
+```
+
+---
+
+## Skill routing
+
+Not sure which skill to use? The `skill-router` meta-skill selects the best match automatically, and the `@booklib-reviewer` agent wraps it end-to-end:
 
 ```
 User: "Review my order processing service"
@@ -115,13 +141,13 @@ User: "Review my order processing service"
    Secondary: microservices-patterns — service boundaries and inter-service communication
 ```
 
-The `booklib-reviewer` agent wraps this logic end-to-end — invoke it and it handles selection and review automatically.
+**Benchmark:** [`benchmark/`](./benchmark/) shows a head-to-head comparison of a standard PR review vs. skill-router routing to two skills. The skill-router pipeline found ~47% more unique issues.
 
-**Benchmark:** The [`benchmark/`](./benchmark/) folder contains a head-to-head comparison of a native PR review vs. `skill-router` routing to `clean-code-reviewer` + `design-patterns`. The skill-router pipeline finds ~47% more unique issues and produces a full refactor roadmap.
+---
 
 ## Quality
 
-Skills are evaluated against 6–15 test cases each, run both **with** and **without** the skill using `claude-haiku-4-5` as model and judge. The delta over baseline is the key signal — it measures how much the skill actually improves Claude's output beyond what it can do unaided.
+Skills are evaluated with and without the skill active, using `claude-haiku-4-5` as model and judge. The delta over baseline is the key signal.
 
 **Thresholds:** pass rate ≥ 80% · delta ≥ 20pp · baseline < 70%
 
@@ -152,47 +178,43 @@ Skills are evaluated against 6–15 test cases each, run both **with** and **wit
 | web-scraping-python | — | — | — | — | — |
 <!-- quality-table-end -->
 
-Results are stored in each skill's `evals/results.json` and updated by running `npx @booklib/skills eval <name>`.
+Run evals: `ANTHROPIC_API_KEY=... npx @booklib/skills eval <name>`
 
-## Structure
+---
+
+## Repo structure
 
 ```
 booklib-ai/skills/
-├── skills/        22 book-grounded skills (SKILL.md + examples + evals)
-├── commands/      22 slash commands, one per skill
-├── agents/        8 autonomous reviewer agents
-├── hooks/         Claude Code hooks (skill suggestion on UserPromptSubmit)
-└── bin/skills.js  CLI
+├── skills/      22 book-grounded skills (SKILL.md + examples + evals)
+├── agents/      8 autonomous reviewer agents
+├── commands/    22 slash commands, one per skill
+├── rules/       6 always-on language standards
+├── hooks/       Claude Code UserPromptSubmit hook
+└── bin/         CLI (skills.js)
 ```
 
-Each skill folder follows the [Agent Skills standard](https://agentskills.io):
-
-```
-skill-name/
-├── SKILL.md          # Required — YAML frontmatter + instructions
-├── examples/         # before.md and after.md
-├── references/       # Deep reference material loaded on demand
-├── scripts/          # Deterministic helper scripts
-└── evals/            # Test cases for skill evaluation
-```
+---
 
 ## Contributing
 
-If you've read a book that belongs here, you can add it:
+If you've read a book that belongs here, open a PR:
 
 ```bash
-# 1. Copy an existing skill as a template
+# 1. Scaffold a new skill
 cp -r skills/clean-code-reviewer skills/your-book-name
 
-# 2. Edit SKILL.md, examples/, and evals/
+# 2. Edit SKILL.md, examples/before.md, examples/after.md, evals/evals.json
 
-# 3. Validate before opening a PR
+# 3. Validate
 npx @booklib/skills check your-book-name
 ```
 
-The `check` command runs all evals and reports what passes and fails. See [CONTRIBUTING.md](./CONTRIBUTING.md) for the full guide.
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for the full guide including how to add agents.
 
-**Books with open issues** (tagged `good first issue`): [The Pragmatic Programmer](https://github.com/booklib-ai/skills/issues/2) · [Clean Architecture](https://github.com/booklib-ai/skills/issues/3) · [A Philosophy of Software Design](https://github.com/booklib-ai/skills/issues/4) · [Accelerate](https://github.com/booklib-ai/skills/issues/8) · [and more →](https://github.com/booklib-ai/skills/issues?q=is%3Aopen+label%3A%22good+first+issue%22)
+**Open requests** (tagged `good first issue`): [The Pragmatic Programmer](https://github.com/booklib-ai/skills/issues/2) · [Clean Architecture](https://github.com/booklib-ai/skills/issues/3) · [A Philosophy of Software Design](https://github.com/booklib-ai/skills/issues/4) · [Accelerate](https://github.com/booklib-ai/skills/issues/8) · [more →](https://github.com/booklib-ai/skills/issues?q=is%3Aopen+label%3A%22good+first+issue%22)
+
+---
 
 ## License
 
