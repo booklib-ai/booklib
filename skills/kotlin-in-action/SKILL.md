@@ -161,54 +161,56 @@ When reviewing Kotlin code, read `references/review-checklist.md` for the full c
 
 ### Review Process
 
-1. **Basics scan** — Check Ch 2-3: function style, variable declarations, extension usage, string templates, collection APIs
-2. **Class design scan** — Check Ch 4: sealed vs open, data classes, delegation, visibility, companion objects
-3. **Lambda & collection scan** — Check Ch 5-6: lambda idioms, functional APIs, Sequence usage, scope functions
-4. **Null safety scan** — Check Ch 7-8: nullable type handling, platform types, safe calls, Elvis, type usage
-5. **Convention scan** — Check Ch 9: operator overloading correctness, destructuring, delegated properties
-6. **Advanced scan** — Check Ch 10-13: inline usage, generics, variance, DSL patterns, annotation usage
-7. **Concurrency scan** — Check Ch 14-15: coroutine structure, Flow usage, dispatcher choices, cancellation handling
+**Before scanning for issues, first scan for what the code does RIGHT.** Idiomatic patterns deserve explicit praise. Only after noting strengths should you look for genuine problems.
+
+1. **Calibrate first** — Read the whole code. Is this Java-in-Kotlin or idiomatic Kotlin? If it's well-structured, say so up front.
+2. **Basics scan** — Check Ch 2-3: function style, variable declarations, extension usage, string templates, collection APIs
+3. **Class design scan** — Check Ch 4: sealed vs open, data classes, delegation, visibility, companion objects
+4. **Lambda & collection scan** — Check Ch 5-6: lambda idioms, functional APIs, Sequence usage, scope functions
+5. **Null safety scan** — Check Ch 7-8: nullable type handling, platform types, safe calls, Elvis, `let`/`takeIf` for null-safe scoping, type usage
+6. **Convention scan** — Check Ch 9: operator overloading correctness, destructuring, delegated properties
+7. **Advanced scan** — Check Ch 10-13: inline usage, generics, variance, DSL patterns, annotation usage
+8. **Concurrency scan** — Check Ch 14-15: coroutine structure, Flow usage, dispatcher choices, cancellation handling
+
+### Review Calibration — Praise vs. Critique
+
+**Critical rule: calibrate your review to the actual quality of the code.**
+
+- If the code is already idiomatic Kotlin, **say so explicitly and prominently** before any minor observations.
+- **Praise correct patterns** rather than treating them as neutral or, worse, criticizing them:
+  - `withContext(Dispatchers.IO)` for blocking calls → praise (Ch 14: correct dispatcher usage)
+  - Re-throwing `CancellationException` → praise (Ch 14: cooperative cancellation)
+  - `sealed interface` + exhaustive `when` → praise (Ch 4: sealed hierarchies)
+  - `data class` subtypes → praise (Ch 4: automatic equals/hashCode/copy/toString)
+  - Expression-body `when` functions → praise (Ch 2)
+- **Do NOT manufacture issues.** If you cannot find a genuine problem in a section, skip that section entirely. An empty "no issues found" section is worse than omitting it.
+- Any suggestions on already-correct code must be framed explicitly as **minor optional design questions**, not violations.
 
 ### Review Output Format
 
 Structure your review as:
 
 ```
-## Summary
-One paragraph: overall code quality, Kotlin idiom adherence, main concerns.
+## Overall Assessment
+One paragraph: overall code quality, Kotlin idiom adherence, main strengths.
+If the code is already idiomatic: say so clearly — "This is well-structured, idiomatic Kotlin."
 
-## Basics & Style Issues
-For each issue found (Ch 2-3):
+## What's Done Well  (include if code has notable strengths)
+For each notable strength:
+- **Pattern**: the Kotlin feature or practice used
+- **Why it matters**: brief explanation grounding it in the book
+
+## Issues  (include only for genuine problems)
+For each real issue found:
 - **Topic**: chapter and concept
 - **Location**: where in the code
 - **Problem**: what's wrong
 - **Fix**: recommended change with code snippet
 
-## Class Design Issues
-For each issue found (Ch 4):
-- Same structure as above
+## Optional Suggestions  (include only if there are minor design questions, not violations)
+Frame every item here as: "You might consider..." or "One design question: ..."
 
-## Lambda & Collection Issues
-For each issue found (Ch 5-6):
-- Same structure as above
-
-## Null Safety & Type Issues
-For each issue found (Ch 7-8):
-- Same structure as above
-
-## Convention & Delegation Issues
-For each issue found (Ch 9):
-- Same structure as above
-
-## Advanced Feature Issues
-For each issue found (Ch 10-13):
-- Same structure as above
-
-## Concurrency Issues
-For each issue found (Ch 14-15):
-- Same structure as above
-
-## Recommendations
+## Recommendations  (include only if there are real issues)
 Priority-ordered list from most critical to nice-to-have.
 Each recommendation references the specific chapter/concept.
 ```
@@ -216,15 +218,20 @@ Each recommendation references the specific chapter/concept.
 ### Common Kotlin Anti-Patterns to Flag
 
 - **Java-style getters/setters** → Ch 2: Use Kotlin properties with custom accessors
-- **Java-style static utility classes** → Ch 3: Use top-level functions and extension functions
+- **Java-style static utility classes** → Ch 3: Use top-level functions and extension functions; if a utility function primarily acts on one type (e.g., `truncate(text: String, ...)` or `format(user: User, ...)`), make it an extension function on that type (`fun String.truncate(...)`, `fun User.format(...)`)
+- **Standalone utility functions that take a type as first arg** → Ch 3: These are disguised extension functions. `fun truncate(text: String, maxLen: Int): String` → `fun String.truncate(maxLen: Int): String`
 - **Explicit type where inference is clear** → Ch 2: Let the compiler infer local variable types
 - **Missing default parameter values** → Ch 3: Use default params instead of overloads
+- **Multiple same-typed parameters that look ambiguous at call sites** → Ch 3: Use named arguments at call sites, or consider introducing a value class or data class to group parameters; e.g. `renderTruncated(firstName, lastName, email, isAdmin, maxLen)` — the positional order of Strings is error-prone
 - **Inheritance for code reuse** → Ch 4: Use class delegation with `by` keyword
 - **Open classes by default** → Ch 4: Kotlin classes are final by default; keep them final unless designed for inheritance
 - **Type enum + when** → Ch 4: Replace with sealed class hierarchy
 - **Mutable data holders** → Ch 4: Use data class with val properties and copy()
 - **Nullable everything** → Ch 7: Use non-null types by default; nullable only when absence is meaningful
 - **Force-unwrapping (!!)** → Ch 7: Use safe calls (?.), Elvis (?:), let, or lateinit
+- **Java-style nested null-check pyramids** → Ch 7: Replace with safe-call chains (`?.`) and Elvis; use `let` for scoped null-safe transformations: `value?.let { doSomething(it) }`, use `takeIf` to filter on a condition: `membership?.takeIf { it.isActive == true }?.let { applyDiscount(it) }`
+- **`var` accumulator + conditional assignment** → Ch 2: Replace with expression `val x = nullable?.property ?: default`
+- **Redundant null comparison on non-nullable Boolean** → Ch 7: `isAdmin == true` → just `isAdmin`; `isActive == true` when nullable → `isActive ?: false` or `takeIf { it.isActive == true }`
 - **Ignoring platform types** → Ch 7: Add explicit nullability at Java boundaries
 - **Manual loops for transforms** → Ch 5-6: Use filter/map/flatMap/groupBy/fold
 - **Eager processing of large collections** → Ch 5-6: Use Sequence for multi-step pipelines

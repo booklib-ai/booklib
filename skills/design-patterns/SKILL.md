@@ -50,7 +50,7 @@ Read `references/patterns-catalog.md` for full pattern details. Quick decision g
 
 | Design Problem | Patterns to Consider |
 |----------------|---------------------|
-| Algorithm or behavior varies at runtime | **Strategy** (encapsulate interchangeable behaviors, compose via interface) |
+| Algorithm or behavior varies at runtime | **Strategy** (Context stores a strategy reference as a field; behavior swapped by setting a different strategy object) |
 | Objects need to be notified of state changes | **Observer** (subject maintains subscriber list, push/pull notification) |
 | Add responsibilities dynamically without subclassing | **Decorator** (wrap objects with additional behavior, same interface) |
 | Object creation varies or is complex | **Factory Method** (subclass decides), **Abstract Factory** (families of related objects), **Builder** (step-by-step construction) |
@@ -119,9 +119,17 @@ You should generate:
 - QuackBehavior interface with quack() method
 - Concrete: Quack, Squeak, MuteQuack
 - Duck abstract class composing FlyBehavior + QuackBehavior
+  (fields: private FlyBehavior flyBehavior; private QuackBehavior quackBehavior)
+  (Context holds a persistent reference to the strategy, not a per-call lookup)
 - Concrete ducks: MallardDuck, RubberDuck, DecoyDuck
-- Setter methods for runtime behavior change
+- Setter methods for runtime behavior change (setFlyBehavior / setQuackBehavior)
 ```
+
+**Key Strategy rule:** The Context class MUST hold a strategy reference as a stored field
+(not look it up in a map or create it on each call). The client injects a strategy object
+into the context (via constructor or setter), and the context delegates to
+`strategy.doSomething()` on every operation. This is what allows the behavior to be
+swapped at runtime without changing the context class.
 
 **Example 2 — Decorator Pattern:**
 ```
@@ -179,6 +187,21 @@ When reviewing code for design pattern opportunities and correctness, read
 5. **Spot anti-patterns and code smells** — What structural problems exist?
 6. **Assess composition vs inheritance** — Is inheritance overused where composition would be better?
 
+### Reviewing Correct or Well-Implemented Code
+
+When code already applies a pattern correctly, **lead with explicit recognition and praise
+of what it does right.** Do NOT invent problems to seem thorough. Specifically:
+
+- State upfront that this is a correct/well-implemented pattern
+- Praise each element that specifically avoids a known pitfall (e.g., `removeObserver`
+  prevents memory leaks; defensive copy in `notifyObservers` prevents
+  ConcurrentModificationException; interface-based Observer prevents coupling)
+- Any improvements (thread safety, alternative APIs, etc.) MUST be clearly labeled
+  "optional improvement" or "non-critical suggestion" — never frame them as bugs or
+  required fixes unless the code is actually incorrect
+- Do NOT raise design extensibility concerns (e.g., "what if requirements change") as
+  present problems — the task is to review the code as written, not imagine future needs
+
 ### Review Output Format
 
 Structure your review as:
@@ -209,7 +232,7 @@ Priority-ordered list from most critical to nice-to-have.
 
 ### Common Anti-Patterns and Code Smells to Flag
 
-- **Conditional complexity** — Large switch/if-else chains that select behavior → Strategy or State pattern
+- **Conditional complexity** — Large switch/if-else chains that select behavior → Strategy or State pattern. In the Strategy refactor, the Context must store the strategy as a field (not look it up on each call); per-call factory creation defeats the ability to swap behavior at runtime
 - **Rigid class hierarchies** — Deep inheritance trees with overridden methods → Composition + Strategy/Decorator
 - **Duplicated code across subclasses** — Same algorithm with varying steps → Template Method
 - **Tight coupling to concrete classes** — Client code creates specific classes → Factory patterns
@@ -220,7 +243,7 @@ Priority-ordered list from most critical to nice-to-have.
 - **Missing encapsulation of what varies** — Hardcoded behavior that should be configurable → Strategy
 - **Inheritance for code reuse only** — Using IS-A when HAS-A is appropriate → Composition
 - **Violated Law of Demeter** — Method chains like a.getB().getC().doThing() → Facade or method delegation
-- **Observer memory leaks** — Registered observers never unregistered
+- **Observer memory leaks** — Registered observers never unregistered (if `removeObserver` IS present, explicitly praise it as addressing this pitfall)
 - **Singleton abuse** — Using Singleton as a global variable container rather than for genuine single-instance needs
 - **Empty or trivial pattern implementations** — Pattern skeleton without real purpose (pattern for pattern's sake)
 - **Incomplete pattern** — Missing participants (Command without undo, Observer without unsubscribe)

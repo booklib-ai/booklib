@@ -182,6 +182,21 @@ When reviewing web scrapers, read `references/review-checklist.md` for the full 
 6. **Ethics scan** — Check Ch 17-18: robots.txt, legal compliance, identification, respectful crawling
 7. **Quality scan** — Check Ch 8, 15: data cleaning, testing, validation
 
+### Calibrating Review Tone
+
+**CRITICAL: Match your tone to what you actually find.**
+
+- If the scraper is well-structured and follows best practices, say so explicitly in the summary and spend the majority of the review praising what it does right. Specifically praise:
+  - `RobotFileParser` / robots.txt check before fetching (Ch 18)
+  - Descriptive User-Agent with contact info (Ch 14)
+  - `requests.Session()` with `Retry` adapter (Ch 10, 14)
+  - CSS selectors via `soup.select()` / `soup.select_one()` (Ch 2)
+  - Defensive None checks on extracted elements before accessing text (Ch 2)
+  - `resp.raise_for_status()` and catching `requests.RequestException` (Ch 1, 14)
+  - `time.sleep()` between requests (Ch 14)
+  - Structured logging of page number and item counts at each step (Ch 5)
+- Any suggestions on an already-good scraper MUST be framed as **minor optional improvements**, never as critical or high-priority issues. Do not manufacture severity.
+
 ### Review Output Format
 
 Structure your review as:
@@ -228,17 +243,20 @@ Each recommendation references the specific chapter/concept.
 
 ### Common Web Scraping Anti-Patterns to Flag
 
-- **No error handling on requests** → Ch 1, 14: Wrap requests in try/except; handle ConnectionError, Timeout, HTTPError
+- **No error handling on requests** → Ch 1, 14: Wrap requests in try/except; handle `requests.RequestException` (covers ConnectionError, Timeout, HTTPError); always call `resp.raise_for_status()` to surface non-200 responses
 - **Hardcoded selectors without fallbacks** → Ch 2: Use multiple selector strategies; check for None before accessing attributes
-- **No rate limiting** → Ch 14: Add time.sleep() between requests; respect server resources
-- **Missing User-Agent header** → Ch 14: Set a descriptive User-Agent; rotate if needed for scale
-- **Not using sessions** → Ch 10: Use requests.Session() for cookie persistence and connection pooling
-- **Ignoring robots.txt** → Ch 18: Parse and respect robots.txt before crawling
+- **No rate limiting** → Ch 14: Add `time.sleep()` between requests; respect server resources
+- **Missing User-Agent header** → Ch 14: Set a descriptive User-Agent with contact info; rotate if needed for scale
+- **Not using sessions** → Ch 10: Use `requests.Session()` for cookie persistence and connection pooling
+- **Ignoring robots.txt** → Ch 18: Parse and respect robots.txt via `RobotFileParser` before crawling
 - **No URL deduplication** → Ch 3: Track visited URLs in a set; normalize URLs before comparing
-- **Using regex to parse HTML** → Ch 2: Use BeautifulSoup or lxml, not regex, for HTML parsing
+- **Using regex to parse HTML** → Ch 2: Use BeautifulSoup or lxml, not regex, for HTML parsing. In particular:
+  - `re.DOTALL` patterns on `<p>` or block elements will incorrectly merge content from nested inline tags (`<strong>`, `<a>`, etc.) producing wrong output
+  - Regex patterns like `href=["\'](.*?)["\']` will match `href` attributes inside `<script>` blocks, `<style>` blocks, and HTML comments, producing many false positives
+  - Recommend `soup.select_one()` and `soup.select()` CSS-selector API as the idiomatic BeautifulSoup replacement (preferred over `find()`/`find_all()` for clarity)
 - **Not handling JavaScript content** → Ch 11: If data loads via Ajax, use Selenium or find the underlying API
 - **Storing data without validation** → Ch 6, 8: Validate and clean data before storage; handle encoding
-- **No logging** → Ch 5: Log requests, responses, errors, extracted items; track progress
+- **No logging** → Ch 5: Log page fetches, item counts, and errors at each step; use structured logging with page number and item count per page
 - **Sequential when parallel is needed** → Ch 16: Use threading/multiprocessing for large-scale scraping
 - **Ignoring encoding issues** → Ch 7, 8: Handle UTF-8, detect encoding, normalize Unicode
 - **No tests for parsers** → Ch 15: Write unit tests with saved HTML fixtures; test selector robustness

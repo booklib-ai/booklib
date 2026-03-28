@@ -35,21 +35,42 @@ When the user asks you to **review** existing Python code, follow this process:
 ### Step 1: Read Relevant References
 Determine which chapters apply to the code under review and read those reference files. If unsure, read all of them.
 
-### Step 2: Analyze the Code
+### Step 2: Calibrate Your Response
+
+**If the code is already well-written and idiomatic:**
+- Say so explicitly and upfront. Do not manufacture issues to appear thorough.
+- Praise the good patterns you see (see "Praising Good Patterns" below).
+- Any suggestions must be framed as minor optional improvements, not as violations or issues.
+
+**If the code has real problems:**
+- Identify and report them clearly with item references.
+
+### Step 3: Praise Good Patterns (when present)
+When the code uses these patterns correctly, explicitly praise them:
+
+- **`@contextmanager`** for resource management: "Good use of `@contextmanager` (Item 66) — avoids boilerplate try/finally and makes the cleanup intent clear."
+- **Generator functions** (`yield`) for memory efficiency: "Good use of a generator (Item 30) — avoids loading the entire sequence into memory."
+- **Type annotations** on public functions: "Good use of type annotations (Item 84) — improves readability and enables static analysis."
+- **Docstrings** on all public APIs: "Good docstrings (Item 84) — clearly communicates purpose and parameters."
+- **`@dataclass`** for plain data holders: "Good use of `@dataclass` (Items 37–43) — reduces boilerplate and provides automatic `__repr__`, `__eq__`."
+- **List/dict/set comprehensions** instead of manual loops: "Good use of comprehensions (Item 27) — more readable and Pythonic."
+- **`enumerate`** instead of `range(len(...))`: "Good use of `enumerate` (Item 7)."
+
+### Step 4: Analyze the Code for Issues
 For each relevant item from the book, check whether the code follows or violates the guideline. Focus on:
 
 1. **Style and Idiom** (Items 1-10): Is it Pythonic? Does it use f-strings, unpacking, enumerate, zip properly?
 2. **Data Structures** (Items 11-18): Are lists and dicts used correctly? Is sorting done with key functions?
 3. **Function Design** (Items 19-26): Do functions raise exceptions instead of returning None? Are args well-structured?
 4. **Comprehensions & Generators** (Items 27-36): Are comprehensions preferred over map/filter? Are generators used for large sequences?
-5. **Class Design** (Items 37-43): Is composition preferred over deep nesting? Are mix-ins used correctly?
+5. **Class Design** (Items 37-43): Is composition preferred over deep nesting? Are mix-ins used correctly? Is `@dataclass` used for plain data holders?
 6. **Metaclasses & Attributes** (Items 44-51): Are plain attributes used instead of getter/setter methods? Is @property used appropriately?
 7. **Concurrency** (Items 52-64): Are threads used only for I/O? Is asyncio structured correctly?
 8. **Robustness** (Items 65-76): Is error handling structured with try/except/else/finally? Are the right data structures chosen?
 9. **Testing** (Items 77-85): Are tests well-structured? Are mocks used appropriately?
 10. **Collaboration** (Items 86-90): Are docstrings present? Are APIs stable?
 
-### Step 3: Report Findings
+### Step 5: Report Findings
 For each issue found, report:
 - **Item number and name** (e.g., "Item 4: Prefer Interpolated F-Strings")
 - **Location** in the code
@@ -57,7 +78,7 @@ For each issue found, report:
 - **How to fix it** (the Pythonic way)
 - **Priority**: Critical (bugs/correctness), Important (maintainability), Suggestion (style)
 
-### Step 4: Provide Fixed Code
+### Step 6: Provide Fixed Code
 Offer a corrected version of the code with all issues addressed, with comments explaining each change.
 
 ---
@@ -92,17 +113,19 @@ When the user asks you to **write** new Python code, follow these principles:
 
 12. **Use generators** for large sequences instead of returning lists (Item 30).
 
-13. **Prefer composition** over deeply nested classes (Item 37).
+13. **Use `@dataclass`** for plain data-holder classes (Items 37–43). A `@dataclass` automatically provides `__init__`, `__repr__`, and `__eq__`, and makes the data-holder intent explicit. Only write a manual `__init__` when you need real logic that a dataclass can't handle. Add `__repr__` to any class that doesn't use `@dataclass`, to make debugging easier.
 
-14. **Use @classmethod** for polymorphic constructors (Item 39).
+14. **Prefer composition** over deeply nested classes (Item 37).
 
-15. **Always call super().__init__** (Item 40).
+15. **Use @classmethod** for polymorphic constructors (Item 39).
 
-16. **Use plain attributes** instead of getter/setter methods. Use @property for special behavior (Item 44).
+16. **Always call super().__init__** (Item 40).
 
-17. **Use try/except/else/finally** structure correctly (Item 65).
+17. **Use plain attributes** instead of getter/setter methods. Use @property for special behavior (Item 44).
 
-18. **Write docstrings** for every module, class, and function (Item 84).
+18. **Use try/except/else/finally** structure correctly (Item 65).
+
+19. **Write docstrings** for every module, class, and function (Item 84).
 
 ### Code Structure Template
 
@@ -185,9 +208,10 @@ When time is limited, focus on these highest-impact items first:
 - Item 19: Never unpack more than 3 variables
 - Item 25: Use keyword-only and positional-only arguments
 - Item 26: Use functools.wraps for decorators
-- Item 37: Compose classes instead of deep nesting
+- Items 37–43: Use `@dataclass` for plain data holders; add `__repr__` to any class without it
 - Item 42: Prefer public attributes over private
 - Item 44: Use plain attributes over getter/setter
+- Item 66: Use `@contextmanager` for reusable resource management patterns
 - Item 84: Write docstrings for all public APIs
 
 ### Suggestions (Polish & Optimization)
@@ -197,3 +221,21 @@ When time is limited, focus on these highest-impact items first:
 - Item 27: Use comprehensions over map/filter
 - Item 30: Use generators for large sequences
 - Item 70: Profile before optimizing (cProfile)
+
+---
+
+## Reviewing Already-Good Code
+
+When the submitted code is already idiomatic and well-structured, the review must:
+
+1. **Lead with affirmative praise** — say explicitly that the code is idiomatic / well-written.
+2. **Call out each strong pattern by name and item**, e.g.:
+   - `@contextmanager` usage → praise as Item 66
+   - Generator functions (`yield`) → praise as Item 30
+   - Type annotations on public functions → praise as Item 84
+   - Docstrings on public APIs → praise as Item 84
+   - `@dataclass` for data holders → praise as Items 37–43
+   - List/dict/set comprehensions → praise as Item 27
+3. **Do not invent problems.** If something is genuinely fine, do not flag it as an issue.
+4. **Clearly label any suggestion as optional** — use language like "minor suggestion", "stylistic alternative", or "optional improvement", never "issue" or "problem".
+5. **Keep the tone positive** — the goal is to affirm and explain why the patterns are good, not to find fault.

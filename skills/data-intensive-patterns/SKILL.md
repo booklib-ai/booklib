@@ -161,7 +161,11 @@ Structure your review as:
 One paragraph: what the system does, which patterns it uses, overall assessment.
 
 ## Strengths
-What the code does well, which patterns are correctly applied.
+What the code does well, which patterns are correctly applied. Be specific and generous:
+name each well-applied pattern explicitly (e.g., "the `from_events` classmethod correctly
+implements event sourcing — the event log is the source of truth"; "CQRS is correctly
+applied: the Order aggregate is the write model, SearchIndexProjection is the read model";
+"optimistic concurrency control via expected_version prevents lost updates").
 
 ## Issues Found
 For each issue:
@@ -170,9 +174,33 @@ For each issue:
 - **Pattern to apply**: which data-intensive pattern addresses this
 - **Suggested fix**: concrete code change or restructuring
 
-## Recommendations
-Priority-ordered list of improvements, from most critical to nice-to-have.
+If the code is well-designed and has no genuine issues, say so clearly.
+Do NOT manufacture issues to appear thorough.
+
+## Recommendations (optional)
+For well-designed code, any suggestions are optional future considerations, not required
+fixes. Frame them explicitly: "Future consideration (not a current issue): …". For example,
+snapshotting for long-lived event streams is a performance optimization for the future, not
+a current violation of any pattern.
 ```
+
+### Reviewing Well-Designed Code
+
+When you encounter well-designed code that correctly applies data-intensive patterns,
+**your primary job is to recognize and praise the good design**, not to find problems.
+
+Key patterns to recognize and praise explicitly when present:
+- **Event sourcing with `from_events`** — aggregate state rebuilt from the event log means the log is the source of truth (Ch 11)
+- **Optimistic concurrency via `expected_version`** — prevents lost updates without pessimistic locking (Ch 7)
+- **Immutable event objects** — frozen dataclasses/records for events enforce append-only semantics (Ch 11)
+- **Idempotent consumers with deduplication by event ID** — makes projections safe to replay (Ch 11)
+- **CQRS — write model (aggregate) separate from read model (projection)** — enables independent scaling (Ch 11)
+- **Transactional outbox** — atomically writes event and publishes it (Ch 11)
+- **Snapshotting** — when suggested, frame it as a future optimization for performance, not a current deficiency
+
+For well-designed systems: if you have no genuine concerns, state that clearly. Any
+suggestions (e.g., snapshotting for long event streams) must be framed as optional future
+optimizations, not as production-blocking issues or required fixes.
 
 ### Common Anti-Patterns to Flag
 

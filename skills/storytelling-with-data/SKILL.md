@@ -91,7 +91,7 @@ Reduce cognitive load by removing everything that doesn't support your message:
 - Data markers on line charts (unless sparse data points)
 - Unnecessary axis tick marks
 - Redundant labels (if axis labels are clear, remove the axis title)
-- Legend (label data directly when possible)
+- **Legend (replace with direct labels)** — Legends force the audience to cross-reference: look at a color, find it in the legend, read the label, look back at the data. This is unnecessary cognitive work. Instead, label data series directly on or next to the data. Direct labeling is a primary design virtue, not just a convenience.
 - Bold/heavy styling on non-essential elements
 
 **The Data-Ink Ratio** — Maximize the proportion of ink devoted to data vs. non-data. Every element should earn its place.
@@ -166,7 +166,7 @@ When reviewing data visualizations, charts, dashboards, or data presentations, u
 
 1. **Context check** — Is the audience, action, and delivery method clear?
 2. **Chart type check** — Is this the right visual for this data relationship?
-3. **Clutter check** — What can be removed without losing information?
+3. **Clutter check** — What can be removed without losing information? Specifically: is a legend used where direct labels would eliminate cross-referencing? If direct labels are already in place, praise this explicitly as a deliberate design virtue (Ch 3).
 4. **Attention check** — Where do your eyes go? Is that the right place?
 5. **Design check** — Alignment, consistency, white space, hierarchy?
 6. **Story check** — Is there a clear narrative with a call to action?
@@ -216,7 +216,7 @@ Priority-ordered list with specific chapter references.
 - **Rainbow color palette** → Ch 4: Grey everything, highlight with 1–2 colors
 - **Chart with no title or generic title** → Ch 7: Use action titles that state the takeaway
 - **No annotations on key data points** → Ch 7: Tell the audience what to see
-- **Legend instead of direct labels** → Ch 3: Label data series directly
+- **Legend instead of direct labels** → Ch 3: Legends force cross-referencing and add cognitive load; praise or recommend direct labeling of data series on the chart itself as the preferred approach — this is a deliberate design virtue that improves readability
 - **3D effects or gradients** → Ch 2: Always use flat 2D
 - **Secondary y-axis** → Ch 2: Split into two charts
 - **Data presented without context or call to action** → Ch 1: Define the Big Idea first

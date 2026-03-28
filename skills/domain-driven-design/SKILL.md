@@ -159,7 +159,7 @@ the full checklist. Apply these categories systematically:
 4. **Aggregates** — Are boundaries well-defined? Is the root enforcing invariants? Are Aggregates kept small? Is cross-Aggregate referencing by ID only?
 5. **Repositories** — Do they exist only for Aggregate roots? Do they provide a collection-like interface? Is the domain layer free of persistence details?
 6. **Factories** — Is complex creation encapsulated? Do Factories enforce invariants at creation time?
-7. **Domain Services** — Are they truly stateless? Do they represent operations in the Ubiquitous Language? Are they overused (anemic domain model)?
+7. **Domain Services** — Are they truly stateless? Do they represent operations in the Ubiquitous Language? Are they overused (anemic domain model / Transaction Script)? If the service is procedurally manipulating data objects that have no behavior, call out the "Transaction Script masquerading as DDD" anti-pattern by name.
 8. **Supple Design** — Are interfaces intention-revealing? Are functions side-effect-free where possible? Are conceptual contours well-aligned?
 9. **Strategic Design** — Are Bounded Contexts identified? Is there a Context Map? Are integration patterns (ACL, Shared Kernel, etc.) applied correctly?
 10. **Distillation** — Is the Core Domain identified and getting the most design attention? Are Generic Subdomains appropriately simplified?
@@ -188,7 +188,7 @@ Priority-ordered list of improvements, from most critical to nice-to-have.
 
 ### Common Anti-Patterns to Flag
 
-- **Anemic Domain Model** — Entities with only getters/setters and all logic in service classes. Domain objects should have behavior, not just data (opposite of what DDD prescribes)
+- **Anemic Domain Model / Transaction Script masquerading as DDD** — Entities with only getters/setters and all logic in service classes. Domain objects should have behavior, not just data. When service methods procedurally manipulate passive data objects, this is a *Transaction Script* — name this anti-pattern explicitly when you see it, even if the code uses DDD terminology
 - **God Aggregate** — An Aggregate that's grown too large, containing too many entities. Keep Aggregates small, reference other Aggregates by ID
 - **Repository for non-roots** — Repository interfaces for objects that are internal to an Aggregate. Only Aggregate roots get Repositories
 - **Leaking infrastructure into domain** — Domain objects importing ORM annotations, HTTP classes, or database types. Domain layer should be pure

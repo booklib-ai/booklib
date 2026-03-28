@@ -171,6 +171,26 @@ When reviewing async Python code, read `references/review-checklist.md` for the 
 6. **Library scan** — Check Ch 4: Correct async library usage (aiohttp, aiofiles, asyncpg)
 7. **Error scan** — Check Ch 3: CancelledError handling, exception propagation, timeout usage
 
+### Praise Patterns in Good Code
+
+When code already follows best practices, explicitly call out what it does right — do not invent issues to appear thorough:
+
+- **`asyncio.create_task()` over `ensure_future()`** — Praise when the code uses `create_task()` instead of the older `ensure_future()` (Ch 3: prefer create_task)
+- **`asyncio.Semaphore`** — Praise when used to cap concurrency and prevent thundering-herd (Ch 3: Semaphore for concurrency control)
+- **`asyncio.gather(*tasks, return_exceptions=True)`** — Praise when `return_exceptions=True` prevents one failure from cancelling all in-flight tasks (Ch 3: use return_exceptions=True)
+- **Async context managers** — Praise `async with aiohttp.ClientSession(...)` ensuring sessions are always closed (Ch 3-4: async with for resource cleanup)
+- **`resp.raise_for_status()` + `except aiohttp.ClientError`** — Praise when each request validates the status and catches per-URL errors gracefully without crashing the whole batch (Ch 3: error handling per task)
+- **`asyncio.run(main())`** — Praise as the single clean entry point that handles loop setup and teardown (Ch 3: use asyncio.run, avoid manual loop management)
+
+### Calibrating Severity
+
+When code is generally well-written, calibrate suggestions accordingly:
+
+- **Real bugs** (e.g., blocking calls in async functions, `run_until_complete` inside a running loop) → flag as critical issues
+- **Missing best practices** (e.g., no timeouts, no `return_exceptions`) → flag as moderate improvements
+- **Optional enhancements** (e.g., adding structured logging, TaskGroups for Python 3.11+) → frame explicitly as "minor optional improvement" or "nice-to-have"
+- **Do NOT** escalate optional improvements into "silent bugs" or "production data loss" to appear more thorough
+
 ### Review Output Format
 
 Structure your review as:
@@ -178,37 +198,24 @@ Structure your review as:
 ```
 ## Summary
 One paragraph: overall async code quality, pattern adherence, main concerns.
+If the code is well-structured, say so explicitly here.
 
-## Concurrency Model Issues
-For each issue (Ch 1-2):
+## What This Code Does Well
+For each strength (explicitly praise correct patterns):
+- **Pattern**: what the code does right
+- **Why**: which chapter/concept it satisfies and why it matters
+
+## Issues
+For each real issue found:
 - **Topic**: chapter and concept
 - **Location**: where in the code
 - **Problem**: what's wrong
 - **Fix**: recommended change with code snippet
 
-## Coroutine & Task Issues
-For each issue (Ch 3):
-- Same structure
-
-## Resource Management Issues
-For each issue (Ch 3-4):
-- Same structure
-
-## Shutdown & Lifecycle Issues
-For each issue (Ch 3):
-- Same structure
-
-## Blocking & Performance Issues
-For each issue (Ch 2-3):
-- Same structure
-
-## Library Usage Issues
-For each issue (Ch 4):
-- Same structure
-
-## Recommendations
-Priority-ordered from most critical to nice-to-have.
-Each recommendation references the specific chapter/concept.
+## Optional Improvements
+For each nice-to-have (frame as minor/optional):
+- **Suggestion**: what could be improved
+- **Note**: explicitly state this is optional/minor, not a bug
 ```
 
 ### Common Asyncio Anti-Patterns to Flag

@@ -36,6 +36,8 @@ Determine whether the code is application-level, systems-level (binary data, I/O
 
 ### Step 2: Analyze the Code
 
+**Critical rule**: Only flag genuine issues. If a pattern is idiomatic Rust, acknowledge it as correct. Do not manufacture problems where none exist. When code is well-written, say so and offer only minor suggestions. See the "Idiomatic Patterns — Do NOT Flag as Issues" section for patterns that must never be flagged.
+
 Check these areas in order of severity:
 
 1. **Ownership & Borrowing** (Ch 4): Unnecessary `.clone()`? Value moved when a borrow would suffice? Use references where full ownership is not required.
@@ -263,6 +265,23 @@ impl ThreadPool {
     }
 }
 ```
+
+---
+
+## Idiomatic Patterns — Do NOT Flag as Issues
+
+When reviewing code, recognize these patterns as **correct and idiomatic**. Do not manufacture issues from them:
+
+- **`Arc<Mutex<T>>`** — the standard pattern for shared mutable state across threads (Ch 6, 10). This is correct and idiomatic. Never call it redundant, a design error, or suggest removing/replacing it when it is the appropriate choice. When a `Store` or similar struct wraps shared mutable data accessed by multiple threads, `Arc<Mutex<Vec<u8>>>` is exactly right — acknowledge it as such.
+- **`BufReader<File>`** — explicitly recommended for batched I/O (Ch 7). Never call it overhead-adding or harmful.
+- **`AtomicU64` with `Ordering::Relaxed`** — appropriate for counters where exact cross-thread ordering is not required, e.g. telemetry, stats (Ch 10). Not a bug.
+- **`&Path` parameters** — correct; prefer `&Path` over `&str` or `String` for file paths (Ch 7).
+- **Custom error enums with `Display` + `Error` + `From` impls** — the canonical library error pattern (Ch 3, 8). Praise it, don't critique it.
+- **`.expect("mutex poisoned")`** with a descriptive reason — correct idiom for panicking on a poisoned mutex (Ch 10).
+- **`Arc::clone(&ptr)` idiom** — correct; makes cheap refcount increment explicit (Ch 10).
+- **`move` closures for threads** — required and correct (Ch 10).
+
+If code is already correct, say so. Only flag real issues. If the only things left to say are minor suggestions, label them as suggestions, not bugs or important issues.
 
 ---
 

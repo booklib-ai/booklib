@@ -151,6 +151,7 @@ When reviewing Kotlin code, read `references/review-checklist.md` for the full c
 3. **Design scan** — Check Items 19-44: duplication, abstraction levels, API design, visibility, class design, inheritance vs composition
 4. **Efficiency scan** — Check Items 45-52: unnecessary allocations, inline opportunities, collection processing efficiency
 5. **Cross-cutting concerns** — Testability, API stability, contract documentation
+6. **Balance praise and critique** — If code is already idiomatic and well-designed, say so explicitly. Identify specific strengths that demonstrate Effective Kotlin mastery, not just problems.
 
 ### Review Output Format
 
@@ -159,6 +160,14 @@ Structure your review as:
 ```
 ## Summary
 One paragraph: overall code quality, key Kotlin idiom adherence, main concerns.
+If code is already idiomatic and well-designed, lead with that assessment.
+
+## Strengths (when code is good)
+For each notable strength:
+- **Item**: number and name
+- **What**: what the code does well
+- **Why it matters**: why this pattern is idiomatic or effective
+Include strengths even if there are also issues.
 
 ## Safety Issues
 For each issue found (Items 1-10):
@@ -182,12 +191,29 @@ For each issue found (Items 45-52):
 ## Recommendations
 Priority-ordered list from most critical to nice-to-have.
 Each recommendation references the specific Item number.
+If code is excellent, frame minor suggestions as optional enhancements, not required fixes.
 ```
+
+### Idiomatic Kotlin Patterns to Praise
+
+When you see these, call them out as strengths by name:
+
+- **Sealed interface/class for state modeling** — Item 39: "makes illegal states unrepresentable"; praise exhaustive `when` expressions and extensibility outside the module
+- **`@JvmInline value class` wrappers** — Items 46/49: zero boxing overhead, type-safe domain primitives; praise especially when combined with `require()` in init block
+- **`operator fun plus/minus/times` on value types** — Item 12: operator overloading that follows naming conventions and has clear semantic meaning (Money arithmetic, Point geometry, etc.)
+- **`fun interface` SAM interfaces** — enables lambda usage, clean abstraction boundary; praise the single abstract method design
+- **`repeat(n) { }` with `when` inside** — idiomatic loop-with-early-exit pattern; cleaner than `for` + `if/else` + `break` for retry logic
+- **Sealed hierarchy discriminating subtypes** — when a sealed class models distinct states (Success/Failure/Pending), praise designs where the type system enforces correct behavior (e.g., only retrying `Failure(NETWORK_ERROR)`, not `Pending` or non-retriable failures)
+- **`require()` / `check()` in init blocks** — Item 5: contracts baked into construction, prevents invalid objects
+- **Data class with `copy()`** — immutable value types with structural equality; praise over mutable classes with manual equality
+- **Extension functions for domain operations** — e.g., `Point.translate()` is cleaner than a standalone `translatePoints()` function; places behavior close to the type it extends (Item 44)
+- **`minByOrNull`, `map`, `filter`, `fold` from stdlib** — Item 20: using existing algorithms instead of hand-rolled loops
+- **Variable scope tightly matched to usage** — Item 2: class-wide properties that are only meaningful in a subset of states (e.g., logged-in fields that become null on logout) violate scope minimization; praise when fields are scoped correctly or redesigned via sealed states
 
 ### Common Kotlin Anti-Patterns to Flag
 
 - **Mutable where immutable works** → Item 1: Use val, immutable collections, copy()
-- **Overly broad variable scope** → Item 2: Move declarations closer to usage
+- **Overly broad variable scope** → Item 2: Move declarations closer to usage; also flag class-level properties that are only valid/meaningful in a subset of the object's lifecycle (e.g., nullable fields that are null in the "logged out" state and non-null in the "logged in" state — this is class-wide scope for state that should be narrowed via sealed class redesign)
 - **Platform types leaking** → Item 3: Add explicit nullability annotations at Java boundaries
 - **Exposed inferred types** → Item 4: Declare explicit return types on public functions
 - **Missing precondition checks** → Item 5: Add require() for arguments, check() for state
@@ -206,6 +232,7 @@ Each recommendation references the specific Item number.
 - **Tagged class with type enum** → Item 39: Replace with sealed class hierarchy
 - **Broken equals/hashCode** → Items 40-41: Ensure contract compliance
 - **Member extensions** → Item 44: Avoid; use top-level or local extensions
+- **Standalone utility functions that belong to a type** → Prefer extension functions; e.g., `fun translatePoints(points, dx, dy)` → `fun Point.translate(dx, dy)` places behavior on the type it extends, enabling chaining and cleaner call sites
 - **Unnecessary object creation in loops** → Item 45: Cache, reuse, use primitives
 - **Lambda overhead in hot paths** → Item 46: Use inline modifier
 - **Eager collection processing on large data** → Item 49: Switch to Sequence

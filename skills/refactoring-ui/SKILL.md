@@ -57,6 +57,19 @@ Every UI element needs a clear hierarchy level. Control hierarchy through three 
 - **Separate visual hierarchy from document hierarchy** — An `h2` doesn't have to be large; style for the role, not the tag
 - **Balance weight and contrast** — Bold icons on a colored background need lighter color to avoid feeling heavy; same with bold text
 - **Semantics are secondary** — Use the right HTML element, but style based on the design role, not the element type
+- **Use color as an emphasis lever at small sizes** — A small element can read as primary by using an accent color + heavier weight instead of increasing font-size; this is more elegant than relying on size alone
+
+**Hierarchy example for a product card** (most→least important):
+1. **Product name** — 24–30px, weight 700, dark color (primary entry point)
+2. **Price** — 20px, weight 600, dark color (second most scanned element)
+3. **Description** — 15px, weight 400, medium grey (~`#6b7280`)
+4. **Category label** — 12px, weight 500, uppercase, light grey (supporting metadata)
+5. **Stock status** — 12–13px, weight 400, light grey (tertiary)
+
+**Hierarchy example for a pricing card** (three-tier):
+1. **Price amount** — 28–36px, weight 700, primary text color (the hero)
+2. **Plan name** — 12–14px, weight 600, accent color, uppercase+letter-spacing (memorable without size)
+3. **Period/billing note** — 13px, weight 400, tertiary text color (de-emphasized)
 
 ### Step 3 — Apply Layout and Spacing
 
@@ -161,6 +174,20 @@ Every UI element needs a clear hierarchy level. Control hierarchy through three 
 
 When reviewing UI designs or code, use `references/review-checklist.md` for the full checklist.
 
+### Calibrating Your Review: Good vs. Problem Designs
+
+**Before listing issues, assess overall quality first.** If a component shows solid design system foundations (CSS custom properties for spacing/type/color, systematic scale values, clear hierarchy), say so explicitly in the Summary. Don't manufacture problems to fill the review template.
+
+**Indicators of a well-designed component** — praise these when present:
+- **Design token system** — CSS custom properties (`--space-*`, `--text-*`, `--color-*`) that follow a constrained scale; name the tokens explicitly and call out the naming conventions
+- **Three-level text color hierarchy** — `--color-text-primary` (dark), `--color-text-secondary` (medium), `--color-text-tertiary` (light); this directly implements the Refactoring UI color-as-hierarchy principle
+- **Two-layer shadows** — A diffuse large shadow + a tight small shadow (`0 1px 3px ... , 0 1px 2px ...`); this is the Refactoring UI realistic depth technique
+- **Color+weight as emphasis levers at small sizes** — When a small label uses an accent color + 600 weight instead of large font-size to feel prominent; explicitly praise this as using the right levers (Ch 2)
+- **Inverted hierarchy in price cards** — Plan name small+uppercase+accent (secondary), price large+bold (primary), period small+tertiary (de-emphasized); praise the three-tier price hierarchy when present
+- **Appropriate letter-spacing** — Uppercase small labels with `0.05em+` letter-spacing (Ch 4 principle)
+
+**When a design is good**: Lead with "This is a well-designed component..." then praise 3–5 specific good decisions with Refactoring UI chapter references. Only then note genuine issues. Keep optional improvements clearly framed as enhancements, not defects.
+
 ### Review Process
 
 1. **Hierarchy scan** — Is there clear visual hierarchy? Can you tell what's important at a glance?
@@ -211,6 +238,7 @@ Priority-ordered list with specific chapter references.
 ### Common Anti-Patterns to Flag
 
 - **Relying on font size alone for hierarchy** → Ch 2: Use weight and color first
+- **Flat hierarchy (all same size/weight/color)** → Ch 2: Every element the same font-size (15–18px) + weight 400 + same color means nothing is emphasized. Assign each element a hierarchy tier and style accordingly
 - **Arbitrary spacing values** → Ch 3: Use a constrained spacing scale
 - **Grey text on colored backgrounds** → Ch 5: Use opacity or hue-matched colors
 - **Animating layout properties** → Ch 6: Shadows should use elevation scale
@@ -220,6 +248,18 @@ Priority-ordered list with specific chapter references.
 - **Scaling icons** → Ch 7: Use icon sets designed for the target size
 - **Empty empty states** → Ch 8: Design them thoughtfully; use as onboarding
 - **Labels louder than values** → Ch 2: De-emphasize labels, emphasize data
+- **Primary action button with weight 400** → Ch 2: CTA buttons should use font-weight 500–600 to signal importance
+
+### Concrete Recommendations
+
+When you identify hierarchy problems, always provide **specific numbers**. For a flat product card, a good hierarchy fix is:
+- `.product-name`: 24px, weight 700, `hsl(0,0%,10%)`
+- `.product-price`: 20px, weight 600, `hsl(0,0%,10%)`
+- `.product-description`: 15px, weight 400, `hsl(215,16%,47%)` or `#6b7280`
+- `.category-label`: 12px, weight 500, uppercase, `hsl(0,0%,60%)`
+- `.stock-status`: 13px, weight 400, `hsl(0,0%,60%)`
+
+Always give concrete px/weight/color values in your recommendations — not just "make it bigger" or "use a lighter color".
 
 ---
 

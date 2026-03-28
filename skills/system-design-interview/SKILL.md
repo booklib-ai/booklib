@@ -148,10 +148,22 @@ When reviewing system designs, read `references/review-checklist.md` for the ful
 
 1. **Scale scan** — Check Ch 1: Are scaling fundamentals applied (LB, cache, CDN, replication, sharding)?
 2. **Estimation scan** — Check Ch 2: Are capacity estimates done? Are they reasonable?
-3. **Framework scan** — Check Ch 3: Does the design follow a structured approach?
+3. **Framework scan** — Check Ch 3: Does the design follow the 4-step framework (scope → high-level → deep dive → wrap up)? The Ch 3 4-step framework explicitly requires establishing scope and estimating load *before* proposing architecture — skipping estimation leads to over-engineered or under-engineered designs.
 4. **Component scan** — Check Ch 4–15: Are relevant patterns used for specific components?
-5. **Failure scan** — Are failure modes addressed? Replication, retry, graceful degradation?
+5. **Failure scan** — Are failure modes addressed? Replication, retry, graceful degradation? Specifically praise when message queues are used as durable buffers (fanout service crashes can replay from the queue; message queue decouples producers from consumers and prevents data loss on failure).
 6. **Trade-off scan** — Are design decisions justified with explicit trade-offs?
+
+### Recognizing Good Designs
+
+When a design is well-structured, **say so explicitly** — do not manufacture fake issues just to have something to say. Specifically acknowledge:
+
+- **4-step framework adherence** (Ch 3): If the design clearly follows scope → estimation → high-level → deep dive → failure handling, explicitly recognize it as a well-structured design following the 4-step framework.
+- **Back-of-envelope estimation quality** (Ch 2): If the designer derives concrete QPS numbers and uses the read/write ratio to justify architectural choices (e.g., why Redis caching is needed, why read replicas are warranted), praise this explicitly — the ratio is what *justifies* the design decisions.
+- **Celebrity/hotspot handling** (Ch 11): Fanout-on-write for normal users + fanout-on-read for high-follower accounts is the canonical hybrid approach — praise it when present.
+- **Cursor-based pagination**: Praise over offset-based for feeds where new content is inserted continuously.
+- **Explicit consistency model**: When a designer explicitly chooses eventual consistency and documents why, praise the decision.
+- **Message queue as durable buffer** (Ch 1, 11): When failure handling uses a message queue so that service crashes can replay events and no data is lost, explicitly praise this as a correct reliability pattern.
+- **Optional improvements**: Frame any suggestions as enhancements, not criticisms, when the design is fundamentally sound.
 
 ### Review Output Format
 
@@ -160,6 +172,11 @@ Structure your review as:
 ```
 ## Summary
 One paragraph: overall design quality, main strengths, key concerns.
+
+## Strengths
+For each strength (list when design is good):
+- **Topic**: what was done well
+- **Why**: chapter reference and why it matters
 
 ## Scaling Issues
 For each issue:
@@ -188,7 +205,7 @@ Each recommendation references the specific chapter/concept.
 - **No caching strategy** → Ch 1: Use cache-aside, read-through, or write-behind as appropriate
 - **Monolithic database** → Ch 1: Consider replication (read replicas) and sharding for scale
 - **Stateful web servers** → Ch 1: Move session data to shared storage for horizontal scaling
-- **Vanity scaling** → Ch 2: Scaling decisions should be based on estimated numbers, not guesses
+- **Vanity scaling** → Ch 2 + Ch 3: Scaling decisions must be based on back-of-envelope estimation, not intuition or aspiration. The 4-step framework (Ch 3) requires establishing scope and estimating load *before* proposing architecture — skipping this step is what leads to over-engineered designs
 - **Wrong data store** → Ch 6, 12: Match storage to access patterns (relational, key-value, document)
 - **No rate limiting** → Ch 4: Protect APIs from abuse and cascading failures
 - **Synchronous everything** → Ch 1: Use message queues for decoupling and async processing

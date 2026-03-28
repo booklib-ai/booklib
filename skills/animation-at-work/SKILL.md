@@ -230,6 +230,27 @@ Priority-ordered list with specific chapter references.
 - **Same easing for enter and exit** → Ch 1: Use ease-out for enter, ease-in for exit
 - **Parallax without fallback** → Ch 5: Parallax triggers vestibular issues
 - **Flash rate >3/sec** → Ch 5: Can trigger seizures; never exceed this
+- **`display: none` ↔ `display: block` transitions** → Ch 3: `display` is not an animatable property; switching between `none` and `block` causes an instant jump — the animation runs but the element appears/disappears immediately. Fix: use `opacity`/`transform` combined with `visibility: hidden` or `pointer-events: none` to keep the element in the flow while visually hidden, or use the modern `@starting-style` rule.
+
+### Praiseworthy Patterns to Recognize
+
+When code already does these well, **explicitly acknowledge them** in your review:
+
+- **Composite-only animation** — Animating only `transform` and `opacity` (GPU-accelerated, no layout/paint)
+- **Correct easing directionality** — `ease-out` for entering elements, `ease-in` for exiting elements
+- **Consistent duration hierarchy** — Durations ordered by interaction weight: 100ms (press feedback) → 200ms (hover/small UI) → 300ms (notifications) → 400ms (reveals) — shows intentional design
+- **`prefers-reduced-motion` implementation** — Especially the global `*, *::before, *::after` block that sets `animation-duration: 0.01ms` and `transition-duration: 0.01ms` — this is the correct canonical approach
+- **`pointer-events: none` on hidden elements** — Prevents interaction with invisible elements without removing from DOM; cleaner than `display: none` toggling
+- **WAAPI with IntersectionObserver** — Using `element.animate()` inside an IntersectionObserver callback avoids scroll-event jank; calling `observer.unobserve()` after triggering prevents repeat-fire — both are signs of mature implementation
+
+### Calibrating Review Severity
+
+**Not every review needs problems.** When code is well-designed:
+
+1. Lead with genuine praise for what's done correctly — be specific about which patterns are good and why
+2. If you suggest improvements, frame them explicitly as "minor optional improvements" or "polish ideas" — do not label them 🔴 Critical or High unless they are genuine accessibility or performance regressions
+3. Do not manufacture issues to appear thorough; a short, positive review of good code is more valuable than a padded list of nitpicks
+4. The summary paragraph should reflect the overall quality honestly — if it's well-crafted, say so directly
 
 ---
 

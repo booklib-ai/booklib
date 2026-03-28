@@ -39,6 +39,17 @@ When the user asks you to **review** existing TypeScript code, follow this proce
 Determine which chapters apply to the code under review and read those reference files. If unsure, read all of them.
 
 ### Step 2: Analyze the Code
+Before listing issues, first ask: **Is this code already applying Effective TypeScript principles?** Look for positive signals:
+- Tagged unions with a discriminant field (Item 28/32)
+- Branded types for nominal typing (Item 37)
+- `unknown` for external data, narrowed before use (Item 42)
+- Type assertions scoped inside well-typed wrapper functions (Item 40)
+- `readonly` on fields/parameters (Item 17)
+- `async`/`await` with typed return types (Item 25)
+- TSDoc comments on public functions (Item 48)
+
+**Key rule — Item 40 interaction with Item 9:** A type assertion (`as T`) inside a function that has a fully-typed signature is NOT a violation of Item 9. Item 40 explicitly endorses hiding unsafe assertions inside well-typed wrappers. Only flag `as` when it appears at a call-site or as an escape hatch on a public-facing value.
+
 For each relevant item from the book, check whether the code follows or violates the guideline. Focus on:
 
 1. **TypeScript Fundamentals** (Items 1-5): Is `strict` mode enabled? Is `any` used carelessly? Does structural typing cause surprises?
@@ -50,7 +61,15 @@ For each relevant item from the book, check whether the code follows or violates
 7. **Code Execution** (Items 53-57): Are ECMAScript features preferred over TypeScript-only equivalents? Is object iteration done safely?
 8. **Migration** (Items 58-62): Is modern JavaScript used as a baseline? Is migration done module-by-module?
 
-### Step 3: Report Findings
+### Step 3: Calibrate Your Response
+
+**If the code is already well-typed:**
+- Open with acknowledgment of what is correct and which Items are applied
+- Only note genuine issues; do not manufacture problems
+- Any remaining observations must be clearly labeled as "optional polish" or "minor suggestion"
+- Do NOT escalate a narrowly scoped assertion inside a well-typed function to Critical/Important
+
+**If the code has real issues:**
 For each issue found, report:
 - **Item number and name** (e.g., "Item 9: Prefer Type Declarations to Type Assertions")
 - **Location** in the code
@@ -58,8 +77,8 @@ For each issue found, report:
 - **How to fix it** (the TypeScript-idiomatic way)
 - **Priority**: Critical (bugs/correctness), Important (maintainability), Suggestion (style)
 
-### Step 4: Provide Fixed Code
-Offer a corrected version of the code with all issues addressed, with comments explaining each change.
+### Step 4: Provide Fixed Code (only when needed)
+If there are real issues, offer a corrected version with comments explaining each change. If the code is already correct, you may offer a brief "what's great here" summary instead of a rewrite.
 
 ---
 
@@ -143,10 +162,12 @@ async function fetchUser(id: UserId): Promise<User> {
 
 ### Critical (Correctness & Bugs)
 - Item 2: Enable `strict` mode — `noImplicitAny` and `strictNullChecks` prevent whole classes of bugs
-- Item 9: Prefer declarations to assertions — assertions bypass the type checker
+- Item 9: Prefer declarations to assertions — **but see Item 40**: assertions inside well-typed wrappers are fine
 - Item 28: Types that always represent valid states — impossible states cause runtime errors
 - Item 31: Push null to the perimeter — scattered nullability causes null dereferences
 - Item 42: Use `unknown` instead of `any` — `any` silently disables type checking
+
+> **Item 40 exception:** `raw as SomeType` inside a function with a fully-typed signature is explicitly endorsed by Item 40. It is acceptable and should NOT be flagged as a Critical or Important violation. At most, note it as a minor optional polish item (suggest a runtime validator like zod as a complement).
 
 ### Important (Maintainability)
 - Item 13: Know the differences between `type` and `interface`

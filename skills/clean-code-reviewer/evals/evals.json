@@ -142,7 +142,7 @@
         "Flags N2: Names Should Be at the Appropriate Level of Abstraction — data and result are too vague for objects holding structured pricing and recommendation payloads; names like recommendations_by_sku and pricing_result convey intent",
         "Flags N7: Names Should Describe Side-Effects — get_info() acquires a database connection and executes a query, which is a significant side effect; a name like fetch_user_profile() or load_user_preferences() accurately describes what the method does",
         "Notes that the misleading get_ prefix suggests a cheap accessor but hides I/O and resource management, violating the principle of least surprise",
-        "Provides concrete better names for all flagged identifiers: active_items, category_matches, top_ranked_items, recommendations_by_sku, pricing_result, fetch_user_profile"
+        "Provides concrete better names for the flagged identifiers — names that reveal what the data represents (e.g., active_items instead of i, something that conveys it holds category-filtered results instead of j, a name for the top-ranked result set instead of k, a name for the recommendation payload map instead of data, a name for the pricing lookup result instead of result, and a name for the method that loads user data from the database instead of get_info)"
       ]
     },
     {
@@ -165,7 +165,7 @@
         "Suggests the object-oriented fix: the ReportBuilder should own the internal lines list and expose fluent or void mutation methods — callers should not manage the accumulator",
         "Flags G31: Hidden Temporal Coupling — the comment 'Callers must invoke addHeader -> addBody -> addFooter in that order' reveals a sequencing constraint that is nowhere enforced by the type system",
         "Recommends making temporal coupling explicit: each step can return an intermediate type (e.g., HeaderAdded, BodyAdded) so the compiler enforces the correct sequence and addFooter cannot be called on a BodyAdded value that skipped the header",
-        "Provides a refactored sketch where ReportBuilder accumulates lines internally via method chaining (builder.withHeader(...).withBody(...).build()) eliminating both the output argument and the hidden ordering requirement"
+        "Provides a refactored sketch where the ReportBuilder owns its internal lines list, eliminating the output argument — callers no longer manage the accumulator buffer, they just call methods on the builder"
       ]
     },
     {

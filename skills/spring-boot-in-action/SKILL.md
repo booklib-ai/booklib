@@ -56,6 +56,7 @@ Check these areas in order of severity:
    - Use `MockMvc` for controller assertions without starting a server
    - Use `@MockBean` to replace real beans with mocks in slice tests
    - Avoid `@SpringBootTest(webEnvironment = RANDOM_PORT)` unless testing the full HTTP stack
+   - Flag missing negative test cases: if there is no test for "not found" (expecting 404), or no test verifying a POST returns 201 with a Location header, call these out explicitly as missing coverage
 
 7. **Actuator** (Ch 7): Is the application missing health/metrics endpoints? Is `/actuator` fully exposed without security? Are custom health indicators implemented for critical dependencies?
 
@@ -67,15 +68,39 @@ Check these areas in order of severity:
    - Return `ResponseEntity<T>` from controllers when status codes matter
    - `Optional<T>` from repository methods, never `null`
 
-### Step 3: Report Findings
-For each issue, report:
+### Step 3: Calibrate Before Reporting
+
+**Do NOT manufacture issues.** If the code already follows idiomatic Spring Boot practices, say so explicitly and acknowledge what is correct. Do not invent problems to fill a review.
+
+**Rule: Only flag what is actually wrong in the code shown. Do not raise issues about code or configuration files that are NOT present in the review.**
+- Missing test files are not an issue in a review of production code unless the prompt asks about test coverage.
+- Missing Flyway/Liquibase is not an issue unless `spring.jpa.hibernate.ddl-auto=create` is used in a production context.
+- `spring.jpa.hibernate.ddl-auto=validate` combined with H2 or any datasource is NOT a conflict — validate is a safe, correct choice.
+- Missing `spring.application.name` is NOT an issue unless service discovery is involved.
+
+These patterns are **correct** and must NOT be flagged as issues:
+- `@SpringBootApplication` on the main class — correct (Ch 1)
+- Constructor injection without `@Autowired` — correct; Spring auto-wires single-constructor beans (Ch 2)
+- `ResponseEntity.created(URI.create("/api/resource/" + id)).body(saved)` — correct; relative URIs are standard practice here (Ch 2)
+- `repo.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND))` — correct pattern (Ch 2); at most suggest adding a descriptive message string, do NOT recommend replacing it with a domain exception + `@RestControllerAdvice`
+- `SLF4J` logger via `LoggerFactory.getLogger(...)` — correct (Ch 3)
+- `${ENV_VAR:default}` syntax in `application.properties` — correct externalization (Ch 3)
+- `management.endpoints.web.exposure.include=health,info` — correct Actuator lockdown (Ch 7)
+
+**When the code is idiomatic, the only acceptable suggestions are:**
+1. Add a descriptive message to `ResponseStatusException` if one is missing (minor suggestion only)
+2. Add `spring-boot-starter-actuator` dependency if the `management.*` properties are present but the starter might not be (minor suggestion only)
+Do not suggest Flyway, `@Valid`, test classes, or `@RestControllerAdvice` unless the code has a concrete problem that requires them.
+
+### Step 4: Report Findings
+For each genuine issue, report:
 - **Chapter reference** (e.g., "Ch 3: Externalized Configuration")
 - **Location** in the code
 - **What's wrong** (the anti-pattern)
 - **How to fix it** (the Spring Boot idiomatic way)
 - **Priority**: Critical (security/bugs), Important (maintainability), Suggestion (polish)
 
-### Step 4: Provide Fixed Code
+### Step 5: Provide Fixed Code
 Offer a corrected version with comments explaining each change.
 
 ---

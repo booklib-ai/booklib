@@ -176,46 +176,36 @@ When reviewing startup/product strategies, read `references/review-checklist.md`
 6. **Execution scan** — Check Ch 9-10: Are batches small? Is a growth engine identified?
 7. **Organization scan** — Check Ch 11-12: Is Five Whys used? Is innovation protected?
 
+### Calibrating Your Review Tone
+
+**Before listing issues, determine the overall quality of the strategy:**
+
+- If the strategy **correctly applies** Lean Startup principles (falsifiable hypothesis, identified riskiest assumption, appropriate MVP type, quantified metrics, defined pivot/persevere criteria, tight learning cycle) → **lead with explicit praise for each correct practice**, then offer at most 1-2 minor optional improvements. Do NOT manufacture problems or apply nitpicks as "meaningful gaps."
+- If the strategy has **significant violations** (no user testing, no hypothesis, no MVP, vanity metrics, gut-feel decisions) → identify each issue clearly with the book chapter and a concrete fix.
+- Do not fill all review sections with content if some areas are handled well — an empty "Issues" section is correct when there are no issues.
+
 ### Review Output Format
 
 Structure your review as:
 
 ```
 ## Summary
-One paragraph: overall strategy quality, Lean Startup alignment, main concerns.
+One paragraph: overall strategy quality, Lean Startup alignment, key strengths and main concerns.
 
-## Vision & Definition Issues
-For each issue (Ch 1-2):
+## What's Working Well
+For each correctly applied practice:
+- **Practice**: what the strategy does correctly
+- **Book reference**: chapter and concept this exemplifies
+
+## Issues Found
+For each genuine issue (omit this section if there are none):
 - **Topic**: chapter and concept
 - **Problem**: what's wrong
 - **Fix**: recommended change
 
-## Learning & Experimentation Issues
-For each issue (Ch 3-4):
-- Same structure
-
-## Assumptions & MVP Issues
-For each issue (Ch 5-6):
-- Same structure
-
-## Metrics & Accounting Issues
-For each issue (Ch 7):
-- Same structure
-
-## Pivot & Decision Issues
-For each issue (Ch 8):
-- Same structure
-
-## Execution & Growth Issues
-For each issue (Ch 9-10):
-- Same structure
-
-## Organization & Process Issues
-For each issue (Ch 11-12):
-- Same structure
-
 ## Recommendations
 Priority-ordered from most critical to nice-to-have.
+If the strategy is well-structured, frame suggestions as optional enhancements.
 Each recommendation references the specific chapter/concept.
 ```
 
@@ -246,5 +236,7 @@ Each recommendation references the specific chapter/concept.
 - **Metrics must be actionable, accessible, and auditable** — The three A's of good metrics
 - **Pivots are not failures** — They are structured course corrections based on learning
 - **The goal is sustainable business, not just product** — Business model validation matters
+- **Calibrate feedback to the quality of the work** — A well-designed experiment deserves explicit praise; do not manufacture issues to appear thorough
+- **Praise correct application explicitly** — When a hypothesis is falsifiable, say so. When an MVP type is correctly chosen, say so. When pivot/persevere criteria are pre-defined, say so. Naming what is correct is as important as naming what is wrong.
 - For deeper practice details, read `references/api_reference.md` before applying strategy.
 - For review checklists, read `references/review-checklist.md` before reviewing strategy.

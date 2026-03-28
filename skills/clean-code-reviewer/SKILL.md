@@ -53,7 +53,9 @@ For each issue, reference the specific heuristic code when applicable (e.g., "G2
 - **Pronounceable**: Could you discuss this name in conversation? `genymdhms` → `generationTimestamp`
 - **Searchable**: Single-letter names and numeric constants are hard to grep for. The length of a name should correspond to the size of its scope (N5).
 - **No encodings**: No Hungarian notation, no `m_` member prefixes, no `I` prefix on interfaces (language-dependent). Modern IDEs make these unnecessary.
-- **Avoid mental mapping**: Readers shouldn't have to mentally translate your names. `r` → `url`. Clarity is king.- **Class names**: Nouns/noun phrases (`Customer`, `WikiPage`, `Account`). Never verbs. Avoid vague names like `Manager`, `Processor`, `Data`, `Info`.
+- **Avoid mental mapping**: Readers shouldn't have to mentally translate your names. `r` → `url`. Clarity is king.- **Class names**: Nouns/noun phrases (`Customer`, `WikiPage`, `Account`). Never verbs. Avoid vague names like `Manager`, `Processor`, `Data`, `Info`, `Service`, `Handler`, `Helper` — these are noise words that tell you nothing about what the class actually does. `UserService` → `AuthenticationService` + `UserProfileRepository`.
+- **N2 — Names at the right level of abstraction**: A name should match the abstraction its caller works at. `Modem.dial(String phoneNumber)` leaks implementation detail; `Modem.connect(ConnectionLocator locator)` stays at the right level. In practice: a variable named `data` or `result` inside a function that builds product recommendations should be `recommendations_by_sku` — the name should reveal *what* the data represents at that abstraction, not *that* it's a data container.
+- **N7 — Names should describe side-effects**: The `get_` prefix implies a cheap, side-effect-free accessor (principle of least surprise). If a method named `get_X()` also opens a database connection, acquires a lock, or creates a file, rename it to `create_or_return_X()` or `fetch_X()`. Misleading prefixes force readers to inspect the body to understand the cost of calling the function.
 - **Method names**: Verbs/verb phrases (`postPayment`, `deletePage`, `save`). Accessors, mutators, predicates: `get`, `set`, `is` prefixes (JavaBean standard).
 - **Don't be cute**: `whack()` → `kill()`, `eatMyShorts()` → `abort()`. Say what you mean. Mean what you say.
 - **One word per concept**: Pick one synonym and stick with it across the codebase. Don't use `fetch`, `retrieve`, and `get` in different classes for equivalent operations.
@@ -68,7 +70,7 @@ For each issue, reference the specific heuristic code when applicable (e.g., "G2
 - **Small**: Functions should be small. Then smaller than that. Rarely should a function be 20 lines. Blocks within `if`, `else`, and `while` should be one line — probably a function call.
 - **Do one thing**: A function should do one thing, do it well, and do it only. If you can extract a meaningfully named function from it, it's doing more than one thing.
 - **One level of abstraction per function**: Don't mix high-level intent (`getHtml()`) with low-level details (`PathParser.render(pagePath)`). Read code like a top-down narrative: each function leads to the next level of abstraction (the Stepdown Rule).
-- **Switch statements**: By their nature, switches do N things. Bury them in an abstract factory that uses polymorphism. Tolerate them only if they appear once, create polymorphic objects, and are hidden from the rest of the system.
+- **Switch statements**: By their nature, switches do N things. Bury them in an **Abstract Factory** (or a registry/map from type → handler) that uses polymorphism. The switch appears once, hidden behind the factory interface; all callers see only the abstraction. Tolerate a switch only if it appears exactly once, creates polymorphic objects, and is invisible to the rest of the system. A switch on a type tag (`PaymentType.CREDIT`, `PaymentType.PAYPAL`) that keeps growing as new types are added is the classic OCP violation — the solution is not an enum enrichment but a polymorphic type hierarchy constructed by a factory.
 - **Descriptive names**: A long descriptive name is better than a short enigmatic name. A long descriptive name is better than a long descriptive comment. Be consistent in naming: `includeSetupAndTeardownPages`, `includeSetupPages`, `includeSuiteSetupPage`.
 - **Function arguments**:
   - Zero (niladic) is best, one (monadic) is fine, two (dyadic) is harder, three (triadic) — needs strong justification. More than three: extract into an argument object.
@@ -76,7 +78,8 @@ For each issue, reference the specific heuristic code when applicable (e.g., "G2
   - **Flag arguments are ugly** (F3): Passing a boolean loudly declares the function does more than one thing. Split into two functions.
   - Dyadic: `writeField(name)` is clearer than `writeField(outputStream, name)`. Consider making `outputStream` a member variable.
   - Argument objects: When a function needs 2–3+ args, consider wrapping them. `makeCircle(double x, double y, double radius)` → `makeCircle(Point center, double radius)`.- **No side effects**: A function named `checkPassword` shouldn't also initialize a session. That's a *temporal coupling* hidden as a side effect.
-- **Output arguments**: `appendFooter(s)` — is `s` being appended *to*, or is `s` the thing being appended? Output arguments are counterintuitive (F2). In OO: `report.appendFooter()`.
+- **G31 — Hidden Temporal Couplings**: When callers must invoke methods in a specific order to get correct behaviour, that ordering constraint must be visible in the API — not buried in a comment. One approach: each step returns an intermediate result type that the next step requires as its argument, so the compiler enforces the sequence. `builder.addHeader(title, date)` returning a `HeaderAdded` that is the required argument to `.addBody(records)` is impossible to call out of order; a void method with a "call me third" comment is not.
+- **Output arguments**: `appendFooter(s)` — is `s` being appended *to*, or is `s` the thing being appended? Output arguments are counterintuitive (F2). In OO: `report.appendFooter()`. The object-oriented fix is always the same: the object should own its own state. A `ReportBuilder` that takes a `List<String>` from callers should instead maintain that list internally and expose methods that mutate it — callers accumulate state by calling methods, not by passing a shared buffer around.
 - **Command-Query Separation**: Functions should either *do something* (command) or *answer something* (query), not both. `if (set("username", "unclebob"))` is confusing.
 - **Prefer exceptions to error codes**: Error codes force nested `if` chains and violate command-query separation. Extract try/catch bodies into their own functions. Error handling is one thing (a function that handles errors should do nothing else).
 - **DRY**: Duplication is the root of all evil in software. Duplication may be the source of many other principles (Codd's database normal forms, OO, structured programming are all strategies for eliminating duplication).
@@ -119,10 +122,12 @@ The proper use of comments is to compensate for our failure to express ourselves
 
 ### 5. Objects and Data Structures (Ch. 6)
 
-- **Data/Object anti-symmetry**: Objects hide data behind abstractions and expose functions. Data structures expose data and have no meaningful functions. They are virtual opposites.
+- **Data/Object anti-symmetry**: Objects hide data behind abstractions and expose behaviour. Data structures expose data and have no meaningful behaviour. They are virtual opposites — and that's fine, as long as you pick one consistently.
+  - *Pure data structure* (DTO): all public fields, no business methods. Callers do the work. Good at boundaries (database rows, API payloads).
+  - *Proper object*: all fields private, meaningful methods only. State is encapsulated. Good for domain logic.
+  - **Hybrids** (public fields *and* business methods) are the worst of both worlds: they give callers unrestricted mutation access (undermining encapsulation) while also burdening the class with behaviour (preventing procedural flexibility). When you see a class with `public` fields next to methods like `calculateTotal()` or `isEligible()`, that's the hybrid anti-pattern. **Choose one form and commit to it.**
 - **Law of Demeter**: A method `f` of class `C` should only call methods on: `C` itself, objects created by `f`, objects passed as arguments to `f`, objects held in instance variables of `C`. Don't call methods on objects returned by other methods (train wrecks).
-- **Train wrecks**: `a.getB().getC().getD()` — split into intermediate variables, or better: rethink the design.
-- **Hybrids**: Half-object, half-data-structure. The worst of both worlds. Avoid.
+- **Train wrecks**: `a.getB().getC().getD()` — split into intermediate variables, or better: rethink the design. Each `.` in a chain is also a latent null pointer exception waiting to happen: if any link returns null, the whole expression crashes with no context about which step failed.
 - **DTOs**: Data Transfer Objects — public variables, no functions. Useful at boundaries (database, API parsing).
 
 ### 6. Error Handling (Ch. 7)
@@ -169,13 +174,13 @@ The proper use of comments is to compensate for our failure to express ourselves
 
 ### 11. Concurrency (Ch. 13)
 
-- **SRP for concurrency**: Keep concurrency-related code separate from other code.
-- **Limit the scope of shared data**: Fewer shared mutable objects = fewer problems. Use synchronized sections sparingly and keep them small.
-- **Use copies of data**: If possible, copy data and merge results, avoiding shared state.
+- **SRP for concurrency**: Concurrency policy (which locks, which atomics, how state is protected) is a *separate concern* from domain logic (what is recorded, what is computed). A class that mixes both has two reasons to change: "the business rule changed" and "the threading model changed". Extract concurrency management into a dedicated wrapper or use library primitives that encapsulate it.
+- **Prefer immutability**: An object that cannot change after construction is safe in any concurrent context without locks. Design value objects to be immutable by default; reach for mutable shared state only when necessary.
+- **Publish copies, not references**: If you must expose a mutable collection, return an unmodifiable view or a defensive copy — not the live internal structure. Callers who hold a reference to your private state can mutate it from any thread.
+- **Use thread-safe library types**: `AtomicInteger`, `LongAdder` (for high-throughput counters), `ConcurrentLinkedDeque`, `CopyOnWriteArrayList` — the JDK provides the right primitive for most patterns. Prefer these over `synchronized` blocks.
+- **Keep synchronized sections small**: Locks are expensive and create contention. Only the minimum lines that access shared state should be inside a lock.
 - **Threads should be as independent as possible**: Each thread processes one request with no shared data.
-- **Know your library**: Use thread-safe collections (`ConcurrentHashMap`, `AtomicInteger`).
 - **Know your execution models**: Producer-Consumer, Readers-Writers, Dining Philosophers — understand the patterns.
-- **Keep synchronized sections small**: Locks are expensive and create contention.
 
 ---
 
@@ -283,9 +288,26 @@ This is the definitive checklist. Reference these codes in reviews.
 - **Be practical**: Clean Code is a value system, not a law. If breaking a "rule" improves clarity, say so.
 - **Prioritize impact**: Lead with changes that make the biggest readability/maintainability difference.
 - **Show, don't just tell**: Always include at least one concrete before/after code example.
-- **Note when code is already clean**: Don't manufacture issues. Praise what's done well with specifics.
+- **Note when code is already clean**: Don't manufacture issues. Praise what's done well with specifics. When a reviewer finds *nothing significant to criticize*, that is itself a valuable signal — say it clearly ("This is well-written code. Here's what makes it good:") rather than hunting for micro-issues to justify the review.
 
 ---
+
+## Positive Patterns to Recognise (don't flag these as issues)
+
+When reviewing code, these patterns are **good** by Clean Code standards. Praise them in "What's Good". Do not flag them as violations.
+
+| Pattern | Why it's good |
+|---------|---------------|
+| Construction-time validation (`__post_init__`, constructor guards, `require()` in Kotlin) | Fail-fast design — invariants enforced at the boundary, not scattered through the codebase (G28, DIP) |
+| Immutable value objects (`frozen=True`, `data class` in Kotlin, `final` fields, `record` in Java) | Eliminates shared-mutable-state bugs; safe as dict keys / set members; free structural equality (Ch. 13, Ch. 6) |
+| Named factory classmethods / companion factories (`DateRange.for_calendar_year()`, `companion object { fun of(...) }`) | G30 — each factory captures one construction intent, more readable than overloaded constructors (Stepdown Rule) |
+| Enums for closed sets of values (`enum class Currency`, `enum PaymentType`) | Type-safe; J3 — enums can carry behaviour and data; compiler enforces exhaustiveness in `when`/`switch` |
+| Small, focused methods that do exactly one thing | The ideal: a method whose body is a single expression or a short sequence at one abstraction level (Ch. 3, G30, G34) |
+| Dependency injection over hard-coded collaborators | DIP — depends on abstractions, testable without mocks of concrete types (Ch. 10) |
+| Exception types that carry context | Ch. 7 — typed exceptions with message context, not bare `Exception("error")` |
+| Guard clauses / early returns | Reduces nesting, makes the happy path linear and readable |
+
+**When a file consists entirely of these patterns**, your review should lead with "this is clean code" and explain *specifically which patterns make it good*, rather than appending a list of minor optional enhancements under an "Issues" heading.
 
 ## Tone
 

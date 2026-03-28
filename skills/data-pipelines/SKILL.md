@@ -174,6 +174,25 @@ When reviewing data pipelines, read `references/review-checklist.md` for the ful
 6. **Orchestration scan** — Check Ch 11: DAG design, task granularity, dependency management, idempotency
 7. **Operations scan** — Check Ch 12-13: monitoring, alerting, backfill capability, error handling, documentation
 
+### Calibrating Review Tone — Well-Designed vs. Problematic Pipelines
+
+**Before listing issues, assess overall quality:**
+
+- If the pipeline already implements idempotency, incremental extraction, separation of concerns, retry logic, structured logging, and lineage tracking — say so explicitly and lead with praise.
+- **Do NOT manufacture problems** to appear thorough. If a pattern is correct, praise it. Only flag genuine gaps.
+- Frame truly optional improvements as "minor" or "nice-to-have," not "Critical" or "will cause real pain in production."
+- A well-designed pipeline deserves a review that opens with "This is a well-designed pipeline" and highlights what it does right before any suggestions.
+
+**Specific patterns to recognize and praise when present:**
+
+- **ETL function separation** — `extract`, `transform`, `load` as distinct single-responsibility functions (Ch 3: ETL pattern, Ch 11: task granularity) → Praise explicitly.
+- **Generator/batch extraction** — `yield`-based extraction that streams rows in batches rather than fetching everything into memory (Ch 4: streaming extraction, memory efficiency) → Praise explicitly; do NOT suggest it is broken.
+- **Watermark-based incremental extraction** — filtering by timestamp/cursor to avoid full-table scans on reruns (Ch 3-4) → Praise explicitly.
+- **Upsert / ON CONFLICT DO UPDATE** — ensures idempotency and safe reruns (Ch 13) → Praise explicitly.
+- **Retry with exponential backoff** — `run_with_retry` wrappers for transient errors (Ch 13) → Praise explicitly.
+- **Structured logging with row counts** — batch-level `logger.info` with row counts already present (Ch 12: monitoring) → Praise it; do NOT suggest adding logging that already exists.
+- **pipeline_run_id / audit column** — tracking which pipeline run produced each row (Ch 13: data lineage) → Praise explicitly.
+
 ### Review Output Format
 
 Structure your review as:
@@ -181,41 +200,26 @@ Structure your review as:
 ```
 ## Summary
 One paragraph: overall pipeline quality, pattern adherence, main concerns.
+If the pipeline is well-designed, say so clearly upfront.
 
-## Architecture Issues
-For each issue found (Ch 1-3):
+## Strengths
+For each good pattern found:
+- **Pattern**: name and chapter reference
+- **Where**: location in the pipeline
+- **Why it matters**: brief explanation
+
+## Issues
+For each genuine issue found:
 - **Topic**: chapter and concept
 - **Location**: where in the pipeline
 - **Problem**: what's wrong
 - **Fix**: recommended change with code/config snippet
-
-## Ingestion Issues
-For each issue found (Ch 4-7):
-- Same structure as above
-
-## Storage & Loading Issues
-For each issue found (Ch 8):
-- Same structure as above
-
-## Transformation Issues
-For each issue found (Ch 9):
-- Same structure as above
-
-## Data Quality Issues
-For each issue found (Ch 10):
-- Same structure as above
-
-## Orchestration Issues
-For each issue found (Ch 11):
-- Same structure as above
-
-## Operations & Monitoring Issues
-For each issue found (Ch 12-13):
-- Same structure as above
+- **Severity**: Critical / High / Minor (only use Critical or High for real production risks)
 
 ## Recommendations
-Priority-ordered list from most critical to nice-to-have.
+Priority-ordered list. Frame genuinely minor items as "nice-to-have" or "minor."
 Each recommendation references the specific chapter/concept.
+If no significant issues exist, say so — a short list of minor suggestions is fine.
 ```
 
 ### Common Data Pipeline Anti-Patterns to Flag

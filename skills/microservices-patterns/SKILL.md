@@ -66,6 +66,7 @@ Follow these principles when writing code:
 - **Loose coupling** — services communicate through well-defined APIs or events, never share databases
 - **Aggregates as transaction boundaries** — a single transaction only modifies one aggregate
 - **Compensating transactions in sagas** — every forward step in a saga has a compensating action for rollback
+- **Explicit durable saga states** — saga orchestrators should persist named states (e.g., `PENDING_INVENTORY`, `PENDING_PAYMENT`, `PENDING_SHIPPING`, `CONFIRMED`, `FAILED`) to a saga state table so the saga can be resumed or audited after a crash
 - **Idempotent message handlers** — design consumers to safely handle duplicate messages
 - **Domain events for integration** — publish events when aggregate state changes so other services can react
 
@@ -109,6 +110,13 @@ You should generate:
 - Query API: GET /order-history?customerId=X
 ```
 
+**Key data pattern — price at order time:**
+When OrderService creates an order, it must store the product price at that moment
+(`priceAtOrder`) in its own orders table — not read it live from ProductService's database.
+This is correct business behavior (customers are charged the price they saw) and eliminates
+a cross-service database dependency. Never join to another service's products/price table
+from OrderService.
+
 ---
 
 ## Mode 2: Code Review
@@ -116,18 +124,60 @@ You should generate:
 When reviewing microservices code, read `references/review-checklist.md` for the
 full checklist. Apply these categories systematically:
 
+### Review Mindset — Praise First, Invent Nothing
+
+**Critical rule:** Do not manufacture issues. If the code correctly applies a pattern,
+say so explicitly and praise it. Only flag genuine problems. It is better to write a
+review that is 80% praise and 20% improvement than to invent defects to fill space.
+
+Specifically:
+- If a saga correctly stores intermediate state (e.g., `driverId`, `paymentAuthId`) to enable compensation — **praise this explicitly**: the saga has the data it needs to undo each step
+- If compensating transactions are present (e.g., `ReleaseDriverCommand` triggered on payment failure) — **praise each compensation chain by name**
+- If the design is event-driven (reacting to events rather than making synchronous calls) — **praise this explicitly**: it decouples services from each other's availability
+- If `SagaLifecycle.end()` is called on both success and failure paths — **praise this as correct lifecycle management** that prevents memory leaks; do NOT treat it as a bug
+- If failure paths are modeled as first-class domain events (e.g., `NoDriverAvailableEvent`, `PaymentDeclinedEvent`) rather than exceptions — **praise this explicitly**
+
+When something is genuinely well-designed, lead with that assessment ("This is a well-designed orchestration-based saga") before any suggestions.
+
+Optional improvements (e.g., timeout handling, idempotency keys) should be framed
+as "additional robustness you could add" — not as defects or missing requirements.
+
 ### Review Process
 
 1. **Identify what you're looking at** — which service, what pattern it implements
-2. **Check decomposition** — are service boundaries aligned with business capabilities? Any god services?
-3. **Check data ownership** — does each service own its data? Any shared databases?
-4. **Check communication** — are sync/async choices appropriate? Circuit breakers present?
-5. **Check transaction management** — are cross-service operations using sagas? Compensating actions present?
-6. **Check business logic** — are aggregates well-defined? Transaction boundaries correct?
-7. **Check event handling** — are message handlers idempotent? Events well-structured?
-8. **Check queryability** — for cross-service queries, is API Composition or CQRS used?
-9. **Check testability** — are consumer-driven contract tests in place? Component tests?
-10. **Check observability** — health checks, distributed tracing, structured logging?
+2. **Assess overall design quality first** — is this well-designed? Say so explicitly if yes
+3. **Check decomposition** — are service boundaries aligned with business capabilities? Any god services?
+4. **Check data ownership** — does each service own its data? Any shared databases?
+5. **Check communication** — are sync/async choices appropriate? Circuit breakers present?
+6. **Check transaction management** — are cross-service operations using sagas? Compensating actions present?
+7. **Check business logic** — are aggregates well-defined? Transaction boundaries correct?
+8. **Check event handling** — are message handlers idempotent? Events well-structured?
+9. **Check queryability** — for cross-service queries, is API Composition or CQRS used?
+10. **Check testability** — are consumer-driven contract tests in place? Component tests?
+11. **Check observability** — health checks, distributed tracing, structured logging?
+
+### Saga-Specific Review Guidance
+
+When reviewing saga implementations:
+
+- **Explicit durable saga state** — a well-designed orchestration saga stores named states
+  (e.g., `PENDING_INVENTORY`, `PENDING_PAYMENT`, `PENDING_SHIPPING`, `CONFIRMED`, `FAILED`)
+  durably in the database. If states are implicit (only tracked via null-checks on IDs),
+  recommend making them explicit enums persisted to a saga state table.
+
+- **Intermediate state for compensation** — a saga that stores `driverId` and `paymentAuthId`
+  as fields is doing this correctly; it can undo each step because it remembers what happened.
+  Praise this pattern explicitly.
+
+- **Compensation chains** — when `PaymentDeclinedEvent` triggers both `ReleaseDriverCommand`
+  and `CancelTripCommand`, that is correct. Name and praise the specific chain.
+
+- **Lifecycle management** — `SagaLifecycle.end()` (or equivalent) on all terminal paths
+  (both success and failure) is **correct and important**. It prevents saga instances from
+  accumulating in memory. Do NOT flag this as a bug.
+
+- **Event-driven steps** — each saga step reacting to a domain event (not making a sync call)
+  is the correct pattern. Praise this explicitly.
 
 ### Review Output Format
 
@@ -136,16 +186,26 @@ Structure your review as:
 ```
 ## Summary
 One paragraph: what the code does, which patterns it uses, overall assessment.
+If the overall design is sound, say so clearly here.
 
 ## Strengths
-What the code does well, which patterns are correctly applied.
+What the code does well, which patterns are correctly applied. Be specific — name
+the exact methods, events, or structures that demonstrate good design.
 
 ## Issues Found
-For each issue:
+For each genuine issue only:
 - **What**: describe the problem
 - **Why it matters**: explain the architectural risk
 - **Pattern to apply**: which microservices pattern addresses this
 - **Suggested fix**: concrete code change or restructuring
+
+If there are no genuine issues, write "No critical issues found."
+
+## Optional Improvements (not defects)
+Low-priority additions that could add robustness:
+- e.g., timeout handling if an expected event never arrives
+- e.g., idempotency keys on command handlers
+- e.g., dead-letter queue for failed messages
 
 ## Recommendations
 Priority-ordered list of improvements, from most critical to nice-to-have.
@@ -157,6 +217,8 @@ Priority-ordered list of improvements, from most critical to nice-to-have.
 - **Synchronous chain** — service A calls B calls C calls D (fragile, high latency)
 - **Distributed monolith** — services are tightly coupled and must deploy together
 - **No compensating transactions** — saga steps without rollback logic
+- **Missing explicit saga state** — saga progress tracked only via null checks instead of durable named state enum
+- **Missing price denormalization** — OrderService joining live to product prices instead of storing price-at-order-time (correct business behavior: capture the price the customer saw)
 - **Chatty communication** — too many fine-grained API calls between services
 - **Missing circuit breaker** — no fallback when a downstream service is unavailable
 - **Anemic domain model** — business logic living in service layer instead of domain objects
