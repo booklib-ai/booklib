@@ -1,108 +1,166 @@
 # Agent Integration
 
-How to install and use booklib-ai/skills with different AI coding assistants.
+How to install and use `@booklib/skills` with different AI coding assistants.
+
+## What gets installed
+
+Each install creates up to three things in your project (or globally with `--global`):
+
+| Directory | Contents | Purpose |
+|-----------|----------|---------|
+| `.claude/skills/` | 22 book-grounded skills | Auto-triggered by context |
+| `.claude/commands/` | 22 slash commands | Explicit invocation (`/effective-python`) |
+| `.claude/agents/` | 8 reviewer agents | Autonomous end-to-end reviews |
+
+The fastest way to install is by **profile** — one command installs the right skills, commands, and agent for your language or domain:
+
+```bash
+npx @booklib/skills add --profile=python        # Python
+npx @booklib/skills add --profile=ts            # TypeScript / JavaScript
+npx @booklib/skills add --profile=jvm           # Java + Kotlin + Spring Boot
+npx @booklib/skills add --profile=rust          # Rust
+npx @booklib/skills add --profile=architecture  # DDD, microservices, system design
+npx @booklib/skills add --profile=data          # Pipelines, ETL, storage
+npx @booklib/skills add --profile=ui            # UI design, charts, animations
+npx @booklib/skills add --profile=lean          # Lean Startup practices
+npx @booklib/skills add --profile=core          # Routing + general quality (good default)
+
+# Or install everything
+npx @booklib/skills add --all
+```
+
+Add `--global` to any command to install to `~/.claude/` instead of the project directory.
+
+---
 
 ## Claude Code
 
-Install all skills globally:
+### Install
 
 ```bash
-npx skills add booklib-ai/skills --all -g
+# Recommended — install by profile
+npx @booklib/skills add --profile=ts --global
+
+# Everything
+npx @booklib/skills add --all --global
+
+# Single skill
+npx @booklib/skills add effective-typescript
 ```
 
-Install a single skill:
+### How skills trigger
 
-```bash
-npx skills add booklib-ai/skills --skill clean-code-reviewer
-```
+Claude Code reads skills from `.claude/skills/` (project) or `~/.claude/skills/` (global) and loads them based on the `description` field in each `SKILL.md`. Skills activate automatically when the context matches.
 
-Skills are placed in `~/.claude/skills/` and available in every project. Claude Code picks them up automatically based on the `description` field in each `SKILL.md`.
+### Slash commands
 
-To invoke a skill explicitly, use a slash command:
+Each profile also installs companion slash commands:
 
 ```
-/clean-code-reviewer
+/effective-typescript     # runs the effective-typescript skill explicitly
+/clean-code-reviewer      # reviews against Clean Code principles
+/skill-router             # routes automatically to the best skill
 ```
+
+### Agents
+
+Agents are autonomous reviewers installed to `.claude/agents/`. Invoke with `@`:
+
+```
+@booklib-reviewer         # auto-routes to the right skill
+@python-reviewer          # Python: effective-python + asyncio + scraping
+@ts-reviewer              # TypeScript: effective-typescript + clean-code
+@jvm-reviewer             # Java/Kotlin: effective-java + kotlin + spring-boot
+@rust-reviewer            # Rust: programming-with-rust + rust-in-action
+@architecture-reviewer    # DDD + microservices + system-design + DDIA
+@data-reviewer            # data-intensive-patterns + data-pipelines
+@ui-reviewer              # refactoring-ui + storytelling + animation
+```
+
+### Skill suggestion hook
+
+`add --all` also installs a `UserPromptSubmit` hook (`booklib-suggest.js`) that detects when you're asking to review code and suggests the relevant skill — without firing on every message.
+
+To activate it, add the hook config to your Claude Code settings:
+```json
+{
+  "UserPromptSubmit": [{
+    "hooks": [{ "type": "command", "command": "node \"$HOME/.claude/booklib-suggest.js\"" }]
+  }]
+}
+```
+
+---
 
 ## Cursor
 
-Install skills into your project:
+Cursor reads rules from `.cursor/rules/`. Use `--target=cursor` to install there:
 
 ```bash
-npx skills add booklib-ai/skills --all
+# Install to Cursor only
+npx @booklib/skills add --profile=ts --target=cursor
+
+# Install to both Claude Code and Cursor
+npx @booklib/skills add --profile=ts --target=all
+
+# Single skill to Cursor
+npx @booklib/skills add effective-typescript --target=cursor
 ```
 
-Skills are placed in `.claude/skills/` in your project root. Cursor reads these when Agent mode is active.
+Skills are written as `.cursor/rules/<skill-name>.md`. Cursor loads them in Agent mode. Agents are not applicable to Cursor (no native agent system).
 
-To trigger a skill, reference it by name in your prompt:
-
-```
-Apply the effective-python skill to refactor this module.
-```
+---
 
 ## GitHub Copilot (VS Code)
 
-Install skills globally:
-
-```bash
-npx skills add booklib-ai/skills --all -g
-```
-
-In VS Code with Copilot Chat, skills in `~/.claude/skills/` are available as context. Reference them explicitly in chat:
+Copilot Chat doesn't load `.claude/skills/` natively. Reference skills explicitly in chat:
 
 ```
-Using the design-patterns skill, review this class for pattern opportunities.
+Using the effective-typescript skill, review this file for type safety issues.
+Apply the clean-code-reviewer skill to the current diff.
 ```
+
+Or install globally and reference by name — some Copilot extensions pick up `.claude/skills/` as context.
+
+---
 
 ## Windsurf
 
-Install skills into your project:
+Install into your project:
 
 ```bash
-npx skills add booklib-ai/skills --all
+npx @booklib/skills add --profile=ts
 ```
 
-Skills are placed in `.claude/skills/`. In Windsurf's Cascade mode, you can reference a skill by name in your instructions or let the `skill-router` meta-skill select the right one automatically.
+Skills go to `.claude/skills/`. In Windsurf's Cascade mode, reference a skill by name or use `@booklib-reviewer` if agents are supported. The `skill-router` skill selects the right skill automatically when you describe your task.
 
-## skill-router — automatic routing
+---
 
-Instead of choosing a skill manually, install the `skill-router` meta-skill and let it pick:
+## Supported platforms
 
-```bash
-npx skills add booklib-ai/skills --skill skill-router -g
-```
+| Platform | Skills | Commands | Agents | Auto-trigger |
+|----------|--------|----------|--------|--------------|
+| Claude Code | `.claude/skills/` | `.claude/commands/` | `.claude/agents/` | Yes |
+| Cursor | `.cursor/rules/` (`--target=cursor`) | — | — | Partial |
+| GitHub Copilot | Manual reference | — | — | No |
+| Windsurf | `.claude/skills/` | — | Partial | Partial |
 
-Then prefix any task with:
-
-```
-Route this task to the right skill, then apply it: [your request]
-```
-
-The router returns a ranked recommendation (primary + optional secondary) and applies it.
+---
 
 ## Manual installation
 
-If your agent isn't listed above, copy skills directly:
-
 ```bash
-# Single skill
-cp -r skills/effective-kotlin /path/to/project/.claude/skills/
+# Single skill to any path
+cp -r skills/effective-kotlin /path/to/.claude/skills/
 
 # All skills
-cp -r skills/* /path/to/project/.claude/skills/
+cp -r skills/* /path/to/.claude/skills/
 ```
 
-Any agent that reads `.claude/skills/` will pick them up.
+Any agent that reads `.claude/skills/` picks them up automatically.
 
-## Supported agents
+---
 
-| Agent | Install path | Auto-trigger | Manual trigger |
-|-------|-------------|--------------|----------------|
-| Claude Code | `~/.claude/skills/` or `.claude/skills/` | Yes | `/skill-name` |
-| Cursor | `.claude/skills/` | Partial | Reference by name |
-| GitHub Copilot | `~/.claude/skills/` | No | Reference by name |
-| Windsurf | `.claude/skills/` | Partial | Reference by name |
+## Requesting support for a new platform
 
-## Requesting support for a new agent
-
-Open an issue titled **"Agent Support: [Agent Name]"** and describe how the agent loads context files. We'll add installation instructions here.
+Open an issue titled **"Platform Support: [Name]"** and describe how the platform loads context files. We'll add installation instructions here.
