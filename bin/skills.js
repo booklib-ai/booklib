@@ -11,6 +11,7 @@ const args = process.argv.slice(2);
 const command = args[0];
 const skillsRoot    = path.join(__dirname, '..', 'skills');
 const commandsRoot  = path.join(__dirname, '..', 'commands');
+const agentsRoot    = path.join(__dirname, '..', 'agents');
 
 // ─── ANSI helpers ─────────────────────────────────────────────────────────────
 const c = {
@@ -96,6 +97,9 @@ const targetDir        = isGlobal
 const commandsTargetDir = isGlobal
   ? path.join(os.homedir(), '.claude', 'commands')
   : path.join(process.cwd(), '.claude', 'commands');
+const agentsTargetDir = isGlobal
+  ? path.join(os.homedir(), '.claude', 'agents')
+  : path.join(process.cwd(), '.claude', 'agents');
 
 function copyCommand(skillName) {
   const src = path.join(commandsRoot, `${skillName}.md`);
@@ -104,6 +108,23 @@ function copyCommand(skillName) {
   const dest = path.join(commandsTargetDir, `${skillName}.md`);
   fs.copyFileSync(src, dest);
   console.log(c.green('✓') + ` /${skillName} command → ${c.dim(dest)}`);
+}
+
+function getAvailableAgents() {
+  if (!fs.existsSync(agentsRoot)) return [];
+  return fs.readdirSync(agentsRoot)
+    .filter(f => f.endsWith('.md'))
+    .map(f => f.replace(/\.md$/, ''))
+    .sort();
+}
+
+function copyAgent(agentName) {
+  const src = path.join(agentsRoot, `${agentName}.md`);
+  if (!fs.existsSync(src)) return;
+  fs.mkdirSync(agentsTargetDir, { recursive: true });
+  const dest = path.join(agentsTargetDir, `${agentName}.md`);
+  fs.copyFileSync(src, dest);
+  console.log(c.green('✓') + ` @${agentName} agent → ${c.dim(dest)}`);
 }
 
 // ─── CHECK command ────────────────────────────────────────────────────────────
@@ -701,20 +722,34 @@ async function main() {
     }
 
     case 'add': {
-      const addAll    = args.includes('--all');
+      const addAll     = args.includes('--all');
       const noCommands = args.includes('--no-commands');
-      const skillName = args.find(a => !a.startsWith('--') && a !== 'add');
-      if (addAll) {
+      const noAgents   = args.includes('--no-agents');
+      const agentArg   = args.find(a => a.startsWith('--agent='))?.split('=')[1];
+      const skillName  = args.find(a => !a.startsWith('--') && a !== 'add');
+
+      if (agentArg) {
+        // explicit: skills add --agent=booklib-reviewer
+        const agents = getAvailableAgents();
+        if (!agents.includes(agentArg)) {
+          console.error(c.red(`✗ Agent "${agentArg}" not found.`) + ' Available: ' + c.dim(agents.join(', ')));
+          process.exit(1);
+        }
+        copyAgent(agentArg);
+        console.log(c.dim(`\nInstalled to ${agentsTargetDir}`));
+      } else if (addAll) {
         const skills = getAvailableSkills();
         skills.forEach(s => copySkill(s, targetDir));
         if (!noCommands) skills.forEach(s => copyCommand(s));
-        console.log(c.dim(`\nInstalled ${skills.length} skills to ${targetDir}`));
+        if (!noAgents) getAvailableAgents().forEach(a => copyAgent(a));
+        const agentCount = noAgents ? 0 : getAvailableAgents().length;
+        console.log(c.dim(`\nInstalled ${skills.length} skills, ${agentCount} agents to .claude/`));
       } else if (skillName) {
         copySkill(skillName, targetDir);
         if (!noCommands) copyCommand(skillName);
         console.log(c.dim(`\nInstalled to ${targetDir}`));
       } else {
-        console.error(c.red('Usage: skills add <skill-name> | skills add --all'));
+        console.error(c.red('Usage: skills add <skill-name> | skills add --all | skills add --agent=<name>'));
         process.exit(1);
       }
       break;
@@ -827,9 +862,11 @@ ${c.bold('  Usage:')}
     ${c.cyan('skills info')}  ${c.dim('<name>')}               full description of a skill
     ${c.cyan('skills demo')}  ${c.dim('<name>')}               before/after example
     ${c.cyan('skills add')}   ${c.dim('<name>')}               install skill + /command to .claude/
-    ${c.cyan('skills add --all')}                  install all skills + commands
+    ${c.cyan('skills add --all')}                  install all skills + commands + agents
     ${c.cyan('skills add')}   ${c.dim('<name> --global')}      install globally (~/.claude/)
     ${c.cyan('skills add')}   ${c.dim('<name> --no-commands')} install skill only, skip command
+    ${c.cyan('skills add')}   ${c.dim('--agent=<name>')}       install a single agent to .claude/agents/
+    ${c.cyan('skills add --all --no-agents')}      install skills + commands, skip agents
     ${c.cyan('skills check')} ${c.dim('<name>')}               quality check (Bronze/Silver/Gold/Platinum)
     ${c.cyan('skills check --all')}                quality summary for all skills
     ${c.cyan('skills update-readme')}              refresh README quality table from results.json files
