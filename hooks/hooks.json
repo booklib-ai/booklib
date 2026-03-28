@@ -1,0 +1,12 @@
+{
+  "UserPromptSubmit": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "node \"$HOME/.claude/booklib-suggest.js\""
+        }
+      ]
+    }
+  ]
+}

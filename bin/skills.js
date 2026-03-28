@@ -167,6 +167,30 @@ function getAvailableAgents() {
     .sort();
 }
 
+function parseAgentFrontmatter(agentName) {
+  const agentMdPath = path.join(agentsRoot, `${agentName}.md`);
+  try {
+    const content = fs.readFileSync(agentMdPath, 'utf8');
+    const fmMatch = content.match(/^---\n([\s\S]*?)\n---/);
+    if (!fmMatch) return { name: agentName, description: '', model: '' };
+    const fm = fmMatch[1];
+
+    const blockMatch  = fm.match(/^description:\s*>\s*\n((?:[ \t]+.+\n?)+)/m);
+    const quotedMatch = fm.match(/^description:\s*["'](.+?)["']\s*$/m);
+    const plainMatch  = fm.match(/^description:\s*(?!>)(.+)$/m);
+    const modelMatch  = fm.match(/^model:\s*(\S+)/m);
+
+    let description = '';
+    if (blockMatch)       description = blockMatch[1].split('\n').map(l => l.trim()).filter(Boolean).join(' ');
+    else if (quotedMatch) description = quotedMatch[1];
+    else if (plainMatch)  description = plainMatch[1].trim();
+
+    return { name: agentName, description, model: modelMatch?.[1] ?? '' };
+  } catch {
+    return { name: agentName, description: '', model: '' };
+  }
+}
+
 function copyAgent(agentName) {
   const src = path.join(agentsRoot, `${agentName}.md`);
   if (!fs.existsSync(src)) return;
@@ -174,6 +198,36 @@ function copyAgent(agentName) {
   const dest = path.join(agentsTargetDir, `${agentName}.md`);
   fs.copyFileSync(src, dest);
   console.log(c.green('✓') + ` @${agentName} agent → ${c.dim(dest)}`);
+}
+
+// ─── Cursor support ───────────────────────────────────────────────────────────
+function getCursorRulesDir() {
+  return isGlobal
+    ? path.join(os.homedir(), '.cursor', 'rules')
+    : path.join(process.cwd(), '.cursor', 'rules');
+}
+
+function copyHooks() {
+  const hooksDir = path.join(__dirname, '..', 'hooks');
+  if (!fs.existsSync(hooksDir)) return;
+  // Copy suggest.js to the .claude/ root as booklib-suggest.js
+  const suggestSrc = path.join(hooksDir, 'suggest.js');
+  if (fs.existsSync(suggestSrc)) {
+    const claudeDir = isGlobal ? path.join(os.homedir(), '.claude') : path.join(process.cwd(), '.claude');
+    fs.mkdirSync(claudeDir, { recursive: true });
+    const dest = path.join(claudeDir, 'booklib-suggest.js');
+    fs.copyFileSync(suggestSrc, dest);
+    console.log(c.green('✓') + ` booklib-suggest.js hook → ${c.dim(dest)}`);
+  }
+}
+
+function copySkillToCursor(skillName) {
+  const src = path.join(skillsRoot, skillName, 'SKILL.md');
+  if (!fs.existsSync(src)) return;
+  const dest = path.join(getCursorRulesDir(), `${skillName}.md`);
+  fs.mkdirSync(path.dirname(dest), { recursive: true });
+  fs.copyFileSync(src, dest);
+  console.log(c.green('✓') + ` ${c.bold(skillName)} → ${c.dim(dest)}`);
 }
 
 // ─── CHECK command ────────────────────────────────────────────────────────────
@@ -776,7 +830,20 @@ async function main() {
       const noAgents   = args.includes('--no-agents');
       const agentArg   = args.find(a => a.startsWith('--agent='))?.split('=')[1];
       const profileArg = args.find(a => a.startsWith('--profile='))?.split('=')[1];
+      const targetArg  = (args.find(a => a.startsWith('--target='))?.split('=')[1] ?? 'claude').toLowerCase();
+      const toClaude   = targetArg === 'claude' || targetArg === 'all';
+      const toCursor   = targetArg === 'cursor'  || targetArg === 'all';
       const skillName  = args.find(a => !a.startsWith('--') && a !== 'add');
+
+      const installSkills = (list) => {
+        if (toClaude) list.forEach(s => copySkill(s, targetDir));
+        if (toCursor) list.forEach(s => copySkillToCursor(s));
+        if (toClaude && !noCommands) list.forEach(s => copyCommand(s));
+      };
+      const installAgents = (list) => {
+        if (toClaude && !noAgents) list.forEach(a => copyAgent(a));
+        // agents not applicable to Cursor
+      };
 
       if (profileArg) {
         const profile = PROFILES[profileArg];
@@ -784,15 +851,14 @@ async function main() {
           console.error(c.red(`✗ Profile "${profileArg}" not found.`) + ' Run ' + c.cyan('skills profiles') + ' to see available profiles.');
           process.exit(1);
         }
-        profile.skills.forEach(s => copySkill(s, targetDir));
-        if (!noCommands) profile.skills.forEach(s => copyCommand(s));
-        if (!noAgents)   profile.agents.forEach(a => copyAgent(a));
-        const agentStr = profile.agents.length
+        installSkills(profile.skills);
+        installAgents(profile.agents);
+        const targets = [toClaude && '.claude', toCursor && '.cursor/rules'].filter(Boolean).join(' + ');
+        const agentStr = (!noAgents && toClaude && profile.agents.length)
           ? `, ${profile.agents.length} agent${profile.agents.length > 1 ? 's' : ''}`
           : '';
-        console.log(c.dim(`\nInstalled profile "${profileArg}": ${profile.skills.length} skills${agentStr}`));
+        console.log(c.dim(`\nInstalled profile "${profileArg}": ${profile.skills.length} skills${agentStr} → ${targets}`));
       } else if (agentArg) {
-        // explicit: skills add --agent=booklib-reviewer
         const agents = getAvailableAgents();
         if (!agents.includes(agentArg)) {
           console.error(c.red(`✗ Agent "${agentArg}" not found.`) + ' Available: ' + c.dim(agents.join(', ')));
@@ -802,14 +868,14 @@ async function main() {
         console.log(c.dim(`\nInstalled to ${agentsTargetDir}`));
       } else if (addAll) {
         const skills = getAvailableSkills();
-        skills.forEach(s => copySkill(s, targetDir));
-        if (!noCommands) skills.forEach(s => copyCommand(s));
-        if (!noAgents) getAvailableAgents().forEach(a => copyAgent(a));
-        const agentCount = noAgents ? 0 : getAvailableAgents().length;
-        console.log(c.dim(`\nInstalled ${skills.length} skills, ${agentCount} agents to .claude/`));
+        installSkills(skills);
+        installAgents(getAvailableAgents());
+        if (toClaude) copyHooks();
+        const agentCount = (!noAgents && toClaude) ? getAvailableAgents().length : 0;
+        const targets = [toClaude && '.claude', toCursor && '.cursor/rules'].filter(Boolean).join(' + ');
+        console.log(c.dim(`\nInstalled ${skills.length} skills, ${agentCount} agents → ${targets}`));
       } else if (skillName) {
-        copySkill(skillName, targetDir);
-        if (!noCommands) copyCommand(skillName);
+        installSkills([skillName]);
         console.log(c.dim(`\nInstalled to ${targetDir}`));
       } else {
         console.error(c.red('Usage: skills add <skill-name> | skills add --all | skills add --agent=<name>'));
@@ -916,6 +982,43 @@ async function main() {
       break;
     }
 
+    case 'agents': {
+      const infoArg = args.find(a => a.startsWith('--info='))?.split('=')[1]
+                   || args.find(a => !a.startsWith('--') && a !== 'agents');
+      const available = getAvailableAgents();
+
+      if (infoArg) {
+        if (!available.includes(infoArg)) {
+          console.error(c.red(`✗ Agent "${infoArg}" not found.`) + ' Run ' + c.cyan('skills agents') + ' to see available agents.');
+          process.exit(1);
+        }
+        const { description, model } = parseAgentFrontmatter(infoArg);
+        console.log('');
+        console.log(c.bold(`  ${infoArg}`) + c.dim(model ? `  [${model}]` : ''));
+        console.log('  ' + c.line(55));
+        console.log('  ' + description);
+        console.log('');
+        console.log(c.dim(`  Install: skills add --agent=${infoArg}`));
+        console.log('');
+      } else {
+        const nameW = Math.max(...available.map(n => n.length)) + 2;
+        console.log('');
+        console.log(c.bold(`  @booklib/skills — agents`) + c.dim(` (${available.length})`));
+        console.log('  ' + c.line(60));
+        for (const name of available) {
+          const { description, model } = parseAgentFrontmatter(name);
+          const modelTag = model ? c.dim(` [${model}]`) : '';
+          console.log(`  ${c.cyan(name.padEnd(nameW))}${modelTag}`);
+          if (description) console.log(`  ${' '.repeat(nameW)}${firstSentence(description, 72)}`);
+        }
+        console.log('');
+        console.log(c.dim(`  skills add --agent=<name>        install one agent`));
+        console.log(c.dim(`  skills agents --info=<name>      full description`));
+        console.log('');
+      }
+      break;
+    }
+
     case 'profiles': {
       const nameW = Math.max(...Object.keys(PROFILES).map(k => k.length)) + 2;
       console.log('');
@@ -939,6 +1042,8 @@ ${c.bold('  @booklib/skills')} — book knowledge distilled into AI agent skills
 
 ${c.bold('  Usage:')}
     ${c.cyan('skills list')}                       list all available skills
+    ${c.cyan('skills agents')}                     list all available agents
+    ${c.cyan('skills agents')}  ${c.dim('--info=<name>')}       full description of an agent
     ${c.cyan('skills profiles')}                   list available profiles
     ${c.cyan('skills info')}  ${c.dim('<name>')}               full description of a skill
     ${c.cyan('skills demo')}  ${c.dim('<name>')}               before/after example
@@ -947,6 +1052,8 @@ ${c.bold('  Usage:')}
     ${c.cyan('skills add --all')}                  install everything (skills + commands + agents)
     ${c.cyan('skills add')}   ${c.dim('<name> --global')}      install globally (~/.claude/)
     ${c.cyan('skills add')}   ${c.dim('--agent=<name>')}       install a single agent to .claude/agents/
+    ${c.cyan('skills add')}   ${c.dim('--target=cursor')}      install to .cursor/rules/ (Cursor IDE)
+    ${c.cyan('skills add')}   ${c.dim('--target=all')}         install to both .claude/ and .cursor/
     ${c.cyan('skills add')}   ${c.dim('--no-commands')}        skip /command installation
     ${c.cyan('skills add')}   ${c.dim('--no-agents')}          skip agent installation
     ${c.cyan('skills check')} ${c.dim('<name>')}               quality check (Bronze/Silver/Gold/Platinum)
