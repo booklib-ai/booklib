@@ -1,6 +1,24 @@
+# Dev/build artifacts
+node_modules/
+__pycache__/
+*.pyc
+
+# Reference PDFs (not needed at runtime)
+*.pdf
+
+# Large media
+demo.gif
+demo.tape
+
+# Dev-only directories
+benchmark/
+docs/
 .claude/
 .github/
 .idea/
-**/__pycache__/
-*.pyc
-*.png
+
+# Workspace scratch dirs
+*-workspace/
+
+# Env files
+.env*
