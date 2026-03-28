@@ -2,6 +2,10 @@
 node_modules/
 __pycache__/
 *.pyc
+*.pdf
 *.png
 !docs/*.png
 !assets/*.png
+*-workspace/
+.claude/
+.env*

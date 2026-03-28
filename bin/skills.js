@@ -4,10 +4,13 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const https = require('https');
+const http = require('http');
+const { spawnSync } = require('child_process');
 
 const args = process.argv.slice(2);
 const command = args[0];
-const skillsRoot = path.join(__dirname, '..', 'skills');
+const skillsRoot    = path.join(__dirname, '..', 'skills');
+const commandsRoot  = path.join(__dirname, '..', 'commands');
 
 // ─── ANSI helpers ─────────────────────────────────────────────────────────────
 const c = {
@@ -86,10 +89,22 @@ function copySkill(skillName, targetDir) {
   console.log(c.green('✓') + ` ${c.bold(skillName)} → ${c.dim(dest)}`);
 }
 
-const isGlobal  = args.includes('--global');
-const targetDir = isGlobal
+const isGlobal         = args.includes('--global');
+const targetDir        = isGlobal
   ? path.join(os.homedir(), '.claude', 'skills')
   : path.join(process.cwd(), '.claude', 'skills');
+const commandsTargetDir = isGlobal
+  ? path.join(os.homedir(), '.claude', 'commands')
+  : path.join(process.cwd(), '.claude', 'commands');
+
+function copyCommand(skillName) {
+  const src = path.join(commandsRoot, `${skillName}.md`);
+  if (!fs.existsSync(src)) return;
+  fs.mkdirSync(commandsTargetDir, { recursive: true });
+  const dest = path.join(commandsTargetDir, `${skillName}.md`);
+  fs.copyFileSync(src, dest);
+  console.log(c.green('✓') + ` /${skillName} command → ${c.dim(dest)}`);
+}
 
 // ─── CHECK command ────────────────────────────────────────────────────────────
 function checkSkill(skillName) {
@@ -201,6 +216,33 @@ function checkSkill(skillName) {
       : fail('platinum', 'scripts/ exists but is empty'));
   }
 
+  const resultsPath = path.join(skillDir, 'evals', 'results.json');
+  if (!fs.existsSync(resultsPath)) {
+    checks.push(fail('platinum', 'evals/results.json missing — run: npx @booklib/skills eval <name>'));
+  } else {
+    let results = null;
+    try { results = JSON.parse(fs.readFileSync(resultsPath, 'utf8')); } catch {
+      checks.push(fail('platinum', 'evals/results.json is invalid JSON'));
+    }
+    if (results) {
+      if (results.non_standard_provider) {
+        checks.push(fail('platinum', `eval results from non-standard provider (${results.model}) — rerun with ANTHROPIC_API_KEY or OPENAI_API_KEY`));
+      }
+      const pct = Math.round((results.pass_rate || 0) * 100);
+      const meta = `(${results.evals_run} evals, ${results.model}, ${results.date})`;
+      checks.push(pct >= 80
+        ? pass('platinum', `eval pass rate: ${pct}% with skill ${meta}`)
+        : fail('platinum', `eval pass rate ${pct}% below 80% minimum — run: npx @booklib/skills eval <name>`));
+      if (results.delta !== undefined) {
+        const deltaPp = Math.round(results.delta * 100);
+        const basePct = Math.round((results.baseline_pass_rate || 0) * 100);
+        checks.push(deltaPp >= 20
+          ? pass('platinum', `eval delta: +${deltaPp}pp over baseline (${basePct}% without skill)`)
+          : fail('platinum', `eval delta +${deltaPp}pp below 20pp minimum (baseline: ${basePct}%)`));
+      }
+    }
+  }
+
   return checks;
 }
 
@@ -240,16 +282,30 @@ function printCheckResults(skillName, checks) {
 }
 
 // ─── EVAL command ─────────────────────────────────────────────────────────────
-function callClaude(systemPrompt, userMessage, model) {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) throw new Error('ANTHROPIC_API_KEY environment variable not set');
 
-  const body = JSON.stringify({
-    model,
-    max_tokens: 4096,
-    system: systemPrompt,
-    messages: [{ role: 'user', content: userMessage }],
-  });
+function commandExists(cmd) {
+  const result = spawnSync(process.platform === 'win32' ? 'where' : 'which', [cmd], { stdio: 'ignore' });
+  return result.status === 0;
+}
+
+function detectProvider() {
+  if (process.env.ANTHROPIC_API_KEY)
+    return { type: 'anthropic', defaultModel: 'claude-haiku-4-5-20251001' };
+  if (process.env.OPENAI_API_KEY)
+    return { type: 'openai-compat', baseUrl: 'https://api.openai.com/v1', key: process.env.OPENAI_API_KEY, defaultModel: 'gpt-4o-mini' };
+  if (process.env.EVAL_API_KEY && process.env.EVAL_BASE_URL)
+    return { type: 'openai-compat', baseUrl: process.env.EVAL_BASE_URL, key: process.env.EVAL_API_KEY, defaultModel: null };
+  if (commandExists('claude'))
+    return { type: 'claude-cli', defaultModel: 'default' };
+  if (commandExists('ollama'))
+    return { type: 'openai-compat', baseUrl: 'http://localhost:11434/v1', key: 'ollama', defaultModel: null };
+  return null;
+}
+
+function callAnthropicApi(systemPrompt, userMessage, model) {
+  const reqBody = { model, max_tokens: 4096, messages: [{ role: 'user', content: userMessage }] };
+  if (systemPrompt) reqBody.system = systemPrompt;
+  const body = JSON.stringify(reqBody);
 
   return new Promise((resolve, reject) => {
     const req = https.request({
@@ -258,7 +314,7 @@ function callClaude(systemPrompt, userMessage, model) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': apiKey,
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
         'anthropic-version': '2023-06-01',
         'Content-Length': Buffer.byteLength(body),
       },
@@ -279,6 +335,78 @@ function callClaude(systemPrompt, userMessage, model) {
   });
 }
 
+function callOpenAICompat(baseUrl, apiKey, systemPrompt, userMessage, model) {
+  const messages = [];
+  if (systemPrompt) messages.push({ role: 'system', content: systemPrompt });
+  messages.push({ role: 'user', content: userMessage });
+  const body = JSON.stringify({ model, max_tokens: 4096, messages });
+
+  const url = new URL('/chat/completions', baseUrl);
+  const isHttps = url.protocol === 'https:';
+  const transport = isHttps ? https : http;
+
+  return new Promise((resolve, reject) => {
+    const req = transport.request({
+      hostname: url.hostname,
+      port: url.port || (isHttps ? 443 : 80),
+      path: url.pathname + url.search,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Length': Buffer.byteLength(body),
+      },
+    }, res => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try {
+          const parsed = JSON.parse(data);
+          if (parsed.error) reject(new Error(parsed.error.message || JSON.stringify(parsed.error)));
+          else resolve(parsed.choices?.[0]?.message?.content ?? '');
+        } catch (e) { reject(e); }
+      });
+    });
+    req.on('error', reject);
+    req.write(body);
+    req.end();
+  });
+}
+
+function callClaudeCli(systemPrompt, userMessage) {
+  // --bare disables OAuth/keychain auth (requires ANTHROPIC_API_KEY), so omit it
+  // when using a subscription-based Claude login.
+  const cliArgs = ['-p', userMessage, '--tools', ''];
+  if (systemPrompt) cliArgs.push('--system-prompt', systemPrompt);
+  const result = spawnSync('claude', cliArgs, {
+    encoding: 'utf8',
+    maxBuffer: 10 * 1024 * 1024,
+    timeout: 120000,
+  });
+  if (result.error) return Promise.reject(result.error);
+  if (result.status !== 0) return Promise.reject(new Error(result.stderr?.trim() || 'claude CLI failed'));
+  return Promise.resolve(result.stdout.trim());
+}
+
+let _provider = null;
+function getProvider() {
+  if (!_provider) _provider = detectProvider();
+  return _provider;
+}
+
+function callLLM(systemPrompt, userMessage, model) {
+  const provider = getProvider();
+  if (!provider) throw new Error(
+    'No LLM provider found.\n' +
+    '  Set ANTHROPIC_API_KEY, OPENAI_API_KEY, or EVAL_API_KEY+EVAL_BASE_URL\n' +
+    '  — or install Claude Code (claude.ai/code) or Ollama (ollama.com)'
+  );
+  if (provider.type === 'anthropic')    return callAnthropicApi(systemPrompt, userMessage, model);
+  if (provider.type === 'openai-compat') return callOpenAICompat(provider.baseUrl, provider.key, systemPrompt, userMessage, model);
+  if (provider.type === 'claude-cli')   return callClaudeCli(systemPrompt, userMessage);
+  throw new Error(`Unknown provider type: ${provider.type}`);
+}
+
 function judgeResponse(response, expectations, model) {
   const numbered = expectations.map((e, i) => `${i + 1}. ${e}`).join('\n');
   const judgeSystem = `You are an eval judge. For each numbered expectation, respond with exactly:
@@ -293,7 +421,7 @@ ${response}
 === Expectations ===
 ${numbered}`;
 
-  return callClaude(judgeSystem, judgePrompt, model);
+  return callLLM(judgeSystem, judgePrompt, model);
 }
 
 function parseJudgement(judgement, count) {
@@ -309,11 +437,91 @@ function parseJudgement(judgement, count) {
   return results;
 }
 
+async function runEvalSet(evals, systemPrompt, model, judgeModel, verbose) {
+  let totalPass = 0, totalFail = 0, evalsFullyPassed = 0;
+
+  for (const ev of evals) {
+    const promptLines = (ev.prompt || '').split('\n').length;
+    const expectations = ev.expectations || [];
+
+    if (verbose) {
+      process.stdout.write(`  ${c.cyan('●')} ${c.bold(ev.id)}\n`);
+      process.stdout.write(c.dim(`    prompt: ${promptLines} lines — calling ${model}...`));
+    } else {
+      process.stdout.write(c.dim(`  ${ev.id}...`));
+    }
+
+    let response;
+    try {
+      response = await callLLM(systemPrompt, ev.prompt, model);
+      if (verbose) process.stdout.write(c.green(' done\n'));
+      else process.stdout.write(c.dim(' ✓\n'));
+    } catch (e) {
+      if (verbose) process.stdout.write(c.red(` failed: ${e.message}\n`));
+      else process.stdout.write(c.red(` ✗\n`));
+      totalFail += expectations.length;
+      continue;
+    }
+
+    if (verbose) process.stdout.write(c.dim(`    judging ${expectations.length} expectations...`));
+
+    let judgement;
+    try {
+      judgement = await judgeResponse(response, expectations, judgeModel);
+      if (verbose) process.stdout.write(c.dim(' done\n'));
+    } catch (e) {
+      if (verbose) process.stdout.write(c.red(` judge failed: ${e.message}\n`));
+      totalFail += expectations.length;
+      continue;
+    }
+
+    const results = parseJudgement(judgement, expectations.length);
+    let evalPass = 0;
+
+    for (let i = 0; i < expectations.length; i++) {
+      const r = results[i];
+      if (verbose) {
+        const icon = r.ok ? c.green('✓') : c.red('✗');
+        const exp = expectations[i].length > 80 ? expectations[i].slice(0, 79) + '…' : expectations[i];
+        console.log(`    ${icon} ${exp}`);
+        if (!r.ok) console.log(c.dim(`      → ${r.reason}`));
+      }
+      if (r.ok) { evalPass++; totalPass++; } else { totalFail++; }
+    }
+
+    const evalTotal = expectations.length;
+    const allPassed = evalPass === evalTotal;
+    if (allPassed) evalsFullyPassed++;
+    if (verbose) console.log(c.dim(`    ${evalPass}/${evalTotal} expectations passed`) + (allPassed ? ' ' + c.green('✓') : '') + '\n');
+  }
+
+  const total = totalPass + totalFail;
+  return { passed: totalPass, failed: totalFail, total, evalsFullyPassed, pass_rate: total > 0 ? totalPass / total : 0 };
+}
+
 async function runEvals(skillName, opts = {}) {
   const skillDir = path.join(skillsRoot, skillName);
   const evalsPath = path.join(skillDir, 'evals', 'evals.json');
-  const model = opts.model || 'claude-haiku-4-5-20251001';
-  const judgeModel = opts.judgeModel || 'claude-haiku-4-5-20251001';
+  const provider = getProvider();
+  if (!provider) {
+    console.error(c.red(
+      '✗ No LLM provider found.\n' +
+      '  Options (pick one):\n' +
+      '    ANTHROPIC_API_KEY=sk-ant-...   (Anthropic API)\n' +
+      '    OPENAI_API_KEY=sk-...           (OpenAI)\n' +
+      '    EVAL_API_KEY=... EVAL_BASE_URL=https://api.groq.com/openai/v1  (any OpenAI-compatible)\n' +
+      '    Install Claude Code: claude.ai/code  (subscription, no key)\n' +
+      '    Install Ollama: ollama.com           (local, no key)'
+    ));
+    process.exit(1);
+  }
+  const defaultModel = provider.defaultModel;
+  const model = opts.model || process.env.EVAL_MODEL || defaultModel;
+  if (!model) {
+    console.error(c.red(`✗ No model specified. Use --model=<name> or set EVAL_MODEL env var.`));
+    process.exit(1);
+  }
+  const judgeModel = model;
   const filterId = opts.id || null;
 
   if (!fs.existsSync(evalsPath)) {
@@ -340,64 +548,66 @@ async function runEvals(skillName, opts = {}) {
   console.log('');
   console.log(c.bold(`  ${skillName}`) + c.dim(` — evals (${evals.length})`));
   console.log('  ' + c.line(55));
-  console.log(c.dim(`  model: ${model}  judge: ${judgeModel}\n`));
+  const providerLabel = provider.type === 'claude-cli' ? 'claude CLI' : provider.type === 'anthropic' ? 'Anthropic API' : provider.baseUrl;
+  console.log(c.dim(`  provider: ${providerLabel}  model: ${model}\n`));
 
-  let totalPass = 0, totalFail = 0, evalsFullyPassed = 0;
+  // ── With-skill run ──────────────────────────────────────────────────────────
+  console.log(c.bold('  With skill\n'));
+  const withResult = await runEvalSet(evals, skillMd, model, judgeModel, true);
+  const withPct = Math.round(withResult.pass_rate * 100);
+  const withColor = withPct >= 80 ? c.green : withPct >= 60 ? c.yellow : c.red;
+  console.log('  ' + c.line(55));
+  console.log(`  ${withColor(`${withPct}%`)} — ${withResult.evalsFullyPassed}/${evals.length} evals fully passed, ${withResult.passed}/${withResult.total} expectations met\n`);
 
-  for (const ev of evals) {
-    const promptLines = (ev.prompt || '').split('\n').length;
-    const expectations = ev.expectations || [];
+  // ── Baseline run (no skill system prompt) ───────────────────────────────────
+  console.log(c.dim('  Baseline (without skill)\n'));
+  const baseResult = await runEvalSet(evals, null, model, judgeModel, false);
+  const basePct = Math.round(baseResult.pass_rate * 100);
+  console.log('  ' + c.line(55));
+  console.log(c.dim(`  ${basePct}% — ${baseResult.passed}/${baseResult.total} expectations met\n`));
 
-    process.stdout.write(`  ${c.cyan('●')} ${c.bold(ev.id)}\n`);
-    process.stdout.write(c.dim(`    prompt: ${promptLines} lines — calling ${model}...`));
+  // ── Summary ─────────────────────────────────────────────────────────────────
+  const deltaPp = withPct - basePct;
+  const deltaColor = deltaPp >= 20 ? c.green : deltaPp >= 10 ? c.yellow : c.red;
+  console.log('  ' + c.line(55));
+  console.log(`  ${c.bold('Summary')}  with skill: ${withColor(`${withPct}%`)}  baseline: ${c.dim(`${basePct}%`)}  delta: ${deltaColor(`+${deltaPp}pp`)}`);
 
-    let response;
-    try {
-      response = await callClaude(skillMd, ev.prompt, model);
-      process.stdout.write(c.green(' done\n'));
-    } catch (e) {
-      process.stdout.write(c.red(` failed: ${e.message}\n`));
-      totalFail += expectations.length;
-      continue;
-    }
-
-    process.stdout.write(c.dim(`    judging ${expectations.length} expectations...`));
-
-    let judgement;
-    try {
-      judgement = await judgeResponse(response, expectations, judgeModel);
-      process.stdout.write(c.dim(' done\n'));
-    } catch (e) {
-      process.stdout.write(c.red(` judge failed: ${e.message}\n`));
-      totalFail += expectations.length;
-      continue;
-    }
-
-    const results = parseJudgement(judgement, expectations.length);
-    let evalPass = 0;
-
-    for (let i = 0; i < expectations.length; i++) {
-      const r = results[i];
-      const icon = r.ok ? c.green('✓') : c.red('✗');
-      const exp = expectations[i].length > 80 ? expectations[i].slice(0, 79) + '…' : expectations[i];
-      console.log(`    ${icon} ${exp}`);
-      if (!r.ok) console.log(c.dim(`      → ${r.reason}`));
-      if (r.ok) { evalPass++; totalPass++; } else { totalFail++; }
-    }
-
-    const evalTotal = expectations.length;
-    const allPassed = evalPass === evalTotal;
-    if (allPassed) evalsFullyPassed++;
-    console.log(c.dim(`    ${evalPass}/${evalTotal} expectations passed`) + (allPassed ? ' ' + c.green('✓') : '') + '\n');
+  // ── Warn if using a non-standard provider ───────────────────────────────────
+  const isLocalModel = provider.type === 'openai-compat' && provider.baseUrl.includes('localhost');
+  const isCliModel   = provider.type === 'claude-cli';
+  if (isLocalModel || isCliModel) {
+    const providerName = isLocalModel ? `local model (${model})` : 'claude CLI';
+    console.log('');
+    console.log(c.yellow(`  ⚠ Results generated with ${providerName}.`));
+    console.log(c.dim('    For committing to the repo, use a standardized provider so scores'));
+    console.log(c.dim('    are comparable across all skills:'));
+    console.log(c.dim('      ANTHROPIC_API_KEY=...   (recommended: claude-haiku-4-5-20251001)'));
+    console.log(c.dim('      OPENAI_API_KEY=...       (recommended: gpt-4o-mini)'));
+    console.log(c.dim('    results.json will be written but should not be committed as-is.'));
   }
 
-  const total = totalPass + totalFail;
-  const pct = total > 0 ? Math.round((totalPass / total) * 100) : 0;
-  const color = pct >= 80 ? c.green : pct >= 60 ? c.yellow : c.red;
+  // ── Write results.json ───────────────────────────────────────────────────────
+  const resultsData = {
+    pass_rate: Math.round(withResult.pass_rate * 1000) / 1000,
+    passed: withResult.passed,
+    total: withResult.total,
+    baseline_pass_rate: Math.round(baseResult.pass_rate * 1000) / 1000,
+    baseline_passed: baseResult.passed,
+    baseline_total: baseResult.total,
+    delta: Math.round((withResult.pass_rate - baseResult.pass_rate) * 1000) / 1000,
+    model,
+    evals_run: evals.length,
+    date: new Date().toISOString().split('T')[0],
+    ...(isLocalModel || isCliModel ? { non_standard_provider: true } : {}),
+  };
+  const resultsPath = path.join(skillDir, 'evals', 'results.json');
+  fs.writeFileSync(resultsPath, JSON.stringify(resultsData, null, 2));
+  console.log(c.dim(`\n  ✓ results saved → evals/results.json\n`));
 
-  console.log('  ' + c.line(55));
-  console.log(`  ${color(`${pct}%`)} — ${evalsFullyPassed}/${evals.length} evals fully passed, ${totalPass}/${total} expectations met`);
-  console.log('');
+  if (withPct < 80) {
+    console.error(c.red(`  ✗ Pass rate ${withPct}% is below the 80% minimum\n`));
+    process.exit(1);
+  }
 }
 
 // ─── Router ───────────────────────────────────────────────────────────────────
@@ -491,14 +701,17 @@ async function main() {
     }
 
     case 'add': {
-      const addAll   = args.includes('--all');
+      const addAll    = args.includes('--all');
+      const noCommands = args.includes('--no-commands');
       const skillName = args.find(a => !a.startsWith('--') && a !== 'add');
       if (addAll) {
         const skills = getAvailableSkills();
         skills.forEach(s => copySkill(s, targetDir));
+        if (!noCommands) skills.forEach(s => copyCommand(s));
         console.log(c.dim(`\nInstalled ${skills.length} skills to ${targetDir}`));
       } else if (skillName) {
         copySkill(skillName, targetDir);
+        if (!noCommands) copyCommand(skillName);
         console.log(c.dim(`\nInstalled to ${targetDir}`));
       } else {
         console.error(c.red('Usage: skills add <skill-name> | skills add --all'));
@@ -569,6 +782,42 @@ async function main() {
       break;
     }
 
+    case 'update-readme': {
+      const skills = getAvailableSkills();
+      const rows = skills.map(skillName => {
+        const resultsPath = path.join(skillsRoot, skillName, 'evals', 'results.json');
+        if (!fs.existsSync(resultsPath)) return `| ${skillName} | — | — | — | — | — |`;
+        try {
+          const r = JSON.parse(fs.readFileSync(resultsPath, 'utf8'));
+          const pct      = Math.round((r.pass_rate || 0) * 100) + '%';
+          const basePct  = r.baseline_pass_rate !== undefined ? Math.round(r.baseline_pass_rate * 100) + '%' : '—';
+          const delta    = r.delta !== undefined ? `+${Math.round(r.delta * 100)}pp` : '—';
+          const warn     = r.non_standard_provider ? ' ⚠' : '';
+          return `| ${skillName} | ${pct}${warn} | ${basePct} | ${delta} | ${r.evals_run ?? '—'} | ${r.date ?? '—'} |`;
+        } catch { return `| ${skillName} | — | — | — | — | — |`; }
+      });
+
+      const tableHeader = '| Skill | Pass Rate | Baseline | Delta | Evals | Last Run |\n|-------|-----------|----------|-------|-------|----------|';
+      const newTable = `<!-- quality-table-start -->\n${tableHeader}\n${rows.join('\n')}\n<!-- quality-table-end -->`;
+
+      const readmePath = path.join(__dirname, '..', 'README.md');
+      let readme = fs.readFileSync(readmePath, 'utf8');
+      readme = readme.replace(/<!-- quality-table-start -->[\s\S]*?<!-- quality-table-end -->/, newTable);
+      fs.writeFileSync(readmePath, readme);
+
+      const missing = skills.filter(s => !fs.existsSync(path.join(skillsRoot, s, 'evals', 'results.json')));
+      const nonStd  = skills.filter(s => {
+        try { return JSON.parse(fs.readFileSync(path.join(skillsRoot, s, 'evals', 'results.json'), 'utf8')).non_standard_provider; }
+        catch { return false; }
+      });
+      console.log('');
+      console.log(c.green('✓') + ` README.md quality table updated (${skills.length} skills)`);
+      if (missing.length)  console.log(c.dim(`  ${missing.length} pending: ${missing.join(', ')}`));
+      if (nonStd.length)   console.log(c.yellow(`  ⚠ ${nonStd.length} non-standard provider: ${nonStd.join(', ')}`));
+      console.log('');
+      break;
+    }
+
     default:
       console.log(`
 ${c.bold('  @booklib/skills')} — book knowledge distilled into AI agent skills
@@ -577,14 +826,23 @@ ${c.bold('  Usage:')}
     ${c.cyan('skills list')}                       list all available skills
     ${c.cyan('skills info')}  ${c.dim('<name>')}               full description of a skill
     ${c.cyan('skills demo')}  ${c.dim('<name>')}               before/after example
-    ${c.cyan('skills add')}   ${c.dim('<name>')}               install to .claude/skills/
-    ${c.cyan('skills add --all')}                  install all skills
-    ${c.cyan('skills add')}   ${c.dim('<name> --global')}      install globally
+    ${c.cyan('skills add')}   ${c.dim('<name>')}               install skill + /command to .claude/
+    ${c.cyan('skills add --all')}                  install all skills + commands
+    ${c.cyan('skills add')}   ${c.dim('<name> --global')}      install globally (~/.claude/)
+    ${c.cyan('skills add')}   ${c.dim('<name> --no-commands')} install skill only, skip command
     ${c.cyan('skills check')} ${c.dim('<name>')}               quality check (Bronze/Silver/Gold/Platinum)
     ${c.cyan('skills check --all')}                quality summary for all skills
-    ${c.cyan('skills eval')}  ${c.dim('<name>')}               run evals against Claude (needs ANTHROPIC_API_KEY)
+    ${c.cyan('skills update-readme')}              refresh README quality table from results.json files
+    ${c.cyan('skills eval')}  ${c.dim('<name>')}               run evals (auto-detects provider)
     ${c.cyan('skills eval')}  ${c.dim('<name> --model=<id>')}  use a specific model
     ${c.cyan('skills eval')}  ${c.dim('<name> --id=<eval-id>')} run a single eval
+
+  ${c.bold('Provider auto-detection (first match wins):')}
+    ANTHROPIC_API_KEY          Anthropic API  (default model: claude-haiku-4-5-20251001)
+    OPENAI_API_KEY             OpenAI API     (default model: gpt-4o-mini)
+    EVAL_API_KEY+EVAL_BASE_URL any OpenAI-compatible endpoint (Groq, Together, etc.)
+    ollama installed           local Ollama   (requires --model or EVAL_MODEL)
+    claude CLI installed       Claude Code subscription — no key needed
 `);
   }
 }

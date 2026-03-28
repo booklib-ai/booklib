@@ -95,7 +95,27 @@ Aim for 3–5 evals per skill covering:
 2. A subtle or intermediate case
 3. Already-good code (the agent should recognize it and not manufacture issues)
 
-### 5. Submit a PR
+### 5. Run evals and commit results
+
+```bash
+ANTHROPIC_API_KEY=your-key npx @booklib/skills eval <name>
+```
+
+This runs each eval **with and without** the skill and writes `evals/results.json`. Commit this file — it is how CI and readers verify the skill actually works.
+
+**Quality thresholds** (calibrated to `claude-haiku-4-5` as judge):
+
+| Metric | Minimum | Good | Excellent |
+|--------|---------|------|-----------|
+| Pass rate (with skill) | ≥ 80% | ≥ 85% | ≥ 90% |
+| Delta over baseline | ≥ 20pp | ≥ 25pp | ≥ 30pp |
+| Baseline (without skill) | any | < 70% | < 60% |
+
+A high delta matters as much as a high pass rate — it proves the skill is doing real work, not just measuring what Claude already knows. A skill with 90% pass rate and 5pp delta is less valuable than one with 85% and 30pp delta.
+
+The 80% threshold is calibrated to the judge model's own noise floor. Consistently hitting 80%+ with haiku as judge means the skill reliably catches what it claims to catch.
+
+### 6. Submit a PR
 
 ```bash
 git checkout -b skill/book-name
@@ -111,6 +131,8 @@ PR checklist:
 - [ ] SKILL.md is under 500 lines
 - [ ] `examples/before.md` and `examples/after.md` exist
 - [ ] `evals/evals.json` has at least 3 test cases
+- [ ] `evals/results.json` committed (run `npx @booklib/skills eval <name>`)
+- [ ] Pass rate ≥ 80% and delta ≥ 20pp in results.json
 - [ ] README.md skills table updated
 
 ## Requesting a skill

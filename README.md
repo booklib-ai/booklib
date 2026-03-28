@@ -147,6 +147,41 @@ This means skills compose: `skill-router` acts as an orchestrator that picks the
 | 🔄 [using-asyncio-python](./skills/using-asyncio-python/) | Asyncio practices from Caleb Hattingh's *Using Asyncio in Python* — coroutines, event loop, tasks, and signal handling |
 | 🕷️ [web-scraping-python](./skills/web-scraping-python/) | Web scraping practices from Ryan Mitchell's *Web Scraping with Python* — BeautifulSoup, Scrapy, and data storage |
 
+## Quality
+
+Skills are evaluated against 6–15 test cases each, run both **with** and **without** the skill using `claude-haiku-4-5` as model and judge. The delta over baseline is the key signal — it measures how much the skill actually improves Claude's output beyond what it can do unaided.
+
+**Thresholds:** pass rate ≥ 80% · delta ≥ 20pp · baseline < 70%
+
+<!-- quality-table-start -->
+| Skill | Pass Rate | Baseline | Delta | Evals | Last Run |
+|-------|-----------|----------|-------|-------|----------|
+| animation-at-work | — | — | — | — | — |
+| clean-code-reviewer | — | — | — | — | — |
+| data-intensive-patterns | — | — | — | — | — |
+| data-pipelines | — | — | — | — | — |
+| design-patterns | — | — | — | — | — |
+| domain-driven-design | — | — | — | — | — |
+| effective-java | — | — | — | — | — |
+| effective-kotlin | — | — | — | — | — |
+| effective-python | — | — | — | — | — |
+| effective-typescript | — | — | — | — | — |
+| kotlin-in-action | — | — | — | — | — |
+| lean-startup | — | — | — | — | — |
+| microservices-patterns | — | — | — | — | — |
+| programming-with-rust | — | — | — | — | — |
+| refactoring-ui | — | — | — | — | — |
+| rust-in-action | — | — | — | — | — |
+| skill-router | — | — | — | — | — |
+| spring-boot-in-action | — | — | — | — | — |
+| storytelling-with-data | — | — | — | — | — |
+| system-design-interview | — | — | — | — | — |
+| using-asyncio-python | — | — | — | — | — |
+| web-scraping-python | — | — | — | — | — |
+<!-- quality-table-end -->
+
+Results are stored in each skill's `evals/results.json` and updated by running `npx @booklib/skills eval <name>`.
+
 ## Contributing a skill
 
 If you've read a book that belongs here, you can add it. The bar is lower than you think:
