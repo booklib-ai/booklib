@@ -257,6 +257,24 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for the full guide including how to add
 
 ---
 
+## Prior Art & History
+
+This project is the **original open-source implementation** of the books → AI agent skills concept.
+
+| Milestone | Date |
+|-----------|------|
+| First commit (`clean-code-reviewer` skill) | **February 11, 2026** |
+| First npm publish (`@booklib/skills` v1.0.0) | **February 17, 2026** |
+| First public article on dev.to | **February 2026** |
+| LobeHub marketplace listing | **February 2026** |
+| v1.10.0 — 22 skills, 8 agents, profiles, rules | **March 28, 2026** |
+
+The concept, format, and CLI were developed independently and released under MIT before any known competing project existed. The full commit history is public and timestamped at [github.com/booklib-ai/skills](https://github.com/booklib-ai/skills).
+
+Related namespace repos (all redirect here): [booklib-ai/book2skills](https://github.com/booklib-ai/book2skills) · [booklib-ai/pdf2skills](https://github.com/booklib-ai/pdf2skills) · [booklib-ai/book-skills](https://github.com/booklib-ai/book-skills)
+
+---
+
 ## License
 
 MIT
