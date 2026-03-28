@@ -12,6 +12,7 @@ const command = args[0];
 const skillsRoot    = path.join(__dirname, '..', 'skills');
 const commandsRoot  = path.join(__dirname, '..', 'commands');
 const agentsRoot    = path.join(__dirname, '..', 'agents');
+const rulesRoot     = path.join(__dirname, '..', 'rules');
 
 // ─── Installation profiles ────────────────────────────────────────────────────
 const PROFILES = {
@@ -149,6 +150,9 @@ const commandsTargetDir = isGlobal
 const agentsTargetDir = isGlobal
   ? path.join(os.homedir(), '.claude', 'agents')
   : path.join(process.cwd(), '.claude', 'agents');
+const rulesTargetDir = isGlobal
+  ? path.join(os.homedir(), '.claude', 'rules')
+  : path.join(process.cwd(), '.claude', 'rules');
 
 function copyCommand(skillName) {
   const src = path.join(commandsRoot, `${skillName}.md`);
@@ -219,6 +223,42 @@ function copyHooks() {
     fs.copyFileSync(suggestSrc, dest);
     console.log(c.green('✓') + ` booklib-suggest.js hook → ${c.dim(dest)}`);
   }
+}
+
+function getAvailableRules() {
+  // Returns [{language, name, file}] for each rule file found under rules/
+  if (!fs.existsSync(rulesRoot)) return [];
+  const result = [];
+  for (const lang of fs.readdirSync(rulesRoot).sort()) {
+    const langDir = path.join(rulesRoot, lang);
+    if (!fs.statSync(langDir).isDirectory()) continue;
+    for (const file of fs.readdirSync(langDir).filter(f => f.endsWith('.md')).sort()) {
+      result.push({ language: lang, name: file.replace(/\.md$/, ''), file: path.join(langDir, file) });
+    }
+  }
+  return result;
+}
+
+function copyRules(language) {
+  // Copies all rule files for a given language (or 'common') to rulesTargetDir
+  const langDir = path.join(rulesRoot, language);
+  if (!fs.existsSync(langDir)) {
+    console.error(c.red(`✗ No rules for language "${language}".`) + ' Run ' + c.cyan('skills rules') + ' to see available rules.');
+    process.exit(1);
+  }
+  const destDir = path.join(rulesTargetDir, language);
+  fs.mkdirSync(destDir, { recursive: true });
+  for (const file of fs.readdirSync(langDir).filter(f => f.endsWith('.md'))) {
+    const dest = path.join(destDir, file);
+    fs.copyFileSync(path.join(langDir, file), dest);
+    console.log(c.green('✓') + ` ${c.bold(language + '/' + file.replace(/\.md$/, ''))} rule → ${c.dim(dest)}`);
+  }
+}
+
+function copyAllRules() {
+  const rules = getAvailableRules();
+  const languages = [...new Set(rules.map(r => r.language))];
+  for (const lang of languages) copyRules(lang);
 }
 
 function copySkillToCursor(skillName) {
@@ -825,15 +865,18 @@ async function main() {
     }
 
     case 'add': {
-      const addAll     = args.includes('--all');
-      const noCommands = args.includes('--no-commands');
-      const noAgents   = args.includes('--no-agents');
-      const agentArg   = args.find(a => a.startsWith('--agent='))?.split('=')[1];
-      const profileArg = args.find(a => a.startsWith('--profile='))?.split('=')[1];
-      const targetArg  = (args.find(a => a.startsWith('--target='))?.split('=')[1] ?? 'claude').toLowerCase();
-      const toClaude   = targetArg === 'claude' || targetArg === 'all';
-      const toCursor   = targetArg === 'cursor'  || targetArg === 'all';
-      const skillName  = args.find(a => !a.startsWith('--') && a !== 'add');
+      const addAll      = args.includes('--all');
+      const addHooks    = args.includes('--hooks');
+      const noCommands  = args.includes('--no-commands');
+      const noAgents    = args.includes('--no-agents');
+      const agentArg    = args.find(a => a.startsWith('--agent='))?.split('=')[1];
+      const profileArg  = args.find(a => a.startsWith('--profile='))?.split('=')[1];
+      const rulesArg    = args.find(a => a === '--rules' || a.startsWith('--rules='));
+      const rulesLang   = rulesArg?.includes('=') ? rulesArg.split('=')[1] : null;
+      const targetArg   = (args.find(a => a.startsWith('--target='))?.split('=')[1] ?? 'claude').toLowerCase();
+      const toClaude    = targetArg === 'claude' || targetArg === 'all';
+      const toCursor    = targetArg === 'cursor'  || targetArg === 'all';
+      const skillName   = args.find(a => !a.startsWith('--') && a !== 'add');
 
       const installSkills = (list) => {
         if (toClaude) list.forEach(s => copySkill(s, targetDir));
@@ -868,12 +911,25 @@ async function main() {
         console.log(c.dim(`\nInstalled to ${agentsTargetDir}`));
       } else if (addAll) {
         const skills = getAvailableSkills();
+        const agents = getAvailableAgents();
         installSkills(skills);
-        installAgents(getAvailableAgents());
-        if (toClaude) copyHooks();
-        const agentCount = (!noAgents && toClaude) ? getAvailableAgents().length : 0;
+        installAgents(agents);
+        if (toClaude) { copyHooks(); copyAllRules(); }
+        const agentCount = (!noAgents && toClaude) ? agents.length : 0;
         const targets = [toClaude && '.claude', toCursor && '.cursor/rules'].filter(Boolean).join(' + ');
-        console.log(c.dim(`\nInstalled ${skills.length} skills, ${agentCount} agents → ${targets}`));
+        console.log(c.dim(`\nInstalled ${skills.length} skills, ${agentCount} agents, ${getAvailableRules().length} rules → ${targets}`));
+      } else if (addHooks) {
+        if (toClaude) copyHooks();
+        else console.log(c.yellow('  --hooks only applies to Claude targets. Use without --target=cursor.'));
+        break;
+      } else if (rulesArg) {
+        if (!toClaude) {
+          console.log(c.yellow('  --rules only applies to Claude targets (.claude/rules/).'));
+          break;
+        }
+        if (rulesLang) copyRules(rulesLang);
+        else copyAllRules();
+        console.log(c.dim(`\nInstalled rules → ${rulesTargetDir}`));
       } else if (skillName) {
         installSkills([skillName]);
         console.log(c.dim(`\nInstalled to ${targetDir}`));
@@ -1019,6 +1075,37 @@ async function main() {
       break;
     }
 
+    case 'rules': {
+      const available = getAvailableRules();
+      if (!available.length) {
+        console.log(c.yellow('  No rules found.'));
+        break;
+      }
+      // Group by language
+      const byLang = {};
+      for (const r of available) {
+        if (!byLang[r.language]) byLang[r.language] = [];
+        byLang[r.language].push(r);
+      }
+      console.log('');
+      console.log(c.bold('  @booklib/skills — rules') + c.dim(` (${available.length} always-on)`));
+      console.log('  ' + c.line(60));
+      for (const [lang, rules] of Object.entries(byLang)) {
+        console.log(`  ${c.bold(lang)}`);
+        for (const r of rules) {
+          const content = fs.readFileSync(r.file, 'utf8');
+          const descMatch = content.match(/^description:\s*(.+)$/m);
+          const desc = descMatch ? descMatch[1].trim().replace(/^>$/, '') : '';
+          console.log(`    ${c.cyan(r.name.padEnd(28))}${c.dim(firstSentence(desc, 55))}`);
+        }
+        console.log('');
+      }
+      console.log(c.dim(`  skills add --rules               install all rules → .claude/rules/`));
+      console.log(c.dim(`  skills add --rules=<language>    install rules for one language`));
+      console.log('');
+      break;
+    }
+
     case 'profiles': {
       const nameW = Math.max(...Object.keys(PROFILES).map(k => k.length)) + 2;
       console.log('');
@@ -1045,13 +1132,17 @@ ${c.bold('  Usage:')}
     ${c.cyan('skills agents')}                     list all available agents
     ${c.cyan('skills agents')}  ${c.dim('--info=<name>')}       full description of an agent
     ${c.cyan('skills profiles')}                   list available profiles
+    ${c.cyan('skills rules')}                      list always-on rule files
     ${c.cyan('skills info')}  ${c.dim('<name>')}               full description of a skill
     ${c.cyan('skills demo')}  ${c.dim('<name>')}               before/after example
     ${c.cyan('skills add')}   ${c.dim('--profile=<name>')}     install a profile (skills + commands + agent)
     ${c.cyan('skills add')}   ${c.dim('<name>')}               install a single skill + /command
-    ${c.cyan('skills add --all')}                  install everything (skills + commands + agents)
+    ${c.cyan('skills add --all')}                  install everything (skills + agents + rules + hooks)
     ${c.cyan('skills add')}   ${c.dim('<name> --global')}      install globally (~/.claude/)
     ${c.cyan('skills add')}   ${c.dim('--agent=<name>')}       install a single agent to .claude/agents/
+    ${c.cyan('skills add --rules')}                install always-on rules to .claude/rules/
+    ${c.cyan('skills add')}   ${c.dim('--rules=<language>')}   install rules for one language
+    ${c.cyan('skills add --hooks')}                install the UserPromptSubmit suggestion hook
     ${c.cyan('skills add')}   ${c.dim('--target=cursor')}      install to .cursor/rules/ (Cursor IDE)
     ${c.cyan('skills add')}   ${c.dim('--target=all')}         install to both .claude/ and .cursor/
     ${c.cyan('skills add')}   ${c.dim('--no-commands')}        skip /command installation

@@ -91,6 +91,110 @@
     }
     .badges img { height: 20px; }
 
+    /* Tiers */
+    .tiers-section {
+      max-width: 900px;
+      margin: 0 auto 72px;
+      padding: 0 24px;
+      text-align: center;
+    }
+    .tiers-section h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #f1f5f9;
+      margin-bottom: 32px;
+      letter-spacing: -0.01em;
+    }
+    .tiers-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+    @media (max-width: 640px) {
+      .tiers-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    .tier-card {
+      background: #11111f;
+      border: 1px solid #1e1e35;
+      border-radius: 12px;
+      padding: 20px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .tier-count {
+      font-size: 2rem;
+      font-weight: 800;
+      color: #818cf8;
+      line-height: 1;
+    }
+    .tier-label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #a5b4fc;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .tier-desc {
+      font-size: 0.75rem;
+      color: #64748b;
+      line-height: 1.4;
+      margin-top: 2px;
+    }
+    .tier-path {
+      font-family: "SF Mono", "Fira Code", monospace;
+      font-size: 0.68rem;
+      color: #334155;
+      margin-top: 4px;
+    }
+
+    /* Profiles */
+    .profiles-section {
+      max-width: 900px;
+      margin: 0 auto 72px;
+      padding: 0 24px;
+    }
+    .profiles-section h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #f1f5f9;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+    .profiles-section .subtitle {
+      text-align: center;
+      color: #64748b;
+      font-size: 0.9rem;
+      margin-bottom: 28px;
+    }
+    .profiles-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 12px;
+    }
+    .profile-card {
+      background: #11111f;
+      border: 1px solid #1e1e35;
+      border-radius: 10px;
+      padding: 14px 16px;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .profile-card:hover { border-color: #6366f1; }
+    .profile-card.active { border-color: #818cf8; box-shadow: 0 0 0 2px rgba(99,102,241,0.25); }
+    .profile-name {
+      font-family: "SF Mono", "Fira Code", monospace;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #a5b4fc;
+    }
+    .profile-desc {
+      font-size: 0.73rem;
+      color: #64748b;
+      margin-top: 4px;
+      line-height: 1.4;
+    }
+
     /* Skills grid */
     .skills-section {
       max-width: 1100px;
@@ -222,6 +326,110 @@
       margin-top: 4px;
     }
 
+    /* Agents section */
+    .agents-section {
+      max-width: 900px;
+      margin: 0 auto 72px;
+      padding: 0 24px;
+    }
+    .agents-section h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #f1f5f9;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+    .agents-section .subtitle {
+      text-align: center;
+      color: #64748b;
+      font-size: 0.9rem;
+      margin-bottom: 28px;
+    }
+    .agents-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 12px;
+    }
+    .agent-card {
+      background: #11111f;
+      border: 1px solid #1e1e35;
+      border-radius: 10px;
+      padding: 14px 16px;
+    }
+    .agent-name {
+      font-family: "SF Mono", "Fira Code", monospace;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #818cf8;
+    }
+    .agent-name::before { content: "@"; opacity: 0.6; }
+    .agent-model {
+      font-size: 0.68rem;
+      color: #334155;
+      font-family: "SF Mono", "Fira Code", monospace;
+      float: right;
+      margin-top: 2px;
+    }
+    .agent-desc {
+      font-size: 0.75rem;
+      color: #64748b;
+      margin-top: 6px;
+      line-height: 1.45;
+    }
+
+    /* Rules section */
+    .rules-section {
+      max-width: 900px;
+      margin: 0 auto 72px;
+      padding: 0 24px;
+    }
+    .rules-section h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #f1f5f9;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+    .rules-section .subtitle {
+      text-align: center;
+      color: #64748b;
+      font-size: 0.9rem;
+      margin-bottom: 28px;
+    }
+    .rules-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 10px;
+    }
+    .rule-card {
+      background: #11111f;
+      border: 1px solid #1e1e35;
+      border-radius: 10px;
+      padding: 12px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .rule-lang {
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: #475569;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .rule-name {
+      font-family: "SF Mono", "Fira Code", monospace;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #a5b4fc;
+    }
+    .rule-desc {
+      font-size: 0.73rem;
+      color: #64748b;
+      line-height: 1.4;
+      margin-top: 2px;
+    }
+
     /* Footer */
     footer {
       text-align: center;
@@ -231,6 +439,14 @@
       border-top: 1px solid #1e1e35;
     }
     footer a { color: #6366f1; }
+
+    /* Section divider */
+    .section-divider {
+      max-width: 900px;
+      margin: 0 auto 72px;
+      padding: 0 24px;
+      border-top: 1px solid #1e1e35;
+    }
   </style>
 </head>
 <body>
@@ -241,7 +457,7 @@
   <p>Book-grounded AI agent skills — expert knowledge from canonical programming books, packaged for Claude Code, Cursor, Copilot, and Windsurf.</p>
 
   <div id="install">
-    <div class="install-box" id="cmd">npx skills add booklib-ai/skills --all -g</div>
+    <div class="install-box" id="cmd">npx @booklib/skills add --all --global</div>
     <button class="copy-btn" onclick="copyCmd()">Copy</button>
   </div>
 
@@ -253,10 +469,63 @@
   </div>
 </section>
 
+<!-- Four tiers -->
+<section class="tiers-section">
+  <h2>Four tiers of AI assistance</h2>
+  <div class="tiers-grid">
+    <div class="tier-card">
+      <div class="tier-count">22</div>
+      <div class="tier-label">Skills</div>
+      <div class="tier-desc">Context-activated instructions from canonical books</div>
+      <div class="tier-path">.claude/skills/</div>
+    </div>
+    <div class="tier-card">
+      <div class="tier-count">22</div>
+      <div class="tier-label">Commands</div>
+      <div class="tier-desc">Explicit invocation via <code style="color:#6366f1">/skill-name</code></div>
+      <div class="tier-path">.claude/commands/</div>
+    </div>
+    <div class="tier-card">
+      <div class="tier-count">8</div>
+      <div class="tier-label">Agents</div>
+      <div class="tier-desc">Autonomous reviewers invoked via <code style="color:#6366f1">@agent</code></div>
+      <div class="tier-path">.claude/agents/</div>
+    </div>
+    <div class="tier-card">
+      <div class="tier-count">6</div>
+      <div class="tier-label">Rules</div>
+      <div class="tier-desc">Always-on standards loaded every session</div>
+      <div class="tier-path">.claude/rules/</div>
+    </div>
+  </div>
+</section>
+
+<!-- Profiles -->
+<section class="profiles-section">
+  <h2>Install by profile</h2>
+  <p class="subtitle">One command installs the right skills, commands, and reviewer agent for your stack</p>
+  <div class="profiles-grid" id="profiles-grid"></div>
+</section>
+
+<!-- Skills -->
 <section class="skills-section">
   <h2>22 skills, 22 books</h2>
   <p class="subtitle">Click any skill to see its install command</p>
   <div class="skills-grid" id="grid"></div>
+</section>
+
+<!-- Agents -->
+<section class="agents-section">
+  <h2>8 reviewer agents</h2>
+  <p class="subtitle">Autonomous reviewers that apply multiple skills in a single pass — invoke with <code style="color:#818cf8">@agent-name</code></p>
+  <div class="agents-list" id="agents-list"></div>
+</section>
+
+<!-- Rules -->
+<section class="rules-section">
+  <h2>Always-on rules</h2>
+  <p class="subtitle">Loaded every session — no trigger conditions needed. Install with <code style="color:#818cf8">skills add --rules</code></p>
+  <div class="rules-list" id="rules-list"></div>
 </section>
 
 <footer>
@@ -289,17 +558,46 @@
     { name: "web-scraping-python",    book: "Web Scraping with Python",             author: "Ryan Mitchell",          isbn: "9781491985564", desc: "BeautifulSoup, Scrapy, Selenium, and data storage." },
   ];
 
-  const ALL_CMD = "npx skills add booklib-ai/skills --all -g";
+  const AGENTS = [
+    { name: "booklib-reviewer",     model: "sonnet", desc: "Auto-routes to the best skill based on the code in scope. The default reviewer for any language." },
+    { name: "python-reviewer",      model: "sonnet", desc: "Python: effective-python, using-asyncio-python, web-scraping-python." },
+    { name: "ts-reviewer",          model: "sonnet", desc: "TypeScript / JavaScript: effective-typescript, clean-code-reviewer." },
+    { name: "jvm-reviewer",         model: "sonnet", desc: "Java / Kotlin: effective-java, effective-kotlin, kotlin-in-action, spring-boot-in-action." },
+    { name: "rust-reviewer",        model: "sonnet", desc: "Rust: programming-with-rust, rust-in-action." },
+    { name: "architecture-reviewer",model: "opus",   desc: "System design and architecture: domain-driven-design, microservices-patterns, system-design-interview, data-intensive-patterns." },
+    { name: "data-reviewer",        model: "sonnet", desc: "Data engineering: data-intensive-patterns, data-pipelines." },
+    { name: "ui-reviewer",          model: "sonnet", desc: "UI and visualization: refactoring-ui, storytelling-with-data, animation-at-work." },
+  ];
+
+  const RULES = [
+    { lang: "common",     name: "clean-code",           desc: "Naming, functions, comments, and structure — applies to all languages." },
+    { lang: "python",     name: "effective-python",     desc: "Pythonic style, data structures, type annotations, and error handling." },
+    { lang: "typescript", name: "effective-typescript", desc: "Types, inference, null safety, structural typing, and generics." },
+    { lang: "java",       name: "effective-java",       desc: "Object creation, classes, methods, exceptions, and concurrency." },
+    { lang: "kotlin",     name: "effective-kotlin",     desc: "Safety, functions, classes, collections, and coroutines." },
+    { lang: "rust",       name: "rust",                 desc: "Ownership, error handling, traits, idiomatic patterns, and naming." },
+  ];
+
+  const PROFILES = [
+    { name: "core",         desc: "Routing + general quality — a good starting point",    skills: 2, agents: 1 },
+    { name: "python",       desc: "Python best practices, async, and web scraping",       skills: 3, agents: 1 },
+    { name: "ts",           desc: "TypeScript type system and clean JS/TS code",          skills: 2, agents: 1 },
+    { name: "jvm",          desc: "Java, Kotlin, and Spring Boot",                        skills: 4, agents: 1 },
+    { name: "rust",         desc: "Rust ownership and systems programming",               skills: 2, agents: 1 },
+    { name: "architecture", desc: "DDD, microservices, system design, and data systems",  skills: 4, agents: 1 },
+    { name: "data",         desc: "Data pipelines, ETL, and storage patterns",            skills: 2, agents: 1 },
+    { name: "ui",           desc: "UI design, data visualization, and animations",        skills: 3, agents: 1 },
+    { name: "lean",         desc: "Lean Startup for product decisions",                   skills: 1, agents: 0 },
+  ];
+
+  const ALL_CMD = "npx @booklib/skills add --all --global";
   let activeCard = null;
+  let activeProfile = null;
 
   function initials(name) {
     return name.split(/[\s-]+/).map(w => w[0]).join("").toUpperCase().slice(0, 3);
   }
 
-  // Fetch cover URL from Google Books JSON API.
-  // Using the API (not direct hotlinking) avoids false-positive placeholder images
-  // ("No preview available" hatch / "image not available" text) that Google returns
-  // as HTTP 200 responses — the API simply omits imageLinks when no cover exists.
   function showFb(img) {
     img.style.display = "none";
     const fb = img.nextElementSibling;
@@ -312,8 +610,6 @@
       const url = `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&fields=items(volumeInfo(imageLinks))&maxResults=1`;
       const d = await fetch(url).then(r => r.json());
       const links = d.items?.[0]?.volumeInfo?.imageLinks;
-      // thumbnail/smallThumbnail are the only sizes returned by a search query.
-      // Replacing zoom=1 with zoom=0 fetches the largest available version of the same image.
       const src = (links?.thumbnail || links?.smallThumbnail || "")
         .replace(/^http:/, "https:")
         .replace("zoom=1", "zoom=5")
@@ -371,14 +667,11 @@
   }
 
   function selectSkill(skill, card) {
-    // Deactivate previous
-    if (activeCard && activeCard !== card) {
-      activeCard.classList.remove("active");
-    }
+    if (activeCard && activeCard !== card) activeCard.classList.remove("active");
+    if (activeProfile) { activeProfile.classList.remove("active"); activeProfile = null; }
     const cmdEl = document.getElementById("cmd");
 
     if (activeCard === card) {
-      // Deselect — back to install all
       activeCard.classList.remove("active");
       activeCard = null;
       cmdEl.textContent = ALL_CMD;
@@ -386,7 +679,26 @@
     } else {
       activeCard = card;
       card.classList.add("active");
-      cmdEl.textContent = `npx skills add booklib-ai/skills ${skill.name} -g`;
+      cmdEl.textContent = `npx @booklib/skills add ${skill.name} --global`;
+      cmdEl.classList.add("highlighted");
+      document.getElementById("install").scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }
+
+  function selectProfile(profile, card) {
+    if (activeProfile && activeProfile !== card) activeProfile.classList.remove("active");
+    if (activeCard) { activeCard.classList.remove("active"); activeCard = null; }
+    const cmdEl = document.getElementById("cmd");
+
+    if (activeProfile === card) {
+      activeProfile.classList.remove("active");
+      activeProfile = null;
+      cmdEl.textContent = ALL_CMD;
+      cmdEl.classList.remove("highlighted");
+    } else {
+      activeProfile = card;
+      card.classList.add("active");
+      cmdEl.textContent = `npx @booklib/skills add --profile=${profile.name} --global`;
       cmdEl.classList.add("highlighted");
       document.getElementById("install").scrollIntoView({ behavior: "smooth", block: "center" });
     }
@@ -400,11 +712,47 @@
     setTimeout(() => btn.textContent = "Copy", 2000);
   }
 
-  // Build grid
+  // Build profiles
+  const profilesGrid = document.getElementById("profiles-grid");
+  PROFILES.forEach(profile => {
+    const card = document.createElement("div");
+    card.className = "profile-card";
+    const meta = `${profile.skills} skill${profile.skills !== 1 ? "s" : ""}${profile.agents ? ` + ${profile.agents} agent` : ""}`;
+    card.innerHTML = `<div class="profile-name">${profile.name}</div><div class="profile-desc">${profile.desc}<br><span style="color:#334155;font-size:0.68rem">${meta}</span></div>`;
+    card.addEventListener("click", () => selectProfile(profile, card));
+    profilesGrid.appendChild(card);
+  });
+
+  // Build skills grid
   const grid = document.getElementById("grid");
   SKILLS.forEach(skill => grid.appendChild(buildCard(skill)));
-  // Kick off async cover loading after DOM is populated
   document.querySelectorAll("img[data-isbn]").forEach(loadCover);
+
+  // Build agents list
+  const agentsList = document.getElementById("agents-list");
+  AGENTS.forEach(agent => {
+    const card = document.createElement("div");
+    card.className = "agent-card";
+    card.innerHTML = `
+      <span class="agent-model">${agent.model}</span>
+      <div class="agent-name">${agent.name}</div>
+      <div class="agent-desc">${agent.desc}</div>
+    `;
+    agentsList.appendChild(card);
+  });
+
+  // Build rules list
+  const rulesList = document.getElementById("rules-list");
+  RULES.forEach(rule => {
+    const card = document.createElement("div");
+    card.className = "rule-card";
+    card.innerHTML = `
+      <div class="rule-lang">${rule.lang}</div>
+      <div class="rule-name">${rule.name}</div>
+      <div class="rule-desc">${rule.desc}</div>
+    `;
+    rulesList.appendChild(card);
+  });
 </script>
 
 </body>
