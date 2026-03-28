@@ -38,6 +38,7 @@
       --space-12: 48px;
       --space-16: 64px;
       --space-24: 96px;
+      --space-32: 128px;
 
       /* Type Scale */
       --text-xs: 0.75rem;
@@ -56,6 +57,7 @@
       --shadow-sm: 0 1px 2px rgba(0,0,0,0.1);
       --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
       --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+      --shadow-inset: inset 0 1px 0 rgba(255,255,255,0.1);
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -118,7 +120,7 @@
     .hero p {
       font-size: var(--text-lg);
       color: var(--text-dim);
-      max-width: 640px;
+      max-width: 65ch; /* Ch 4: 45-75 chars for readability */
       margin: 0 auto var(--space-12);
     }
 
@@ -150,11 +152,13 @@
       background: var(--accent);
       color: var(--bg);
       border: none;
+      border-top: 1px solid rgba(255,255,255,0.4); /* Refactoring UI depth */
       border-radius: 8px;
       padding: 10px 20px;
       font-size: var(--text-sm);
       font-weight: 600;
       cursor: pointer;
+      box-shadow: var(--shadow-sm);
       transition: transform 0.1s var(--ease-in), opacity 0.2s;
     }
     .copy-button:active { transform: scale(0.96); } /* Ch 1 Animation: Feedback */
@@ -183,6 +187,8 @@
       flex-direction: column;
       justify-content: space-between;
       transition: border-color 0.2s, transform 0.2s var(--ease-out);
+      position: relative;
+      overflow: hidden;
     }
     .bento-item:hover { border-color: var(--text-muted); transform: translateY(-2px); }
     .bento-item h3 { 
@@ -192,7 +198,8 @@
       letter-spacing: 0.05em; /* Ch 4: Widen for small caps */
       margin-bottom: var(--space-2); 
     }
-    .bento-item .value { font-size: var(--text-4xl); font-weight: 800; line-height: 1; margin-bottom: var(--space-3); }
+    .bento-item .value { font-size: var(--text-4xl); font-weight: 800; line-height: 1; margin-bottom: var(--space-1); }
+    .bento-item .sub-value { font-size: var(--text-xs); color: var(--text-muted); font-weight: 500; margin-bottom: var(--space-3); }
     .bento-item .desc { font-size: var(--text-sm); color: var(--text-dim); }
     .bento-item .meta { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--primary); margin-top: auto; padding-top: var(--space-3); }
 
@@ -258,7 +265,7 @@
       overflow: hidden;
       display: flex;
       flex-direction: column;
-      transition: transform 0.2s var(--ease-out), border-color 0.2s, box-shadow 0.2s;
+      transition: transform 0.2s var(--ease-out), border-color 0.2s, box-shadow 0.2s, opacity 0.3s var(--ease-out);
       cursor: pointer;
       opacity: 0; /* For scroll entrance */
       transform: translateY(20px);
@@ -314,9 +321,7 @@
     /* How it works / Demo */
     .demo-section {
       background: #050505;
-      border-top: 1px solid var(--card-border);
-      border-bottom: 1px solid var(--card-border);
-      padding: var(--space-24) 0;
+      padding: var(--space-32) 0;
       margin-bottom: var(--space-24);
     }
     .demo-grid {
@@ -347,9 +352,10 @@
     .dot.red { background: #ff5f56; }
     .dot.yellow { background: #ffbd2e; }
     .dot.green { background: #27c93f; }
-    .terminal-body { padding: var(--space-6); min-height: 260px; }
+    .terminal-body { padding: var(--space-6); min-height: 280px; }
     .line { margin-bottom: var(--space-2); line-height: 1.4; opacity: 0; transform: translateY(4px); transition: all 0.4s var(--ease-out); }
     .line.visible { opacity: 1; transform: translateY(0); }
+    .line.system { color: #5eead4; font-weight: 600; padding-top: var(--space-2); }
     .prompt { color: #27c93f; margin-right: var(--space-2); }
     .cmd { color: var(--text-main); }
     .output { color: var(--text-dim); }
@@ -433,7 +439,8 @@
       <div>
         <h3>Skills</h3>
         <div class="value">22</div>
-        <div class="desc">Context-activated instructions from books</div>
+        <div class="sub-value">Expert instruction sets</div>
+        <div class="desc">Context-activated instructions from canonical books</div>
       </div>
       <div class="meta">.claude/skills/</div>
     </div>
@@ -441,6 +448,7 @@
       <div>
         <h3>Commands</h3>
         <div class="value">22</div>
+        <div class="sub-value">Manual invocation</div>
         <div class="desc">Explicit invocation via slash commands</div>
       </div>
       <div class="meta">.claude/commands/</div>
@@ -449,6 +457,7 @@
       <div>
         <h3>Agents</h3>
         <div class="value">8</div>
+        <div class="sub-value">Autonomous reviewers</div>
         <div class="desc">Autonomous book-grounded reviewers</div>
       </div>
       <div class="meta">.claude/agents/</div>
@@ -457,6 +466,7 @@
       <div>
         <h3>Rules</h3>
         <div class="value">6</div>
+        <div class="sub-value">Standard enforcement</div>
         <div class="desc">Always-on coding standards</div>
       </div>
       <div class="meta">.claude/rules/</div>
@@ -668,7 +678,7 @@
         // Ch 4 Attention: Focal highlighting
         document.querySelectorAll('.skill-card').forEach(c => {
           c.classList.remove('active');
-          c.style.opacity = '0.4';
+          c.style.opacity = '0.7'; // High: Accessible contrast
         });
         card.classList.add('active');
         card.style.opacity = '1';
@@ -758,7 +768,8 @@
     { type: 'output', text: 'Loading <span class="highlight">domain-driven-design</span>' },
     { type: 'output', text: 'Loading <span class="highlight">using-asyncio-python</span>' },
     { type: 'output', text: 'Reviewing code against book standards...' },
-    { type: 'output', text: 'Found 3 issues: <span class="highlight">2 high</span>, 1 medium' }
+    { type: 'output', text: 'Found 3 issues: <span class="highlight">2 high</span>, 1 medium' },
+    { type: 'system', text: '--- SYSTEM READY ---' }
   ];
 
   function runDemo() {
@@ -772,7 +783,7 @@
       }
       const line = demoLines[i];
       const div = document.createElement('div');
-      div.className = 'line';
+      div.className = 'line ' + (line.type === 'system' ? 'system' : '');
       if (line.type === 'cmd') {
         div.innerHTML = `<span class="prompt">$</span><span class="cmd">${line.text}</span>`;
       } else {
