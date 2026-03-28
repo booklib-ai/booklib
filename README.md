@@ -162,7 +162,7 @@ Skills are evaluated with and without the skill active, using `claude-haiku-4-5`
 |-------|-----------|----------|-------|-------|----------|
 | animation-at-work | 96% | 64% | +32pp | 3 | 2026-03-28 |
 | clean-code-reviewer | 91% | 59% | +33pp | 15 | 2026-03-28 |
-| data-intensive-patterns | 86% | 67% | +19pp | 3 | 2026-03-28 |
+| data-intensive-patterns | 91% | 62% | +29pp | 3 | 2026-03-28 |
 | data-pipelines | 96% | 30% | +65pp | 3 | 2026-03-28 |
 | design-patterns | 100% | 67% | +33pp | 3 | 2026-03-28 |
 | domain-driven-design | 100% | 65% | +35pp | 3 | 2026-03-28 |
