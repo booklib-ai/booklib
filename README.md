@@ -18,6 +18,8 @@
   <a href="https://www.npmjs.com/package/@booklib/skills"><img src="https://img.shields.io/npm/dw/@booklib/skills.svg" alt="downloads"/></a>
   <a href="https://github.com/booklib-ai/skills/stargazers"><img src="https://img.shields.io/github/stars/booklib-ai/skills?style=flat" alt="stars"/></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="license"/></a>
+  <a href="https://github.com/booklib-ai/skills/blob/main/CHANGELOG.md"><img src="https://img.shields.io/badge/Actively%20Maintained-✓-brightgreen" alt="actively maintained"/></a>
+  <a href="https://github.com/booklib-ai/skills/actions"><img src="https://img.shields.io/github/actions/workflow/status/booklib-ai/skills/check.yml?branch=main" alt="CI/CD status"/></a>
 </p>
 
 <p align="center">
@@ -159,7 +161,7 @@ Skills are evaluated with and without the skill active, using `claude-haiku-4-5`
 | Skill | Pass Rate | Baseline | Delta | Evals | Last Run |
 |-------|-----------|----------|-------|-------|----------|
 | animation-at-work | — | — | — | — | — |
-| clean-code-reviewer | 82% ⚠ | 55% | +26pp | 15 | 2026-03-28 |
+| clean-code-reviewer | 91% ⚠ | 59% | +33pp | 15 | 2026-03-28 |
 | data-intensive-patterns | — | — | — | — | — |
 | data-pipelines | — | — | — | — | — |
 | design-patterns | — | — | — | — | — |
@@ -197,6 +199,41 @@ booklib-ai/skills/
 ├── hooks/       Claude Code UserPromptSubmit hook
 └── bin/         CLI (skills.js)
 ```
+
+---
+
+## Trust & Transparency
+
+### Community & Maintenance
+
+- **Active development** — Regular updates with new skills and features
+- **Clear versioning** — [Semantic Versioning](https://semver.org/) with detailed [CHANGELOG.md](./CHANGELOG.md)
+- **Automated testing** — GitHub Actions CI/CD validates every commit
+- **Open development** — All changes public; no surprises
+- **Professional governance** — [Code of Conduct](./CODE_OF_CONDUCT.md) · [Security Policy](./SECURITY.md)
+
+### Quality Assurance
+
+- **Book-grounded** — Every skill extracts practices from a canonical programming book (not generic advice)
+- **Evaluated** — Skills are tested with quantitative evals (pass rate, delta over baseline)
+- **Platinum quality** — All skills pass 13-point quality checklist
+- **Source accessible** — Full skill source visible; nothing hidden
+
+### How We Stay Trustworthy
+
+| Component | What we do |
+|-----------|-----------|
+| **Releases** | Tag every version; publish to npm with checksums |
+| **Documentation** | Keep CHANGELOG.md, README, and examples current |
+| **Security** | Private vulnerability reporting; 48-hour response SLA |
+| **Community** | Respond to issues and PRs in good faith |
+| **Dependencies** | Minimal; CLI has zero dependencies |
+
+### Latest Release
+
+[**v1.10.0**](https://github.com/booklib-ai/skills/releases/tag/v1.10.0) — 2026-03-28
+
+See [CHANGELOG.md](./CHANGELOG.md) for full version history and [GitHub Releases](https://github.com/booklib-ai/skills/releases) for detailed release notes.
 
 ---
 
