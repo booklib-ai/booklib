@@ -1,4 +1,8 @@
 <p align="center">
+  <a href="README.md">English</a> · <a href="README.zh-CN.md">中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <a href="README.pt-BR.md">Português</a>
+</p>
+
+<p align="center">
   <img src="assets/logo.svg" width="100" alt="booklib-ai skills"/>
 </p>
 
@@ -155,7 +159,7 @@ Skills are evaluated with and without the skill active, using `claude-haiku-4-5`
 | Skill | Pass Rate | Baseline | Delta | Evals | Last Run |
 |-------|-----------|----------|-------|-------|----------|
 | animation-at-work | — | — | — | — | — |
-| clean-code-reviewer | 74% ⚠ | 55% | +19pp | 15 | 2026-03-28 |
+| clean-code-reviewer | 82% ⚠ | 55% | +26pp | 15 | 2026-03-28 |
 | data-intensive-patterns | — | — | — | — | — |
 | data-pipelines | — | — | — | — | — |
 | design-patterns | — | — | — | — | — |
