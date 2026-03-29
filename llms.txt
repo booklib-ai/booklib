@@ -1,24 +1,53 @@
 # BookLib Skills
 
-Distilled architectural wisdom from industry-leading books, formatted as high-precision AI skills.
+An open knowledge ecosystem for AI coding agents. Packages expert knowledge from canonical programming books as skills, with a discovery engine for community sources, semantic search, automatic context injection, and compatibility with Claude Code orchestrators (obra/superpowers, ruflo).
 
-## Core Capabilities
-- **Semantic Search**: Use `node bin/booklib.js search "<query>"` for conceptual retrieval.
-- **Active Auditing**: Use `node bin/booklib.js audit <skill> <file>` for systematic reviews.
-- **Context Handoff**: Use `node bin/booklib.js save-state` to pass context between agents.
+## Two Layers
 
-## Available Skills
-- **Clean Code**: Robert C. Martin's principles for readable, maintainable code.
-- **Domain-Driven Design (DDD)**: Eric Evans' patterns for complex domain modeling.
-- **Effective Kotlin/Java/Python/TypeScript**: Language-specific best practices.
-- **Data Intensive Patterns**: Martin Kleppmann's guide to reliable, scalable systems.
-- **Microservices Patterns**: Chris Richardson's patterns for distributed architectures.
-- **System Design Interview**: High-level scalability and estimation patterns.
-- **Refactoring UI**: Adam Wathan's tactics for visual design.
+**Bundled library**: 22 skills from canonical books, pre-indexed, ready to use.
+**Discovery ecosystem**: finds and fetches skills from GitHub repos, community registries, and npm packages (258+ discoverable).
 
-## Technical Metadata
-- **Format**: Markdown with XML tags (`<core_principles>`, `<anti_patterns>`).
-- **Engine**: Local semantic RAG using `@xenova/transformers`.
-- **Primary Router**: `CLAUDE.md` (Claude Code) and `booklib-router.mdc` (Cursor).
+## Core Commands
 
-For full details on each skill, see [llms-full.txt](llms-full.txt).
+- `booklib search "<query>"` — semantic search over skill content (returns relevant chunks)
+- `booklib fetch <skill>` — download and index a community skill
+- `booklib setup` — fetch all trusted skills at once
+- `booklib sync` — sync fetched skills to `~/.claude/skills/` for Skill tool / orchestrator access
+- `booklib audit <skill> <file>` — systematic file review against a skill
+- `booklib scan` — wisdom heatmap across the whole project
+- `booklib profile <role>` — skills by agent role (architect, reviewer, security, tester, ...)
+- `booklib swarm-config [trigger]` — skill map for swarm agent pipelines
+- `booklib init [--orchestrator=obra|ruflo]` — scaffold context files for all AI tools
+- `booklib save-state / resume / recover-auto` — session handoff between agents
+
+## Bundled Skills (22)
+
+animation-at-work · clean-code-reviewer · data-intensive-patterns · data-pipelines · design-patterns · domain-driven-design · effective-java · effective-kotlin · effective-python · effective-typescript · kotlin-in-action · lean-startup · microservices-patterns · programming-with-rust · refactoring-ui · rust-in-action · skill-router · spring-boot-in-action · storytelling-with-data · system-design-interview · using-asyncio-python · web-scraping-python
+
+## Discovery Sources (booklib.config.json)
+
+- `registry` — bundled skills
+- `manifest` — JSON skill list at a URL or local path (community/registry.json ships 258 skills)
+- `github-skills-dir` — any GitHub repo with a `skills/` subdirectory (obra/superpowers, ruflo included)
+- `github-org` — all repos in a GitHub org
+- `npm-scope` — all packages in an npm scope
+
+## Orchestrator Compatibility
+
+After `booklib sync`, all fetched skills are available at `~/.claude/skills/<name>/SKILL.md`.
+Works with obra/superpowers (`/plugin install superpowers`) and ruflo (`npm install -g ruflo`).
+
+## Activation Mechanisms
+
+- **PreToolUse hook** — automatically injects relevant skill chunks when editing matching files (fine-grained)
+- **Skill tool** — full skill dump on demand, used by orchestrator subagents (coarse)
+- **Search** — semantic vector search returning the most relevant chunks
+
+## Technical
+
+- Format: Markdown with XML tags (`<core_principles>`, `<anti_patterns>`, `<framework>`)
+- Engine: local semantic RAG using `@xenova/transformers` + `vectra`
+- Config: `booklib.config.json` (discovery sources), `.booklib/` (local state, gitignored)
+- Runtime deps: `@xenova/transformers`, `vectra`, `gray-matter`, `@modelcontextprotocol/sdk`
+
+For full skill catalog, see [llms-full.txt](llms-full.txt).

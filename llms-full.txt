@@ -1,6 +1,8 @@
 # BookLib Full Skill Catalog
 
-This file contains detailed descriptions and triggers for every skill in the BookLib library, optimized for RAG retrieval.
+An open knowledge ecosystem for AI coding agents. Packages expert knowledge from canonical books as skills, with a discovery engine for community sources, semantic search, and orchestrator compatibility (obra/superpowers, ruflo).
+
+This file contains detailed descriptions and triggers for every bundled skill, plus documentation of the discovery system and CLI commands, optimized for RAG retrieval.
 
 ## Skill: animation-at-work
 **Description**: Apply web animation principles from Animation at Work by Rachel Nabors. Covers human perception of motion, 12 principles of animation, animation patterns (transitions, supplements, feedback, demonstrations, decorations), CSS transitions, CSS animations, Web Animations API, SVG/Canvas/WebGL, communicating animation with storyboards and motion comps, performance (composite-only properties, will-change, RAIL), accessibility (prefers- reduced-motion, vestibular disorders), and team workflow. Trigger on "animation", "transition", "CSS animation", "keyframe", "easing", "motion design", "web animation", "prefers-reduced-motion", "storyboard", "parallax", "loading animation", "hover effect", "micro-interaction".
@@ -153,3 +155,100 @@ This file contains detailed descriptions and triggers for every skill in the Boo
 **Directory**: `skills/web-scraping-python/`
 
 ---
+---
+
+## Discovery & Community Skills
+
+BookLib can discover and fetch skills beyond the 22 bundled ones. As of the current registry, 258 community skills are discoverable.
+
+### Configuration (booklib.config.json)
+
+Source types:
+- `registry` — bundled skills (this package)
+- `manifest` — JSON list at a URL or local path; `community/registry.json` ships 258 skills with star counts and role tags
+- `github-skills-dir` — scans a subdirectory of a GitHub repo for SKILL.md files (e.g. obra/superpowers `skills/`, ruvnet/ruflo `.claude/skills/`)
+- `github-org` — scans all public repos in a GitHub org for SKILL.md at root
+- `npm-scope` — searches an npm scope for packages containing SKILL.md
+
+Set `GITHUB_TOKEN` env var to raise the GitHub API limit from 60 to 5000 req/hr.
+
+### Discovery Commands
+
+- `booklib discover` — list available skills from all configured sources (cached 24h)
+- `booklib discover --refresh` — force re-scan
+- `booklib fetch <name>` — download, index, and sync a specific skill
+- `booklib setup` — fetch all trusted skills at once
+
+---
+
+## Orchestrator Compatibility
+
+After `booklib sync`, every fetched skill is written to `~/.claude/skills/<name>/SKILL.md` with clean frontmatter (no internal XML wrappers). A `.booklib` marker file identifies BookLib-managed directories so user-placed skills are never overwritten.
+
+Compatible with:
+- **obra/superpowers** — install with `/plugin install superpowers`; skills surface via Claude Code's native Skill tool
+- **ruflo** — install with `npm install -g ruflo`; same Skill tool path
+
+---
+
+## Swarm & Role-Based Profiles
+
+### booklib profile <role>
+
+Returns skills most relevant to an agent role. Available roles:
+`architect` · `coder` · `reviewer` · `tester` · `security` · `frontend` · `optimizer` · `devops` · `ai-engineer` · `manager`
+
+### booklib swarm-config [trigger]
+
+Maps a swarm trigger to agent roles and their recommended skills. Built-in triggers:
+- `audit` → security-scan · coverage · vulnerability-check
+- `feature` → architect · coder · reviewer · tester
+- `refactor` → reviewer · coder · optimizer
+- `deploy` → devops · security
+
+### booklib init [--orchestrator=obra|ruflo]
+
+Generates context files for all AI tools in the project:
+- `CLAUDE.md` — Claude Code
+- `.cursor/rules/booklib-standards.mdc` — Cursor
+- `.github/copilot-instructions.md` — GitHub Copilot
+- `.gemini/context.md` — Gemini CLI
+
+With `--orchestrator`, appends install instructions for the chosen framework.
+
+---
+
+## Skill Activation Mechanisms
+
+| Mechanism | How it works |
+|-----------|-------------|
+| PreToolUse hook | Fires on every Read/Edit/Write/Bash call; matches file path against skill `filePattern` metadata; injects relevant chunks as `additionalContext`. Fine-grained, automatic, silent. |
+| Skill tool | `Skill("<name>")` returns the full SKILL.md content. Coarse, on-demand, used by orchestrator subagents. Reads from `~/.claude/skills/` after `booklib sync`. |
+| Search | `booklib search "<concept>"` runs vector search over indexed chunks; returns the most relevant passages. |
+| Audit | `booklib audit <skill> <file>` applies a skill's principles to a specific file and reports violations. |
+
+---
+
+## Session Handoff
+
+- `booklib save-state --goal="..." --next="..." --progress="..."` — save context snapshot
+- `booklib resume` — restore last session
+- `booklib recover-auto` — auto-recover from session files or git history
+- `booklib sessions-list` — all sessions across agents
+- `booklib sessions-merge <a>,<b> <output>` — merge two session contexts
+- `booklib sessions-lineage <parent> <child> "<note>"` — track session inheritance
+- `booklib sessions-compare <a>,<b> <file> <output>` — compare multi-agent audit findings
+
+All session data stored in `.booklib/sessions/` (gitignored).
+
+---
+
+## MCP Server
+
+Start: `node bin/booklib-mcp.js`
+
+Tools exposed:
+- `search_skills` — semantic search over skill content
+- `audit_content` — apply a skill to arbitrary code content
+- `save_session_state` — persist a handoff snapshot
+- `scan_project` — generate wisdom heatmap for a project directory
