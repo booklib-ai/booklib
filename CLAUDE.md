@@ -37,3 +37,20 @@ This creates a snapshot that the next agent can resume.
 Before using the search tool for the first time, ensure the index is built:
 `node bin/booklib.js index`
 </universal_indexer>
+
+<project_analysis_tools>
+Use these tools for systematic codebase analysis:
+
+1. **Project-Wide Scan**: Generate a "Wisdom Heatmap" showing architectural debt per skill:
+   `node bin/booklib.js scan`
+   This reports: total violations, healthy files %, and top refactoring priorities.
+
+2. **Deep Audit**: Perform a systematic expert review of a specific file against a skill:
+   `node bin/booklib.js audit <skill-name> <file-path>`
+   *Example: `node bin/booklib.js audit effective-kotlin src/Payment.kt`*
+   Use deep audits for high-priority files identified by the scan.
+
+3. **Session Handoff**: When switching to another AI agent or restarting:
+   `node bin/booklib.js save-state --goal "<goal>" --next "<immediate task>" --progress "<what's done>"`
+   Resume later with: `node bin/booklib.js resume`
+</project_analysis_tools>
