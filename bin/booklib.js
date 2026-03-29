@@ -9,6 +9,7 @@ import { BookLibRegistrySearcher } from '../lib/registry-searcher.js';
 import { BookLibInstaller } from '../lib/installer.js';
 import { BookLibSynthesizer } from '../lib/engine/synthesizer.js';
 import { BookLibScanner } from '../lib/engine/scanner.js';
+import { BookLibSessionCoordinator } from '../lib/engine/session-coordinator.js';
 
 const args = process.argv.slice(2);
 const command = args[0];
@@ -143,6 +144,74 @@ async function main() {
       break;
     }
 
+    case 'sessions-list': {
+      const coordinator = new BookLibSessionCoordinator();
+      const sessions = coordinator.listAllSessions();
+      if (sessions.length === 0) {
+        console.log('No sessions found.');
+      } else {
+        console.log('Available Sessions:\n');
+        console.log('ID                          | Goal                          | Branch   | Time');
+        console.log('─'.repeat(100));
+        sessions.forEach(s => {
+          const goalTrunc = s.goal.substring(0, 30).padEnd(30);
+          const branchTrunc = s.branch.padEnd(8);
+          const time = new Date(s.timestamp).toLocaleString();
+          console.log(`${s.id.padEnd(28)}| ${goalTrunc} | ${branchTrunc} | ${time}`);
+        });
+      }
+      break;
+    }
+
+    case 'sessions-merge': {
+      const ids = args[1]?.split(',') || [];
+      const output = args[2] || 'merged-session';
+      if (ids.length < 2) {
+        console.error('Usage: booklib sessions-merge <id1,id2,id3> <output-id>');
+        process.exit(1);
+      }
+      const coordinator = new BookLibSessionCoordinator();
+      const result = coordinator.mergeSessions(ids, output);
+      console.log(`✅ Merged sessions into: ${result}`);
+      console.log(`📝 Combined context from: ${ids.join(', ')}`);
+      break;
+    }
+
+    case 'sessions-lineage': {
+      const parent = args[1];
+      const child = args[2];
+      const reason = args.slice(3).join(' ') || '';
+      
+      if (parent && child) {
+        const coordinator = new BookLibSessionCoordinator();
+        coordinator.trackLineage(parent, child, reason);
+        console.log(`✅ Tracked lineage: ${parent} → ${child}`);
+      } else if (parent) {
+        const coordinator = new BookLibSessionCoordinator();
+        const path = coordinator.getLineagePath(parent);
+        console.log(`Lineage path for "${parent}":\n${path.join(' → ')}`);
+      } else {
+        const coordinator = new BookLibSessionCoordinator();
+        console.log(coordinator.displayLineageTree());
+      }
+      break;
+    }
+
+    case 'sessions-compare': {
+      const ids = args[1]?.split(',') || [];
+      const targetFile = args[2];
+      const output = args[3] || 'audit-comparison';
+      if (ids.length < 2 || !targetFile) {
+        console.error('Usage: booklib sessions-compare <id1,id2> <target-file> [output-id]');
+        process.exit(1);
+      }
+      const coordinator = new BookLibSessionCoordinator();
+      const result = coordinator.compareAudits(ids, targetFile, output);
+      console.log(`✅ Comparison created: ${result}`);
+      console.log(`📊 Compared audits from: ${ids.join(', ')}`);
+      break;
+    }
+
     default:
       console.log(`
 BookLib Universal Engine — Local Semantic RAG for Skills
@@ -163,6 +232,12 @@ Usage:
   booklib recover-auto           Recover handoff from git (no explicit save needed)
   booklib audit <skill> <file>   Perform a systematic audit against a skill
   booklib scan [dir]             Scan a project for architectural debt (default: cwd)
+
+  MULTI-AGENT SESSION COORDINATION:
+  booklib sessions-list                    List all sessions from all agents
+  booklib sessions-merge <id1,id2> <out>   Merge multiple sessions into one
+  booklib sessions-lineage [id] [child]    Track/display session lineage tree
+  booklib sessions-compare <id1,id2> <f>   Compare audits from multiple agents
 `);
   }
 }

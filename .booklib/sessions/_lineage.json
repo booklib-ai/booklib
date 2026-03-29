@@ -1,0 +1,24 @@
+{
+  "feature-x": {
+    "parent": "long-chat-test",
+    "reason": "Agent 2 branched for feature work",
+    "createdAt": "2026-03-29T11:49:30.018Z",
+    "children": []
+  },
+  "long-chat-test": {
+    "children": [
+      "feature-x"
+    ]
+  },
+  "payment-feature": {
+    "parent": "auth-feature",
+    "reason": "Parallel work on different modules",
+    "createdAt": "2026-03-29T11:49:30.159Z",
+    "children": []
+  },
+  "auth-feature": {
+    "children": [
+      "payment-feature"
+    ]
+  }
+}
