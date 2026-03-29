@@ -1,0 +1,19 @@
+{
+  "sources": [
+    { "type": "registry", "trusted": true },
+    { "type": "manifest", "url": "./community/registry.json", "trusted": true },
+    { "type": "github-skills-dir", "repo": "affaan-m/everything-claude-code", "dir": "skills", "branch": "main", "trusted": true, "artifacts": ["rules", "agents", "commands"] },
+    { "type": "github-skills-dir", "repo": "ehmo/platform-design-skills", "dir": "skills", "branch": "main", "trusted": true },
+    { "type": "github-skills-dir", "repo": "anthropics/skills", "dir": "skills", "branch": "main", "trusted": true },
+    { "type": "github-skills-dir", "repo": "emilkowalski/skill", "dir": "skills", "branch": "main", "trusted": true },
+    { "type": "github-skills-dir", "repo": "obra/superpowers", "dir": "skills", "branch": "main", "trusted": true },
+    { "type": "github-skills-dir", "repo": "ruvnet/ruflo", "dir": ".claude/skills", "branch": "main", "trusted": true }
+  ],
+  "discovery": {
+    "ttlHours": 24
+  },
+  "search": {
+    "minScore": 0.3,
+    "registryFallbackThreshold": 0.4
+  }
+}

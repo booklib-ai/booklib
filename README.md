@@ -9,8 +9,8 @@
 <h1 align="center">booklib-ai/skills</h1>
 
 <p align="center">
-  Book-grounded AI agent skills for Claude Code, Cursor, Copilot, and Windsurf.<br/>
-  Expert knowledge from canonical books — packaged as skills, commands, agents, and rules.
+  An open knowledge ecosystem for AI coding agents.<br/>
+  Curated skills from canonical books — plus community discovery, semantic search, and orchestrator compatibility.
 </p>
 
 <p align="center">
@@ -23,54 +23,48 @@
 </p>
 
 <p align="center">
-  <b>22 skills</b> &nbsp;·&nbsp; <b>8 agents</b> &nbsp;·&nbsp; <b>6 rules</b> &nbsp;·&nbsp; <b>22 commands</b> &nbsp;·&nbsp; <b>9 profiles</b>
+  <b>22 bundled skills</b> &nbsp;·&nbsp; <b>258+ discoverable</b> &nbsp;·&nbsp; <b>8 agents</b> &nbsp;·&nbsp; <b>obra/superpowers &amp; ruflo compatible</b>
 </p>
 
 ---
 
 ## What it is
 
-Each skill packages the key practices from a specific programming book into structured instructions an AI agent can apply directly to code. Instead of one generic "be a good programmer" prompt, you get targeted expertise grounded in sources like *Effective Java*, *Designing Data-Intensive Applications*, and *Clean Code*.
+BookLib packages expert knowledge from canonical programming books into skills that AI agents can apply directly to your code. It ships with 22 curated, evaluated skills — and a discovery engine that can find, index, and inject hundreds more from the community.
+
+**Two layers:**
+
+| Layer | What it does |
+|-------|-------------|
+| **Bundled library** | 22 skills from canonical books, pre-indexed, ready to use out of the box |
+| **Discovery ecosystem** | Finds and fetches skills from GitHub repos, community registries, and npm packages |
+
+BookLib is not a static install. It's a local knowledge engine: semantic search over skill content, automatic context injection via hooks, role-based profiles for swarm agents, and a sync bridge that makes every fetched skill available to any Claude Code-compatible orchestrator.
+
+---
+
+## Quick Start
 
 ```bash
-# Install everything globally
-npx @booklib/skills add --all --global
+# Install the CLI
+npm install -g @booklib/skills
 
-# Or install just what your stack needs
-npx @booklib/skills add --profile=ts --global       # TypeScript
-npx @booklib/skills add --profile=python --global   # Python
-npx @booklib/skills add --profile=rust --global     # Rust
-npx @booklib/skills add --profile=jvm --global      # Java / Kotlin
+# Build the local search index
+booklib index
+
+# Search for wisdom by concept
+booklib search "how to handle null values in Kotlin"
+
+# Discover and install all trusted skills (bundled + community)
+booklib setup
+
+# Sync all fetched skills → available to Claude Code's Skill tool and orchestrators
+booklib sync
 ```
 
 ---
 
-## Four tiers
-
-| Tier | Count | How it activates | Install path |
-|------|-------|-----------------|--------------|
-| **Skills** | 22 | Automatically, based on file type and task context | `.claude/skills/` |
-| **Commands** | 22 | Explicit — `/effective-python`, `/design-patterns`, etc. | `.claude/commands/` |
-| **Agents** | 8 | On demand — `@python-reviewer`, `@architecture-reviewer` | `.claude/agents/` |
-| **Rules** | 6 | Always — loaded every session, no trigger needed | `.claude/rules/` |
-
-**Profiles** bundle all four tiers by language or domain:
-
-```bash
-npx @booklib/skills add --profile=python        # Python skills + commands + agent + rules
-npx @booklib/skills add --profile=ts            # TypeScript
-npx @booklib/skills add --profile=rust          # Rust
-npx @booklib/skills add --profile=jvm           # Java + Kotlin + Spring Boot
-npx @booklib/skills add --profile=architecture  # DDD + microservices + system design
-npx @booklib/skills add --profile=data          # Data pipelines + DDIA
-npx @booklib/skills add --profile=ui            # Refactoring UI + animations + data viz
-npx @booklib/skills add --profile=lean          # Lean Startup
-npx @booklib/skills add --profile=core          # Skill router + clean code — good default
-```
-
----
-
-## Skills
+## Bundled Skills
 
 | Skill | Book | Author |
 |-------|------|--------|
@@ -99,13 +93,101 @@ npx @booklib/skills add --profile=core          # Skill router + clean code — 
 
 ---
 
-## Agents
+## Discovery
 
-Autonomous reviewers that apply multiple skills in a single pass. Invoke with `@agent-name` in Claude Code.
+BookLib can find and index skills beyond the bundled set. Configure sources in `booklib.config.json`:
+
+```json
+{
+  "sources": [
+    { "type": "registry", "trusted": true },
+    { "type": "manifest", "url": "./community/registry.json", "trusted": true },
+    { "type": "github-skills-dir", "repo": "obra/superpowers", "dir": "skills", "branch": "main", "trusted": true },
+    { "type": "github-skills-dir", "repo": "ruvnet/ruflo", "dir": ".claude/skills", "branch": "main", "trusted": true },
+    { "type": "github-org", "org": "your-org" },
+    { "type": "npm-scope", "scope": "@your-scope" }
+  ]
+}
+```
+
+```bash
+booklib discover              # list available skills from all sources
+booklib discover --refresh    # force re-scan (bypass 24h cache)
+booklib fetch naming-cheatsheet    # download and index a specific skill
+booklib setup                 # fetch all trusted skills at once
+```
+
+Source types: `registry` (bundled), `manifest` (JSON list at URL or local path), `github-skills-dir` (any repo with a `skills/` subdirectory), `github-org`, `npm-scope`.
+
+> Set `GITHUB_TOKEN` to raise the GitHub API limit from 60 to 5000 req/hr:
+> `GITHUB_TOKEN=$(gh auth token) booklib discover --refresh`
+
+---
+
+## Orchestrator Compatibility
+
+After `booklib sync`, every fetched skill lives at `~/.claude/skills/<name>/SKILL.md` — the path Claude Code's native Skill tool reads from. No extra configuration needed.
+
+```bash
+booklib sync    # write all fetched skills to ~/.claude/skills/
+```
+
+| Orchestrator | Install | Skills surface via |
+|---|---|---|
+| [obra/superpowers](https://github.com/obra/superpowers) | `/plugin install superpowers` | Skill tool — available in every session |
+| [ruflo](https://github.com/ruvnet/ruflo) | `npm install -g ruflo` | Skill tool — available in every session |
+
+BookLib uses a `.booklib` marker file to track directories it manages and never overwrites skills you placed there manually.
+
+---
+
+## Swarm & Role-Based Profiles
+
+Equip agents in a swarm with the right skills for their role:
+
+```bash
+booklib profile reviewer     # skills for a code reviewer agent
+booklib profile security     # skills for a security auditor
+booklib profile architect    # skills for a system design agent
+```
+
+Roles: `architect` · `coder` · `reviewer` · `tester` · `security` · `frontend` · `optimizer` · `devops` · `ai-engineer` · `manager`
+
+Get a full skill map for a swarm trigger pipeline:
+
+```bash
+booklib swarm-config audit      # security → tester agent roles + their skills
+booklib swarm-config feature    # architect → coder → reviewer → tester
+booklib swarm-config            # list all configured triggers
+```
+
+Scaffold AI context files with optional orchestrator hints:
+
+```bash
+booklib init                         # .cursor/rules, CLAUDE.md, copilot-instructions, .gemini
+booklib init --orchestrator=obra     # + superpowers install hint
+booklib init --orchestrator=ruflo    # + ruflo install hint
+```
+
+---
+
+## How Skills Activate
+
+| Mechanism | What triggers it | Detail |
+|-----------|-----------------|--------|
+| **PreToolUse hook** | Editing a file matching a skill's `filePattern` | Injects only relevant chunks — fine-grained, automatic, silent |
+| **Skill tool** | `Skill("effective-kotlin")` | Full skill dump on demand — used by orchestrators |
+| **Search** | `booklib search "<concept>"` | Semantic vector search — returns the most relevant chunks |
+
+The hook is the fine-grained layer. It fires on every `Read`/`Edit`/`Write`/`Bash` call, matches the file against skill patterns, and injects the relevant sections without you asking. The Skill tool is the coarse layer — a full knowledge dump, used by subagents that need a complete skill domain.
+
+---
+
+## Agents
 
 | Agent | Model | Skills applied |
 |-------|-------|----------------|
-| `@booklib-reviewer` | sonnet | Auto-routes to the best skill — use this when unsure |
+| `@booklib-reviewer` | sonnet | Auto-routes to the best skill |
 | `@python-reviewer` | sonnet | effective-python · asyncio · web-scraping |
 | `@ts-reviewer` | sonnet | effective-typescript · clean-code-reviewer |
 | `@jvm-reviewer` | sonnet | effective-java · effective-kotlin · kotlin-in-action · spring-boot |
@@ -116,48 +198,55 @@ Autonomous reviewers that apply multiple skills in a single pass. Invoke with `@
 
 ---
 
-## Rules
-
-Always-on coding standards — installed to `.claude/rules/` and loaded every session without any trigger conditions.
-
-| Rule | Language | Source |
-|------|----------|--------|
-| `clean-code` | all | *Clean Code* — naming, functions, comments, structure |
-| `effective-python` | Python | *Effective Python* — Pythonic style, types, error handling |
-| `effective-typescript` | TypeScript | *Effective TypeScript* — types, inference, null safety |
-| `effective-java` | Java | *Effective Java* — creation, classes, generics, concurrency |
-| `effective-kotlin` | Kotlin | *Effective Kotlin* — safety, coroutines, collections |
-| `rust` | Rust | *Programming with Rust* + *Rust in Action* — ownership, errors, idioms |
+## Semantic Search & Audit
 
 ```bash
-npx @booklib/skills add --rules             # install all rules
-npx @booklib/skills add --rules=python      # install one language
-npx @booklib/skills add --hooks             # install the skill suggestion hook
+booklib search "how to handle null values in Kotlin"
+booklib search "event sourcing vs CQRS" --role=architect
+booklib audit effective-kotlin src/PaymentService.kt
+booklib scan    # wisdom heatmap across the whole project
 ```
 
 ---
 
-## Skill routing
+## Session Handoff
 
-Not sure which skill to use? The `skill-router` meta-skill selects the best match automatically, and the `@booklib-reviewer` agent wraps it end-to-end:
+Preserves full context when switching agents or hitting rate limits:
 
-```
-User: "Review my order processing service"
-
-→ skill-router selects:
-   Primary:   domain-driven-design   — domain model design (Aggregates, Value Objects)
-   Secondary: microservices-patterns — service boundaries and inter-service communication
+```bash
+booklib save-state --goal="..." --next="..." --progress="..."
+booklib resume
+booklib recover-auto    # auto-recover from last session or git history
 ```
 
-**Benchmark:** [`benchmark/`](./benchmark/) shows a head-to-head comparison of a standard PR review vs. skill-router routing to two skills. The skill-router pipeline found ~47% more unique issues.
+Multi-agent coordination:
+
+```bash
+booklib sessions-list
+booklib sessions-merge auth-session,payment-session combined
+booklib sessions-lineage main feature-x "branched for auth work"
+booklib sessions-compare python-audit,kotlin-audit src/auth.ts comparison
+```
+
+All session data lives in `.booklib/` (gitignored). Nothing sent to any server.
+
+---
+
+## MCP Server
+
+```bash
+# Claude Code
+claude mcp add booklib -- node /path/to/bin/booklib-mcp.js
+
+# Cursor / Windsurf
+{ "mcpServers": { "booklib": { "command": "node", "args": ["/path/to/bin/booklib-mcp.js"] } } }
+```
+
+MCP tools: `search_skills` · `audit_content` · `save_session_state` · `scan_project`
 
 ---
 
 ## Quality
-
-Skills are evaluated with and without the skill active, using `claude-haiku-4-5` as model and judge. The delta over baseline is the key signal.
-
-**Thresholds:** pass rate ≥ 80% · delta ≥ 20pp · baseline < 70%
 
 <!-- quality-table-start -->
 | Skill | Pass Rate | Baseline | Delta | Evals | Last Run |
@@ -190,189 +279,73 @@ Run evals: `ANTHROPIC_API_KEY=... npx @booklib/skills eval <name>`
 
 ---
 
-## BookLib Engine (power users)
-
-The BookLib Engine is a local-first semantic RAG system built into the CLI. It lets AI agents retrieve targeted wisdom from the library, audit your code against specific books, and preserve context when switching between agents.
-
-### Quick Start
-
-```bash
-# Install globally
-npm install -g @booklib/skills
-
-# Build the local search index (CPU-based embeddings, zero-config)
-booklib index
-
-# Search for conceptual wisdom
-booklib search "how to handle null values in Kotlin"
-
-# Audit a file against a specific skill
-booklib audit effective-kotlin src/PaymentService.kt
-
-# Scan your whole project for architectural debt
-booklib scan
-```
-
-### Session Handoff
-
-When switching between AI agents or hitting rate limits, booklib preserves full context — git state, active skills, pending tasks — so the next agent picks up exactly where you left off.
-
-```bash
-# Save context before switching agents
-booklib save-state --name=my-feature --goal="..." --next="..." --progress="..."
-
-# Restore in any new agent session
-booklib resume my-feature
-booklib recover-auto          # auto-recover from last session or git history
-
-# Organise sessions
-booklib sessions find my-feature
-booklib sessions search "oauth"
-booklib sessions tag my-feature --add=auth,security
-booklib sessions diff session-a session-b
-booklib sessions validate my-feature      # quality score 0–100
-booklib sessions report --since "2 weeks"
-
-# Templates — start with structure, not a blank slate
-booklib sessions create --template=feature my-feature
-booklib sessions create --template=bug-fix my-bug
-booklib sessions create --template=refactor my-refactor
-booklib sessions create --template=docs my-docs
-
-# Advanced
-booklib sessions history my-feature       # version history
-booklib sessions encrypt my-feature       # encrypt sensitive sessions
-booklib sessions cleanup --before=90days
-booklib hooks install                     # git post-commit auto-save
-```
-
-All session data lives in `.booklib/` (gitignored). Nothing is sent to any server.
-
-### Multi-Agent Coordination
-
-Run parallel agents on different features, then merge their context — or have multiple skill frameworks audit the same file and compare findings.
-
-```bash
-booklib sessions-list                                              # all sessions across agents
-booklib sessions-merge auth-session,payment-session combined      # merge contexts
-booklib sessions-lineage main feature-x "branched for auth work"  # track lineage
-booklib sessions-lineage                                          # display tree
-booklib sessions-compare python-audit,kotlin-audit src/auth.ts comparison
-```
-
-### MCP Server
-
-Connect booklib directly to your IDE via the Model Context Protocol:
-
-```bash
-# Claude Code
-claude mcp add booklib -- node /path/to/bin/booklib-mcp.js
-
-# Cursor / Windsurf — add to mcp.json
-{
-  "mcpServers": {
-    "booklib": {
-      "command": "node",
-      "args": ["/path/to/bin/booklib-mcp.js"]
-    }
-  }
-}
-```
-
-MCP tools exposed: `search_skills`, `audit_content`, `save_session_state`, `scan_project`.
-
----
-
-## Repo structure
+## Repo Structure
 
 ```
 booklib-ai/skills/
-├── skills/           22 book-grounded skills (SKILL.md + examples + evals)
-├── agents/           8 autonomous reviewer agents
-├── commands/         22 slash commands, one per skill
-├── rules/            6 always-on language standards
-├── hooks/            Claude Code UserPromptSubmit hook
-├── lib/engine/       BookLib engine (indexer, searcher, auditor, scanner, handoff, sessions)
-└── bin/
-    ├── booklib.js      CLI (registered as `booklib`)
-    └── booklib-mcp.js  MCP server
+├── skills/                   22 bundled skills (SKILL.md + examples + evals)
+├── community/                community skill registry (registry.json)
+├── agents/                   8 autonomous reviewer agents
+├── commands/                 slash commands, one per skill
+├── rules/                    always-on language standards
+├── hooks/                    Claude Code PreToolUse hook
+├── booklib.config.json       discovery source configuration
+└── lib/
+    ├── engine/               indexer, searcher, auditor, scanner, handoff, sessions
+    ├── skill-fetcher.js      fetch skills from GitHub/npm, sync to ~/.claude/skills/
+    ├── discovery-engine.js   scan configured sources for available skills
+    ├── project-initializer.js generate context files for all AI tools
+    └── ...
+bin/
+    ├── booklib.js            CLI (registered as `booklib`)
+    └── booklib-mcp.js        MCP server
 ```
 
-> **`.booklib/`** (gitignored) — local engine state: `sessions/` for agent handoffs, `index/` for the semantic search index.
+> **`.booklib/`** (gitignored) — local state: `sessions/` for handoffs, `index/` for search index, `skills/` for fetched community skills.
 
 ---
 
 ## Trust & Transparency
 
-### Community & Maintenance
-
-- **Active development** — Regular updates with new skills and features
-- **Clear versioning** — [Semantic Versioning](https://semver.org/) with detailed [CHANGELOG.md](./CHANGELOG.md)
-- **Automated testing** — GitHub Actions CI/CD validates every commit
-- **Open development** — All changes public; no surprises
-- **Professional governance** — [Code of Conduct](./CODE_OF_CONDUCT.md) · [Security Policy](./SECURITY.md)
-
-### Quality Assurance
-
-- **Book-grounded** — Every skill extracts practices from a canonical programming book (not generic advice)
-- **Evaluated** — Skills are tested with quantitative evals (pass rate, delta over baseline)
-- **Platinum quality** — All skills pass 13-point quality checklist
-- **Source accessible** — Full skill source visible; nothing hidden
-
-### How We Stay Trustworthy
-
-| Component | What we do |
-|-----------|-----------|
-| **Releases** | Tag every version; publish to npm with checksums |
-| **Documentation** | Keep CHANGELOG.md, README, and examples current |
-| **Security** | Private vulnerability reporting; 48-hour response SLA |
-| **Community** | Respond to issues and PRs in good faith |
-| **Dependencies** | Four runtime deps: `@xenova/transformers`, `vectra`, `gray-matter`, `@modelcontextprotocol/sdk` |
-
-### Latest Release
-
-[**v1.10.0**](https://github.com/booklib-ai/skills/releases/tag/v1.10.0) — 2026-03-28
-
-See [CHANGELOG.md](./CHANGELOG.md) for full version history and [GitHub Releases](https://github.com/booklib-ai/skills/releases) for detailed release notes.
+- **Book-grounded** — every bundled skill extracts practices from a canonical programming book
+- **Evaluated** — quantitative evals: pass rate, delta over no-skill baseline
+- **Open discovery** — community registry and source config are public and auditable
+- **Local-first** — indexing, search, and session data stays on your machine
+- **Marker-based ownership** — `.booklib` marker tracks which `~/.claude/skills/` dirs BookLib manages; never overwrites yours
+- **Four runtime deps** — `@xenova/transformers`, `vectra`, `gray-matter`, `@modelcontextprotocol/sdk`
 
 ---
 
 ## Contributing
 
-If you've read a book that belongs here, open a PR:
+To add a bundled skill:
 
 ```bash
-# 1. Scaffold a new skill
 cp -r skills/clean-code-reviewer skills/your-book-name
-
-# 2. Edit SKILL.md, examples/before.md, examples/after.md, evals/evals.json
-
-# 3. Validate
+# Edit SKILL.md, examples/before.md, examples/after.md, evals/evals.json
 npx @booklib/skills check your-book-name
 ```
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for the full guide including how to add agents.
+To add a community skill, edit `community/registry.json` and open a PR.
+To add an external source, edit `booklib.config.json`.
 
-**Open requests** (tagged `good first issue`): [The Pragmatic Programmer](https://github.com/booklib-ai/skills/issues/2) · [Clean Architecture](https://github.com/booklib-ai/skills/issues/3) · [A Philosophy of Software Design](https://github.com/booklib-ai/skills/issues/4) · [Accelerate](https://github.com/booklib-ai/skills/issues/8) · [more →](https://github.com/booklib-ai/skills/issues?q=is%3Aopen+label%3A%22good+first+issue%22)
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for the full guide.
+
+**Open requests:** [The Pragmatic Programmer](https://github.com/booklib-ai/skills/issues/2) · [Clean Architecture](https://github.com/booklib-ai/skills/issues/3) · [A Philosophy of Software Design](https://github.com/booklib-ai/skills/issues/4) · [more →](https://github.com/booklib-ai/skills/issues?q=is%3Aopen+label%3A%22good+first+issue%22)
 
 ---
 
-## Prior Art & History
-
-This project is the **original open-source implementation** of the books → AI agent skills concept.
+## History
 
 | Milestone | Date |
 |-----------|------|
-| First commit (`clean-code-reviewer` skill) | **February 11, 2026** |
-| First npm publish (`@booklib/skills` v1.0.0) | **February 17, 2026** |
-| First public article on dev.to | **February 2026** |
-| LobeHub marketplace listing | **February 2026** |
-| v1.10.0 — 22 skills, 8 agents, profiles, rules | **March 28, 2026** |
-| BookLib Engine — session handoff, multi-agent coordination, semantic search | **March 29, 2026** |
+| First commit (`clean-code-reviewer` skill) | Feb 11, 2026 |
+| First npm publish (`@booklib/skills` v1.0.0) | Feb 17, 2026 |
+| v1.10.0 — 22 skills, 8 agents, profiles, rules | Mar 28, 2026 |
+| BookLib Engine — semantic search, session handoff, multi-agent coordination | Mar 29, 2026 |
+| Discovery engine — GitHub, npm, community registry, obra/superpowers, ruflo compatibility | Mar 29, 2026 |
 
-The concept, format, and CLI were developed independently and released under MIT before any known competing project existed. The full commit history is public and timestamped at [github.com/booklib-ai/skills](https://github.com/booklib-ai/skills).
-
-Related namespace repos (all redirect here): [booklib-ai/book2skills](https://github.com/booklib-ai/book2skills) · [booklib-ai/pdf2skills](https://github.com/booklib-ai/pdf2skills) · [booklib-ai/book-skills](https://github.com/booklib-ai/book-skills)
+Full commit history at [github.com/booklib-ai/skills](https://github.com/booklib-ai/skills).
 
 ---
 

@@ -1,0 +1,1508 @@
+{
+  "version": 1,
+  "description": "BookLib community skill registry — verified granular skills from popular repositories (all URLs confirmed 200).",
+  "skills": [
+    {
+      "name": "clean-code-typescript",
+      "description": "Clean Code principles adapted for TypeScript — naming, functions, classes, SOLID, testing.",
+      "stars": 9700,
+      "specificity": 6,
+      "topic": "typescript-style",
+      "languages": [
+        "typescript"
+      ],
+      "triggers": {
+        "extensions": [
+          ".ts",
+          ".tsx"
+        ],
+        "keywords": [
+          "clean code",
+          "typescript",
+          "solid",
+          "refactor",
+          "naming"
+        ]
+      },
+      "source": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/labs42io/clean-code-typescript/master/README.md"
+      },
+      "trusted": true,
+      "roles": [
+        "coder",
+        "reviewer"
+      ]
+    },
+    {
+      "name": "airbnb-javascript",
+      "description": "Airbnb JavaScript style guide — the most widely adopted JS conventions (148k stars).",
+      "stars": 148000,
+      "specificity": 7,
+      "topic": "javascript-style",
+      "languages": [
+        "javascript"
+      ],
+      "triggers": {
+        "extensions": [
+          ".js",
+          ".mjs",
+          ".jsx"
+        ],
+        "keywords": [
+          "javascript",
+          "style guide",
+          "eslint",
+          "airbnb",
+          "conventions"
+        ]
+      },
+      "source": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/airbnb/javascript/master/README.md"
+      },
+      "trusted": true,
+      "roles": [
+        "coder",
+        "reviewer"
+      ]
+    },
+    {
+      "name": "react-typescript-cheatsheet",
+      "description": "React + TypeScript patterns — hooks, props, generics, forms, events, context.",
+      "stars": 47000,
+      "specificity": 7,
+      "topic": "react-typescript",
+      "languages": [
+        "typescript",
+        "javascript"
+      ],
+      "triggers": {
+        "extensions": [
+          ".tsx",
+          ".ts"
+        ],
+        "keywords": [
+          "react",
+          "typescript",
+          "hooks",
+          "props",
+          "jsx",
+          "component"
+        ]
+      },
+      "source": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/typescript-cheatsheets/react/main/README.md"
+      },
+      "trusted": true,
+      "roles": [
+        "coder",
+        "frontend"
+      ]
+    },
+    {
+      "name": "bulletproof-react-structure",
+      "description": "React project structure — feature-based folders, separation of concerns, scalable architecture.",
+      "stars": 35000,
+      "specificity": 6,
+      "topic": "react-architecture",
+      "languages": [
+        "typescript",
+        "javascript"
+      ],
+      "triggers": {
+        "extensions": [
+          ".tsx",
+          ".ts"
+        ],
+        "keywords": [
+          "react",
+          "project structure",
+          "folder",
+          "architecture",
+          "feature"
+        ]
+      },
+      "source": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/alan2207/bulletproof-react/master/docs/project-structure.md"
+      },
+      "trusted": true,
+      "roles": [
+        "architect",
+        "frontend"
+      ]
+    },
+    {
+      "name": "bulletproof-react-components",
+      "description": "React component patterns — co-location, styled-components, styling conventions.",
+      "stars": 35000,
+      "specificity": 7,
+      "topic": "react-components",
+      "languages": [
+        "typescript",
+        "javascript"
+      ],
+      "triggers": {
+        "extensions": [
+          ".tsx",
+          ".jsx"
+        ],
+        "keywords": [
+          "react component",
+          "styling",
+          "css modules",
+          "styled components",
+          "co-location"
+        ]
+      },
+      "source": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/alan2207/bulletproof-react/master/docs/components-and-styling.md"
+      },
+      "trusted": true,
+      "roles": [
+        "coder",
+        "frontend"
+      ]
+    },
+    {
+      "name": "bulletproof-react-state",
+      "description": "React state management — local vs global, when to use Zustand/Jotai/React Query.",
+      "stars": 35000,
+      "specificity": 7,
+      "topic": "react-state",
+      "languages": [
+        "typescript",
+        "javascript"
+      ],
+      "triggers": {
+        "extensions": [
+          ".tsx",
+          ".ts"
+        ],
+        "keywords": [
+          "state management",
+          "zustand",
+          "redux",
+          "react query",
+          "global state",
+          "context"
+        ]
+      },
+      "source": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/alan2207/bulletproof-react/master/docs/state-management.md"
+      },
+      "trusted": true,
+      "roles": [
+        "coder",
+        "frontend"
+      ]
+    },
+    {
+      "name": "bulletproof-react-testing",
+      "description": "React testing strategy — unit, integration, e2e, what to test and what not to.",
+      "stars": 35000,
+      "specificity": 7,
+      "topic": "react-testing",
+      "languages": [
+        "typescript",
+        "javascript"
+      ],
+      "triggers": {
+        "extensions": [
+          ".tsx",
+          ".ts",
+          ".test.ts",
+          ".spec.ts"
+        ],
+        "keywords": [
+          "react testing",
+          "jest",
+          "vitest",
+          "testing library",
+          "e2e",
+          "cypress"
+        ]
+      },
+      "source": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/alan2207/bulletproof-react/master/docs/testing.md"
+      },
+      "trusted": true,
+      "roles": [
+        "tester",
+        "frontend"
+      ]
+    },
+    {
+      "name": "bulletproof-react-performance",
+      "description": "React performance patterns — code splitting, lazy loading, memoization, bundle size.",
+      "stars": 35000,
+      "specificity": 8,
+      "topic": "react-performance",
+      "languages": [
+        "typescript",
+        "javascript"
+      ],
+      "triggers": {
+        "extensions": [
+          ".tsx",
+          ".ts"
+        ],
+        "keywords": [
+          "react performance",
+          "code splitting",
+          "lazy loading",
+          "memoization",
+          "usememo",
+          "bundle"
+        ]
+      },
+      "source": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/alan2207/bulletproof-react/master/docs/performance.md"
+      },
+      "trusted": true,
+      "roles": [
+        "optimizer",
+        "frontend"
+      ]
+    },
+    {
+      "name": "bulletproof-react-security",
+      "description": "React security — XSS prevention, dangerouslySetInnerHTML, CSP, dependency auditing.",
+      "stars": 35000,
+      "specificity": 6,
+      "topic": "xss-defense",
+      "languages": [
+        "typescript",
+        "javascript"
+      ],
+      "triggers": {
+        "extensions": [
+          ".tsx",
+          ".ts"
+        ],
+        "keywords": [
+          "react security",
+          "xss",
+          "csp",
+          "sanitize",
+          "injection",
+          "dangerouslysetinnerhtml"
+        ]
+      },
+      "source": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/alan2207/bulletproof-react/master/docs/security.md"
+      },
+      "trusted": true,
+      "roles": [
+        "security",
+        "frontend"
+      ]
+    },
+    {
+      "name": "js-testing-best-practices",
+      "description": "JavaScript & Node.js testing best practices — AAA pattern, test isolation, mocking, CI.",
+      "stars": 24600,
+      "specificity": 6,
+      "topic": "testing",
+      "languages": [
+        "javascript",
+        "typescript"
+      ],
+      "triggers": {
+        "extensions": [
+          ".test.js",
+          ".spec.js",
+          ".test.ts",
+          ".spec.ts"
+        ],
+        "keywords": [
+          "testing",
+          "unit test",
+          "test isolation",
+          "mock",
+          "jest",
+          "vitest",
+          "aaa"
+        ]
+      },
+      "source": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/goldbergyoni/javascript-testing-best-practices/master/readme.md"
+      },
+      "trusted": true,
+      "roles": [
+        "tester"
+      ]
+    },
+    {
+      "name": "node-testing-aaa",
+      "description": "Node.js test structure — AAA pattern (Arrange, Act, Assert) with concrete examples.",
+      "stars": 105000,
+      "specificity": 8,
+      "topic": "test-structure",
+      "languages": [
+        "javascript",
+        "typescript"
+      ],
+      "triggers": {
+        "extensions": [
+          ".test.js",
+          ".spec.js",
+          ".test.ts"
+        ],
+        "keywords": [
+          "aaa pattern",
+          "arrange act assert",
+          "test structure",
+          "unit test"
+        ]
+      },
+      "source": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/goldbergyoni/nodebestpractices/master/sections/testingandquality/aaa.md"
+      },
+      "trusted": true,
+      "roles": [
+        "tester"
+      ]
+    },
+    {
+      "name": "node-testing-fixtures",
+      "description": "Avoid global test fixtures — use factory functions, keep tests isolated.",
+      "stars": 105000,
+      "specificity": 8,
+      "topic": "test-isolation",
+      "languages": [
+        "javascript",
+        "typescript"
+      ],
+      "triggers": {
+        "extensions": [
+          ".test.js",
+          ".test.ts"
+        ],
+        "keywords": [
+          "test fixtures",
+          "global fixtures",
+          "test isolation",
+          "factory",
+          "beforeeach"
+        ]
+      },
+      "source": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/goldbergyoni/nodebestpractices/master/sections/testingandquality/avoid-global-test-fixture.md"
+      },
+      "trusted": true,
+      "roles": [
+        "tester"
+      ]
+    },
+    {
+      "name": "node-error-types",
+      "description": "Operational vs programmer errors in Node.js — when to crash vs recover.",
+      "stars": 105000,
+      "specificity": 8,
+      "topic": "error-classification",
+      "languages": [
+        "javascript",
+        "typescript"
+      ],
+      "triggers": {
+        "extensions": [
+          ".js",
+          ".ts"
+        ],
+        "keywords": [
+          "operational error",
+          "programmer error",
+          "error types",
+          "crash",
+          "process exit",
+          "node error"
+        ]
+      },
+      "source": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/goldbergyoni/nodebestpractices/master/sections/errorhandling/operationalvsprogrammererror.md"
+      },
+      "trusted": true,
+      "roles": [
+        "coder",
+        "reviewer"
+      ]
+    },
+    {
+      "name": "node-error-handling",
+      "description": "Async error handling in Node.js — async/await, unhandled rejections, process crash prevention.",
+      "stars": 105000,
+      "specificity": 7,
+      "topic": "async-error-handling",
+      "languages": [
+        "javascript",
+        "typescript"
+      ],
+      "triggers": {
+        "extensions": [
+          ".js",
+          ".mjs",
+          ".ts"
+        ],
+        "keywords": [
+          "error handling",
+          "async error",
+          "unhandled rejection",
+          "try catch",
+          "node error"
+        ]
+      },
+      "source": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/goldbergyoni/nodebestpractices/master/sections/errorhandling/documentingusingswagger.md"
+      },
+      "trusted": true,
+      "roles": [
+        "coder"
+      ]
+    },
+    {
+      "name": "node-security-rate-limiting",
+      "description": "Rate limiting and brute force protection in Node.js APIs.",
+      "stars": 105000,
+      "specificity": 8,
+      "topic": "rate-limiting",
+      "languages": [
+        "javascript",
+        "typescript"
+      ],
+      "triggers": {
+        "extensions": [
+          ".js",
+          ".ts"
+        ],
+        "keywords": [
+          "rate limit",
+          "brute force",
+          "ddos",
+          "throttle",
+          "api protection"
+        ]
+      },
+      "source": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/goldbergyoni/nodebestpractices/master/sections/security/limitrequests.md"
+      },
+      "trusted": true,
+      "roles": [
+        "security",
+        "devops"
+      ]
+    },
+    {
+      "name": "node-security-secrets",
+      "description": "Secret and config management in Node.js — env vars, vault, never hardcode.",
+      "stars": 105000,
+      "specificity": 7,
+      "topic": "secret-management",
+      "languages": [
+        "javascript",
+        "typescript"
+      ],
+      "triggers": {
+        "extensions": [
+          ".js",
+          ".ts",
+          ".env"
+        ],
+        "keywords": [
+          "secrets",
+          "env vars",
+          "config",
+          "credentials",
+          "api key",
+          "dotenv"
+        ]
+      },
+      "source": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/goldbergyoni/nodebestpractices/master/sections/security/secretmanagement.md"
+      },
+      "trusted": true,
+      "roles": [
+        "security",
+        "devops"
+      ]
+    },
+    {
+      "name": "node-security-headers",
+      "description": "Secure HTTP headers in Node.js — helmet, HSTS, CSP, X-Frame-Options.",
+      "stars": 105000,
+      "specificity": 8,
+      "topic": "http-security-headers",
+      "languages": [
+        "javascript",
+        "typescript"
+      ],
+      "triggers": {
+        "extensions": [
+          ".js",
+          ".ts"
+        ],
+        "keywords": [
+          "security headers",
+          "helmet",
+          "hsts",
+          "csp",
+          "x-frame",
+          "cors",
+          "http headers"
+        ]
+      },
+      "source": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/goldbergyoni/nodebestpractices/master/sections/security/secureheaders.md"
+      },
+      "trusted": true,
+      "roles": [
+        "security",
+        "devops"
+      ]
+    },
+    {
+      "name": "node-security-validation",
+      "description": "Input validation in Node.js — joi, zod, sanitization, injection prevention.",
+      "stars": 105000,
+      "specificity": 5,
+      "topic": "input-sanitization",
+      "languages": [
+        "javascript",
+        "typescript"
+      ],
+      "triggers": {
+        "extensions": [
+          ".js",
+          ".ts"
+        ],
+        "keywords": [
+          "input validation",
+          "sanitization",
+          "joi",
+          "zod",
+          "injection",
+          "sql injection",
+          "xss"
+        ]
+      },
+      "source": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/goldbergyoni/nodebestpractices/master/sections/security/validation.md"
+      },
+      "trusted": true,
+      "roles": [
+        "security",
+        "coder"
+      ]
+    },
+    {
+      "name": "node-docker-best-practices",
+      "description": "Docker best practices for Node.js — layer caching, non-root user, multi-stage builds.",
+      "stars": 105000,
+      "specificity": 7,
+      "topic": "docker",
+      "languages": [
+        "javascript",
+        "typescript"
+      ],
+      "triggers": {
+        "extensions": [],
+        "keywords": [
+          "docker",
+          "dockerfile",
+          "container",
+          "multi-stage",
+          "non-root",
+          "docker build"
+        ]
+      },
+      "source": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/goldbergyoni/nodebestpractices/master/sections/docker/use-cache-for-shorter-build-time.md"
+      },
+      "trusted": true,
+      "roles": [
+        "devops"
+      ]
+    },
+    {
+      "name": "ddd-hexagonal",
+      "description": "Domain-Driven Design with Hexagonal Architecture — aggregates, value objects, ports, adapters.",
+      "stars": 14500,
+      "specificity": 8,
+      "topic": "ddd",
+      "languages": [
+        "typescript",
+        "javascript"
+      ],
+      "triggers": {
+        "extensions": [
+          ".ts",
+          ".java",
+          ".kt"
+        ],
+        "keywords": [
+          "ddd",
+          "domain driven",
+          "hexagonal",
+          "aggregate",
+          "value object",
+          "port",
+          "adapter",
+          "use case"
+        ]
+      },
+      "source": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/Sairyss/domain-driven-hexagon/master/README.md"
+      },
+      "trusted": true,
+      "roles": [
+        "architect"
+      ]
+    },
+    {
+      "name": "system-design-fundamentals",
+      "description": "System design fundamentals — CAP theorem, consistency, scalability, databases, caching.",
+      "stars": 42500,
+      "specificity": 6,
+      "topic": "system-design",
+      "languages": [
+        "all"
+      ],
+      "triggers": {
+        "extensions": [],
+        "keywords": [
+          "system design",
+          "scalability",
+          "cap theorem",
+          "consistency",
+          "distributed",
+          "load balancer",
+          "caching"
+        ]
+      },
+      "source": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/karanpratapsingh/system-design/main/README.md"
+      },
+      "trusted": true,
+      "roles": [
+        "architect"
+      ]
+    },
+    {
+      "name": "python-google-style",
+      "description": "Google Python style guide — naming, formatting, imports, docstrings, exceptions.",
+      "stars": 39000,
+      "specificity": 7,
+      "topic": "python-style",
+      "languages": [
+        "python"
+      ],
+      "triggers": {
+        "extensions": [
+          ".py"
+        ],
+        "keywords": [
+          "python style",
+          "google style",
+          "pep8",
+          "docstring",
+          "python conventions",
+          "pylint"
+        ]
+      },
+      "source": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/google/styleguide/gh-pages/pyguide.md"
+      },
+      "trusted": true,
+      "roles": [
+        "coder",
+        "reviewer"
+      ]
+    },
+    {
+      "name": "api-design-rest",
+      "description": "Microsoft REST API Guidelines — versioning, errors, pagination, naming conventions.",
+      "stars": 23000,
+      "specificity": 7,
+      "topic": "rest-api-design",
+      "languages": [
+        "all"
+      ],
+      "triggers": {
+        "extensions": [
+          ".ts",
+          ".js",
+          ".py",
+          ".java"
+        ],
+        "keywords": [
+          "rest api",
+          "api design",
+          "endpoint",
+          "http method",
+          "status code",
+          "versioning",
+          "pagination"
+        ]
+      },
+      "source": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/microsoft/api-guidelines/vNext/azure/Guidelines.md"
+      },
+      "trusted": true,
+      "roles": [
+        "architect",
+        "coder"
+      ]
+    },
+    {
+      "name": "naming-cheatsheet",
+      "description": "Naming things right — S-I-D, avoid context duplication, use opposites consistently.",
+      "stars": 14000,
+      "specificity": 5,
+      "topic": "naming",
+      "languages": [
+        "all"
+      ],
+      "triggers": {
+        "extensions": [
+          ".js",
+          ".ts",
+          ".py",
+          ".java",
+          ".kt"
+        ],
+        "keywords": [
+          "naming",
+          "variable names",
+          "identifier",
+          "s-i-d",
+          "naming convention"
+        ]
+      },
+      "source": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/kettanaito/naming-cheatsheet/main/README.md"
+      },
+      "trusted": true,
+      "roles": [
+        "coder",
+        "reviewer"
+      ]
+    },
+    {
+      "name": "conventional-commits",
+      "description": "Conventional Commits — structured commit messages for changelogs and automation.",
+      "stars": 8700,
+      "specificity": 6,
+      "topic": "git-workflow",
+      "languages": [
+        "all"
+      ],
+      "triggers": {
+        "extensions": [],
+        "keywords": [
+          "commit",
+          "changelog",
+          "semantic versioning",
+          "git message",
+          "conventional"
+        ]
+      },
+      "source": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/conventional-commits/conventionalcommits.org/master/content/v1.0.0/index.md"
+      },
+      "trusted": true,
+      "roles": [
+        "coder"
+      ]
+    },
+    {
+      "name": "system-design-primer",
+      "description": "System design primer — scalability, availability, consistency, load balancing, caching, databases, CDN, CAP theorem (280k stars).",
+      "stars": 340000,
+      "specificity": 8,
+      "topic": "system-design",
+      "languages": [
+        "all"
+      ],
+      "triggers": {
+        "extensions": [],
+        "keywords": [
+          "system design",
+          "scalability",
+          "availability",
+          "load balancing",
+          "caching",
+          "cdn",
+          "cap theorem",
+          "database",
+          "replication",
+          "sharding",
+          "microservices"
+        ]
+      },
+      "source": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/donnemartin/system-design-primer/master/README.md"
+      },
+      "trusted": true,
+      "roles": [
+        "architect"
+      ]
+    },
+    {
+      "name": "system-design-twitter",
+      "description": "Design a Twitter-scale social feed — timeline generation, fan-out, tweet storage, search.",
+      "stars": 340000,
+      "specificity": 9,
+      "topic": "social-feed-design",
+      "languages": [
+        "all"
+      ],
+      "triggers": {
+        "extensions": [],
+        "keywords": [
+          "twitter design",
+          "social feed",
+          "fan-out",
+          "timeline",
+          "news feed",
+          "social graph"
+        ]
+      },
+      "source": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/donnemartin/system-design-primer/master/solutions/system_design/twitter/README.md"
+      },
+      "trusted": true,
+      "roles": [
+        "architect"
+      ]
+    },
+    {
+      "name": "system-design-web-crawler",
+      "description": "Design a web crawler — politeness policies, URL dedup, distributed crawl, storage.",
+      "stars": 340000,
+      "specificity": 9,
+      "topic": "web-crawler-design",
+      "languages": [
+        "all"
+      ],
+      "triggers": {
+        "extensions": [],
+        "keywords": [
+          "web crawler",
+          "crawler design",
+          "url dedup",
+          "politeness",
+          "scraping",
+          "distributed crawl"
+        ]
+      },
+      "source": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/donnemartin/system-design-primer/master/solutions/system_design/web_crawler/README.md"
+      },
+      "trusted": true,
+      "roles": [
+        "architect"
+      ]
+    },
+    {
+      "name": "system-design-scaling-aws",
+      "description": "Scaling an AWS-hosted app from startup to millions of users — step-by-step architecture evolution.",
+      "stars": 340000,
+      "specificity": 9,
+      "topic": "aws-scaling",
+      "languages": [
+        "all"
+      ],
+      "triggers": {
+        "extensions": [],
+        "keywords": [
+          "aws scaling",
+          "cloud architecture",
+          "scale startup",
+          "vertical scaling",
+          "horizontal scaling",
+          "rds",
+          "elasticache"
+        ]
+      },
+      "source": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/donnemartin/system-design-primer/master/solutions/system_design/scaling_aws/README.md"
+      },
+      "trusted": true,
+      "roles": [
+        "architect",
+        "devops"
+      ]
+    },
+    {
+      "name": "owasp-sql-injection",
+      "description": "OWASP SQL Injection Prevention — parameterized queries, stored procedures, allow-lists, escaping.",
+      "stars": 31600,
+      "specificity": 9,
+      "topic": "sql-injection-defense",
+      "languages": [
+        "all"
+      ],
+      "triggers": {
+        "extensions": [
+          ".js",
+          ".ts",
+          ".py",
+          ".java",
+          ".php",
+          ".rb"
+        ],
+        "keywords": [
+          "sql injection",
+          "sqli",
+          "parameterized query",
+          "prepared statement",
+          "orm injection",
+          "database injection"
+        ]
+      },
+      "source": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/OWASP/CheatSheetSeries/master/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.md"
+      },
+      "trusted": true,
+      "roles": [
+        "security"
+      ]
+    },
+    {
+      "name": "owasp-xss-prevention",
+      "description": "OWASP XSS Prevention — output encoding, CSP, safe sinks, dangerouslySetInnerHTML, trusted types.",
+      "stars": 31600,
+      "specificity": 9,
+      "topic": "xss-defense",
+      "languages": [
+        "javascript",
+        "typescript"
+      ],
+      "triggers": {
+        "extensions": [
+          ".js",
+          ".ts",
+          ".tsx",
+          ".jsx",
+          ".html"
+        ],
+        "keywords": [
+          "xss",
+          "cross site scripting",
+          "output encoding",
+          "csp",
+          "trusted types",
+          "innerhtml",
+          "sanitize html"
+        ]
+      },
+      "source": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/OWASP/CheatSheetSeries/master/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.md"
+      },
+      "trusted": true,
+      "roles": [
+        "security",
+        "frontend"
+      ]
+    },
+    {
+      "name": "owasp-authentication",
+      "description": "OWASP Authentication Cheat Sheet — password requirements, MFA, account lockout, credential stuffing defenses.",
+      "stars": 31600,
+      "specificity": 8,
+      "topic": "authentication",
+      "languages": [
+        "all"
+      ],
+      "triggers": {
+        "extensions": [],
+        "keywords": [
+          "authentication",
+          "login",
+          "mfa",
+          "account lockout",
+          "credential stuffing",
+          "brute force",
+          "password policy"
+        ]
+      },
+      "source": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/OWASP/CheatSheetSeries/master/cheatsheets/Authentication_Cheat_Sheet.md"
+      },
+      "trusted": true,
+      "roles": [
+        "security"
+      ]
+    },
+    {
+      "name": "owasp-session-management",
+      "description": "OWASP Session Management — session ID properties, cookies, fixation, expiry, logout.",
+      "stars": 31600,
+      "specificity": 8,
+      "topic": "session-management",
+      "languages": [
+        "all"
+      ],
+      "triggers": {
+        "extensions": [],
+        "keywords": [
+          "session management",
+          "session token",
+          "cookie",
+          "session fixation",
+          "session expiry",
+          "logout",
+          "jwt session"
+        ]
+      },
+      "source": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/OWASP/CheatSheetSeries/master/cheatsheets/Session_Management_Cheat_Sheet.md"
+      },
+      "trusted": true,
+      "roles": [
+        "security"
+      ]
+    },
+    {
+      "name": "owasp-csrf-prevention",
+      "description": "OWASP CSRF Prevention — synchronizer tokens, SameSite cookies, custom request headers.",
+      "stars": 31600,
+      "specificity": 9,
+      "topic": "csrf-defense",
+      "languages": [
+        "all"
+      ],
+      "triggers": {
+        "extensions": [
+          ".js",
+          ".ts",
+          ".py"
+        ],
+        "keywords": [
+          "csrf",
+          "cross site request forgery",
+          "samesite",
+          "csrf token",
+          "double submit",
+          "anti-csrf"
+        ]
+      },
+      "source": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/OWASP/CheatSheetSeries/master/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.md"
+      },
+      "trusted": true,
+      "roles": [
+        "security",
+        "frontend"
+      ]
+    },
+    {
+      "name": "owasp-input-validation",
+      "description": "OWASP Input Validation — allow-lists, reject-lists, regex validation, file upload, length limits.",
+      "stars": 31600,
+      "specificity": 8,
+      "topic": "input-sanitization",
+      "languages": [
+        "all"
+      ],
+      "triggers": {
+        "extensions": [
+          ".js",
+          ".ts",
+          ".py",
+          ".java"
+        ],
+        "keywords": [
+          "input validation",
+          "allowlist",
+          "whitelist",
+          "regex validation",
+          "file upload validation",
+          "schema validation"
+        ]
+      },
+      "source": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/OWASP/CheatSheetSeries/master/cheatsheets/Input_Validation_Cheat_Sheet.md"
+      },
+      "trusted": true,
+      "roles": [
+        "security",
+        "coder"
+      ]
+    },
+    {
+      "name": "owasp-password-storage",
+      "description": "OWASP Password Storage — Argon2, bcrypt, scrypt work factors, salting, upgrading legacy hashes.",
+      "stars": 31600,
+      "specificity": 9,
+      "topic": "password-hashing",
+      "languages": [
+        "all"
+      ],
+      "triggers": {
+        "extensions": [],
+        "keywords": [
+          "password hashing",
+          "bcrypt",
+          "argon2",
+          "scrypt",
+          "pbkdf2",
+          "password storage",
+          "salt",
+          "hash password"
+        ]
+      },
+      "source": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/OWASP/CheatSheetSeries/master/cheatsheets/Password_Storage_Cheat_Sheet.md"
+      },
+      "trusted": true,
+      "roles": [
+        "security"
+      ]
+    },
+    {
+      "name": "owasp-logging",
+      "description": "OWASP Logging Cheat Sheet — what to log, log injection prevention, sensitive data in logs, centralized logging.",
+      "stars": 31600,
+      "specificity": 8,
+      "topic": "security-logging",
+      "languages": [
+        "all"
+      ],
+      "triggers": {
+        "extensions": [],
+        "keywords": [
+          "logging",
+          "audit log",
+          "log injection",
+          "structured logging",
+          "what to log",
+          "security logging",
+          "log sensitive data"
+        ]
+      },
+      "source": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/OWASP/CheatSheetSeries/master/cheatsheets/Logging_Cheat_Sheet.md"
+      },
+      "trusted": true,
+      "roles": [
+        "security",
+        "devops"
+      ]
+    },
+    {
+      "name": "javascript-algorithms",
+      "description": "JavaScript algorithms and data structures — Big-O complexity tables, sorting, graphs, dynamic programming, string algorithms.",
+      "stars": 195000,
+      "specificity": 6,
+      "topic": "algorithms",
+      "languages": [
+        "javascript",
+        "typescript"
+      ],
+      "triggers": {
+        "extensions": [
+          ".js",
+          ".ts"
+        ],
+        "keywords": [
+          "algorithm",
+          "data structure",
+          "big o",
+          "complexity",
+          "sorting",
+          "graph",
+          "dynamic programming",
+          "binary search",
+          "hash table"
+        ]
+      },
+      "source": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/trekhleb/javascript-algorithms/master/README.md"
+      },
+      "trusted": true,
+      "roles": [
+        "coder"
+      ]
+    },
+    {
+      "name": "prompt-engineering-fundamentals",
+      "description": "Prompt engineering introduction — what prompting is, elements of a prompt, basic techniques, design tips.",
+      "stars": 72000,
+      "specificity": 6,
+      "topic": "prompt-engineering-basics",
+      "languages": [
+        "all"
+      ],
+      "triggers": {
+        "extensions": [],
+        "keywords": [
+          "prompt engineering",
+          "prompting",
+          "llm prompt",
+          "prompt design",
+          "language model",
+          "ai prompt",
+          "few shot",
+          "zero shot"
+        ]
+      },
+      "source": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/dair-ai/Prompt-Engineering-Guide/main/guides/prompts-intro.md"
+      },
+      "trusted": true,
+      "roles": [
+        "ai-engineer"
+      ]
+    },
+    {
+      "name": "prompt-engineering-techniques",
+      "description": "Advanced prompting techniques — chain-of-thought, self-consistency, tree of thoughts, ReAct, retrieval augmented generation.",
+      "stars": 72000,
+      "specificity": 8,
+      "topic": "prompt-engineering-advanced",
+      "languages": [
+        "all"
+      ],
+      "triggers": {
+        "extensions": [],
+        "keywords": [
+          "chain of thought",
+          "cot prompting",
+          "tree of thoughts",
+          "react prompting",
+          "rag",
+          "self consistency",
+          "prompt technique",
+          "reasoning prompt"
+        ]
+      },
+      "source": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/dair-ai/Prompt-Engineering-Guide/main/guides/prompts-advanced-usage.md"
+      },
+      "trusted": true,
+      "roles": [
+        "ai-engineer"
+      ]
+    },
+    {
+      "name": "prompt-engineering-reliability",
+      "description": "Making LLM outputs reliable — reducing hallucinations, calibration, self-evaluation, factuality, uncertainty.",
+      "stars": 72000,
+      "specificity": 8,
+      "topic": "llm-reliability",
+      "languages": [
+        "all"
+      ],
+      "triggers": {
+        "extensions": [],
+        "keywords": [
+          "llm hallucination",
+          "prompt reliability",
+          "factuality",
+          "llm calibration",
+          "self evaluation",
+          "model uncertainty",
+          "hallucination prevention"
+        ]
+      },
+      "source": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/dair-ai/Prompt-Engineering-Guide/main/guides/prompts-reliability.md"
+      },
+      "trusted": true,
+      "roles": [
+        "ai-engineer"
+      ]
+    },
+    {
+      "name": "prompt-engineering-adversarial",
+      "description": "Adversarial prompting — prompt injection attacks, jailbreaking, defense strategies, robustness.",
+      "stars": 72000,
+      "specificity": 9,
+      "topic": "prompt-injection-defense",
+      "languages": [
+        "all"
+      ],
+      "triggers": {
+        "extensions": [],
+        "keywords": [
+          "prompt injection",
+          "jailbreak",
+          "adversarial prompt",
+          "llm security",
+          "prompt attack",
+          "prompt defense",
+          "llm robustness"
+        ]
+      },
+      "source": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/dair-ai/Prompt-Engineering-Guide/main/guides/prompts-adversarial.md"
+      },
+      "trusted": true,
+      "roles": [
+        "ai-engineer",
+        "security"
+      ]
+    },
+    {
+      "name": "prompt-engineering-applications",
+      "description": "Prompt engineering for real applications — classification, code generation, reasoning tasks, data extraction, conversation design.",
+      "stars": 72000,
+      "specificity": 7,
+      "topic": "prompt-applications",
+      "languages": [
+        "all"
+      ],
+      "triggers": {
+        "extensions": [],
+        "keywords": [
+          "llm classification",
+          "code generation prompt",
+          "llm data extraction",
+          "structured output",
+          "prompt for coding",
+          "llm reasoning task"
+        ]
+      },
+      "source": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/dair-ai/Prompt-Engineering-Guide/main/guides/prompts-applications.md"
+      },
+      "trusted": true,
+      "roles": [
+        "ai-engineer"
+      ]
+    },
+    {
+      "name": "llm-production-patterns",
+      "description": "Brex guide to production LLM patterns — history management, markdown usage, temperature settings, chain of thought, personas, and safety.",
+      "stars": 9500,
+      "specificity": 7,
+      "topic": "prompt-engineering-basics",
+      "languages": [
+        "all"
+      ],
+      "triggers": {
+        "extensions": [],
+        "keywords": [
+          "production llm",
+          "llm history",
+          "prompt persona",
+          "llm temperature",
+          "llm safety",
+          "prompt context window",
+          "llm in production"
+        ]
+      },
+      "source": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/brexhq/prompt-engineering/main/README.md"
+      },
+      "trusted": true,
+      "roles": [
+        "ai-engineer"
+      ]
+    },
+    {
+      "name": "engineering-management-glossary",
+      "description": "Engineering management glossary — definitions for 1:1s, skip-levels, blameless post-mortems, DACI, OKRs, Dunbar's number, and 40+ leadership terms.",
+      "stars": 8200,
+      "specificity": 6,
+      "topic": "engineering-leadership",
+      "languages": [
+        "all"
+      ],
+      "triggers": {
+        "extensions": [],
+        "keywords": [
+          "engineering management",
+          "1:1",
+          "skip level",
+          "post mortem",
+          "okr",
+          "tech lead",
+          "engineering leader",
+          "team lead",
+          "daci"
+        ]
+      },
+      "source": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/charlax/engineering-management/master/glossary.md"
+      },
+      "trusted": true,
+      "roles": [
+        "manager"
+      ]
+    },
+    {
+      "name": "engineering-management-mistakes",
+      "description": "25 years of engineering management mistakes — common failure modes in hiring, culture, communication, and technical decisions.",
+      "stars": 8200,
+      "specificity": 7,
+      "topic": "engineering-leadership",
+      "languages": [
+        "all"
+      ],
+      "triggers": {
+        "extensions": [],
+        "keywords": [
+          "management mistakes",
+          "engineering culture",
+          "technical leadership mistakes",
+          "hiring mistakes",
+          "manager antipatterns",
+          "leadership failure"
+        ]
+      },
+      "source": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/charlax/engineering-management/master/articles/mistakes_25_years.md"
+      },
+      "trusted": true,
+      "roles": [
+        "manager"
+      ]
+    }
+  ]
+}

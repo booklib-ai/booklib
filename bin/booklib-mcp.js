@@ -11,7 +11,9 @@ import { BookLibSearcher } from "../lib/engine/searcher.js";
 import { BookLibAuditor } from "../lib/engine/auditor.js";
 import { BookLibHandoff } from "../lib/engine/handoff.js";
 import { BookLibScanner } from "../lib/engine/scanner.js";
+import { resolveBookLibPaths } from "../lib/paths.js";
 
+const { skillsPath } = resolveBookLibPaths();
 const searcher = new BookLibSearcher();
 const auditor = new BookLibAuditor();
 const handoff = new BookLibHandoff();
@@ -97,7 +99,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         return { content: [{ type: "text", text: JSON.stringify(searchResults, null, 2) }] };
 
       case "audit_content":
-        const skillPath = path.join(process.cwd(), 'skills', args.skill_name);
+        const skillPath = path.join(skillsPath, args.skill_name);
         const auditReport = await auditor.audit(skillPath, args.file_path);
         return { content: [{ type: "text", text: auditReport }] };
 
