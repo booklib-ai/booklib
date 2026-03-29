@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Skills — Book-grounded AI agent skills</title>
-  <meta name="description" content="22 AI agent skills grounded in canonical programming books. Give your AI coding assistant expert knowledge from Clean Code, Effective Java, DDD, and more."/>
+  <title>BookLib Skills — Open knowledge ecosystem for AI coding agents</title>
+  <meta name="description" content="22 curated book skills + 258 community skills for AI coding agents. Automatic context injection, semantic search, and compatibility with obra/superpowers and ruflo."/>
   <meta property="og:title" content="booklib-ai/skills"/>
-  <meta property="og:description" content="Book-grounded AI agent skills for Claude Code, Cursor, Copilot, and Windsurf."/>
+  <meta property="og:description" content="An open knowledge ecosystem for AI coding agents. Book-grounded skills with discovery, semantic search, and orchestrator compatibility."/>
   <meta property="og:image" content="https://booklib-ai.github.io/skills/og.png"/>
   <meta property="og:image:width" content="1200"/>
   <meta property="og:image:height" content="630"/>
@@ -419,10 +419,10 @@
     <div class="hero-glow"></div>
     <img class="logo" src="https://raw.githubusercontent.com/booklib-ai/skills/main/assets/logo.svg" alt="Logo"/>
     <h1>Skills</h1>
-    <p>Context-aware AI agent skills grounded in canonical programming books. Packaged for Claude Code, Cursor, and Windsurf.</p>
-    
+    <p>An open knowledge ecosystem for AI coding agents. 22 book-grounded skills + 258 community skills, with automatic context injection and obra/superpowers &amp; ruflo compatibility.</p>
+
     <div class="install-container">
-      <div class="install-code" id="main-cmd">npx @booklib/skills add --all --global</div>
+      <div class="install-code" id="main-cmd">npm install -g @booklib/skills</div>
       <button class="copy-button" onclick="copyText('main-cmd')">Copy</button>
     </div>
     
@@ -433,43 +433,43 @@
     </div>
   </section>
 
-  <h2 class="section-title">The Four Tiers</h2>
+  <h2 class="section-title">Two Layers, One Ecosystem</h2>
   <div class="bento-grid">
     <div class="bento-item">
       <div>
-        <h3>Skills</h3>
+        <h3>Bundled Skills</h3>
         <div class="value">22</div>
-        <div class="sub-value">Expert instruction sets</div>
-        <div class="desc">Context-activated instructions from canonical books</div>
+        <div class="sub-value">From canonical books</div>
+        <div class="desc">Pre-indexed expert knowledge from programming classics, ready to use</div>
       </div>
-      <div class="meta">.claude/skills/</div>
+      <div class="meta">~/.claude/skills/</div>
     </div>
     <div class="bento-item">
       <div>
-        <h3>Commands</h3>
-        <div class="value">22</div>
-        <div class="sub-value">Manual invocation</div>
-        <div class="desc">Explicit invocation via slash commands</div>
+        <h3>Discoverable</h3>
+        <div class="value">258+</div>
+        <div class="sub-value">Community skills</div>
+        <div class="desc">GitHub repos, registries, and npm packages — fetch any skill on demand</div>
       </div>
-      <div class="meta">.claude/commands/</div>
+      <div class="meta">booklib fetch &lt;skill&gt;</div>
     </div>
     <div class="bento-item">
       <div>
         <h3>Agents</h3>
         <div class="value">8</div>
         <div class="sub-value">Autonomous reviewers</div>
-        <div class="desc">Autonomous book-grounded reviewers</div>
+        <div class="desc">Book-grounded code reviewers wired to your CI pipeline</div>
       </div>
       <div class="meta">.claude/agents/</div>
     </div>
     <div class="bento-item">
       <div>
-        <h3>Rules</h3>
-        <div class="value">6</div>
-        <div class="sub-value">Standard enforcement</div>
-        <div class="desc">Always-on coding standards</div>
+        <h3>Orchestrators</h3>
+        <div class="value">obra · ruflo</div>
+        <div class="sub-value">Native compatibility</div>
+        <div class="desc">Skills sync to ~/.claude/skills/ — works with obra/superpowers and ruflo out of the box</div>
       </div>
-      <div class="meta">.claude/rules/</div>
+      <div class="meta">booklib sync</div>
     </div>
   </div>
 </div>
@@ -479,17 +479,18 @@
     <div class="demo-grid">
       <div>
         <h2 class="section-title" style="margin-bottom: var(--space-4);">How it works</h2>
-        <p style="color: var(--text-dim); font-size: var(--text-lg); margin-bottom: var(--space-6);">The <code>skill-router</code> analyzes your current task and activates the most relevant expertise. It's like having the author of the book looking over your shoulder.</p>
-        
+        <p style="color: var(--text-dim); font-size: var(--text-lg); margin-bottom: var(--space-6);">A <strong>PreToolUse hook</strong> watches every file you edit and auto-injects the matching skill chunks into context — no commands needed. For deeper work, invoke any skill on demand or let orchestrators load them via the Skill tool.</p>
+
         <div style="background: var(--primary-dim); border-left: 4px solid var(--primary); padding: var(--space-4); border-radius: 4px; margin-bottom: var(--space-6);">
-          <p style="font-size: var(--text-sm); font-weight: 600; color: #fff;">Takeaway: Zero-latency, local expertise</p>
-          <p style="font-size: var(--text-sm); color: #c7d2fe; opacity: 0.8;">Skills are loaded directly into the agent's context, providing immediate specialized knowledge without external API calls.</p>
+          <p style="font-size: var(--text-sm); font-weight: 600; color: #fff;">Two activation layers</p>
+          <p style="font-size: var(--text-sm); color: #c7d2fe; opacity: 0.8;">Fine-grained: hook injects relevant chunks automatically when editing matching files. Coarse: Skill tool dumps full skill on demand for orchestrator subagents.</p>
         </div>
 
         <ul style="color: var(--text-dim); list-style: none; display: flex; flex-direction: column; gap: var(--space-3);">
-          <li style="display: flex; gap: var(--space-3);"><span style="color: var(--primary); font-weight: 800;">✔</span> 100% local context files</li>
-          <li style="display: flex; gap: var(--space-3);"><span style="color: var(--primary); font-weight: 800;">✔</span> No extra dependencies</li>
-          <li style="display: flex; gap: var(--space-3);"><span style="color: var(--primary); font-weight: 800;">✔</span> Zero latency overhead</li>
+          <li style="display: flex; gap: var(--space-3);"><span style="color: var(--primary); font-weight: 800;">✔</span> Auto-injection via PreToolUse hook</li>
+          <li style="display: flex; gap: var(--space-3);"><span style="color: var(--primary); font-weight: 800;">✔</span> Semantic search across all skill content</li>
+          <li style="display: flex; gap: var(--space-3);"><span style="color: var(--primary); font-weight: 800;">✔</span> obra/superpowers &amp; ruflo compatible</li>
+          <li style="display: flex; gap: var(--space-3);"><span style="color: var(--primary); font-weight: 800;">✔</span> 258+ community skills discoverable</li>
         </ul>
       </div>
       <div class="terminal">
@@ -672,7 +673,7 @@
         </div>
       `;
       card.onclick = () => {
-        const cmd = `npx @booklib/skills add ${skill.name} --global`;
+        const cmd = `booklib fetch ${skill.name}`;
         document.getElementById('main-cmd').textContent = cmd;
         
         // Ch 4 Attention: Focal highlighting
@@ -761,15 +762,16 @@
 
   // Demo Animation
   const demoLines = [
-    { type: 'cmd', text: 'claude review order_service.py' },
-    { type: 'output', text: 'Analyzing context...' },
-    { type: 'output', text: '→ <span class="highlight">skill-router</span> activated' },
-    { type: 'output', text: 'Detected: Domain logic + Async patterns' },
-    { type: 'output', text: 'Loading <span class="highlight">domain-driven-design</span>' },
-    { type: 'output', text: 'Loading <span class="highlight">using-asyncio-python</span>' },
-    { type: 'output', text: 'Reviewing code against book standards...' },
-    { type: 'output', text: 'Found 3 issues: <span class="highlight">2 high</span>, 1 medium' },
-    { type: 'system', text: '--- SYSTEM READY ---' }
+    { type: 'cmd', text: 'booklib hooks install' },
+    { type: 'output', text: '✓ PreToolUse hook registered' },
+    { type: 'output', text: '✓ Hook watching: Read · Edit · Write · Bash' },
+    { type: 'system', text: '# Now editing order_service.py...' },
+    { type: 'cmd', text: '# [Edit] order_service.py' },
+    { type: 'output', text: '→ Hook: matched <span class="highlight">effective-python</span>' },
+    { type: 'output', text: '→ Hook: matched <span class="highlight">domain-driven-design</span>' },
+    { type: 'output', text: 'Injecting 2 skill chunks into context...' },
+    { type: 'output', text: '✓ Agent now has book-grounded expertise' },
+    { type: 'system', text: '--- AUTO-INJECTION COMPLETE ---' }
   ];
 
   function runDemo() {
