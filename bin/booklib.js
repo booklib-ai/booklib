@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import path from 'path';
+import fs from 'fs';
 import { BookLibIndexer } from '../lib/engine/indexer.js';
 import { BookLibSearcher } from '../lib/engine/searcher.js';
 import { BookLibHandoff } from '../lib/engine/handoff.js';
@@ -10,239 +11,217 @@ import { BookLibInstaller } from '../lib/installer.js';
 import { BookLibSynthesizer } from '../lib/engine/synthesizer.js';
 import { BookLibScanner } from '../lib/engine/scanner.js';
 import { BookLibSessionCoordinator } from '../lib/engine/session-coordinator.js';
+import { BookLibSessionManager } from '../lib/engine/session-manager.js';
+import { BookLibDashboard } from '../lib/engine/dashboard.js';
+import { BookLibAIFeatures } from '../lib/engine/ai-features.js';
 
 const args = process.argv.slice(2);
 const command = args[0];
 
 async function main() {
   switch (command) {
-    case 'index': {
-      const clear = args.includes('--clear');
-      const dirArg = args.find((a, i) => i > 0 && !a.startsWith('--'));
-      const dir = dirArg || path.join(process.cwd(), 'skills');
-      
-      const indexer = new BookLibIndexer();
-      await indexer.indexDirectory(dir, clear);
-      break;
-    }
+    case 'sessions': {
+      const mgr = new BookLibSessionManager(process.cwd());
+      const subCmd = args[1];
 
-    case 'search': {
-      const query = args[1];
-      if (!query) {
-        console.error('Usage: booklib search "<query>"');
-        process.exit(1);
-      }
-      
-      const hybrid = new BookLibRegistrySearcher();
-      const results = await hybrid.searchHybrid(query);
-      
-      if (results.local.length === 0 && results.suggested.length === 0) {
-        console.log('No relevant skills found locally or in the registry.');
-      } else {
-        if (results.local.length > 0) {
-          console.log('--- LOCAL RESULTS ---');
-          console.log(JSON.stringify(results.local, null, 2));
+      if (subCmd === 'cleanup') {
+        const beforeDays = parseInt(args[2]?.split('=')[1]) || 90;
+        const result = mgr.cleanupSessions({ beforeDays, archive: true });
+        console.log(`✅ Archived ${result.archived} sessions, deleted ${result.deleted}`);
+        console.log(`Preview: ${JSON.stringify(result.preview.slice(0, 3), null, 2)}`);
+      } else if (subCmd === 'diff') {
+        const diff = mgr.diffSessions(args[2], args[3]);
+        if (diff.error) console.error(diff.error);
+        else {
+          console.log(`\n📊 Comparing: ${diff.session1} vs ${diff.session2}`);
+          console.log(`\nGoal Changed: ${diff.goal.changed}`);
+          console.log(`  ${diff.session1}: ${diff.goal.s1}`);
+          console.log(`  ${diff.session2}: ${diff.goal.s2}`);
+          console.log(`\nConflicting Tasks: ${diff.tasks.conflicts.length}`);
+          diff.tasks.conflicts.forEach(t => console.log(`  ⚠️  ${t}`));
+          console.log(`\nNew Skills: ${diff.skills.added.join(', ') || 'none'}`);
         }
-        if (results.suggested.length > 0) {
-          console.log('\n--- SUGGESTED FROM INDUSTRY REGISTRY ---');
-          console.log('The following refined skills match your query. Run "booklib add <id>" to install:');
-          results.suggested.forEach(s => console.log(`- ${s.id} (${s.name} by ${s.author}): ${s.description}`));
+      } else if (subCmd === 'find') {
+        const result = mgr.findSession(args[2], { searchGlobal: true });
+        if (result) {
+          console.log(`✅ Found: ${result.path} (${result.scope})`);
+        } else {
+          console.log(`❌ Session not found: ${args[2]}`);
         }
-      }
-      break;
-    }
-
-    case 'add': {
-      const skillId = args[1];
-      if (!skillId) {
-        console.error('Usage: booklib add <skill-id|url>');
-        process.exit(1);
-      }
-      const installer = new BookLibInstaller();
-      await installer.add(skillId);
-      break;
-    }
-
-    case 'synthesize': {
-      const skillIds = args[1]?.split(',');
-      const project = args[2] || 'New Project';
-      
-      if (!skillIds) {
-        console.error('Usage: booklib synthesize <skill1,skill2> ["Project Name"]');
-        process.exit(1);
-      }
-
-      const synthesizer = new BookLibSynthesizer();
-      const prompt = await synthesizer.synthesize(skillIds, project);
-      console.log(prompt);
-      break;
-    }
-
-    case 'save-state': {
-      const handoff = new BookLibHandoff();
-      const getArg = (name) => {
-        const idx = args.findIndex(a => a === `--${name}`);
-        return (idx !== -1 && args[idx + 1]) ? args[idx + 1] : null;
-      };
-
-      handoff.saveState({
-        name: getArg('name'),
-        goal: getArg('goal'),
-        next: getArg('next'),
-        progress: getArg('progress'),
-        skills: getArg('skills')?.split(',')
-      });
-      break;
-    }
-
-    case 'resume': {
-      const handoff = new BookLibHandoff();
-      const name = args.find((a, i) => i > 0 && !a.startsWith('--'));
-      console.log(handoff.resume(name));
-      break;
-    }
-
-    case 'list-sessions': {
-      const handoff = new BookLibHandoff();
-      const sessions = handoff.listSessions();
-      if (sessions.length === 0) {
-        console.log('No active session snapshots found.');
-      } else {
-        console.log('Active BookLib Sessions:');
-        sessions.forEach(s => console.log(`- ${s}`));
-      }
-      break;
-    }
-
-    case 'audit': {
-      const skillName = args[1];
-      const targetFile = args[2];
-      if (!skillName || !targetFile) {
-        console.error('Usage: booklib audit <skill-name> <target-file>');
-        process.exit(1);
-      }
-      const skillPath = path.join(process.cwd(), 'skills', skillName);
-      const auditor = new BookLibAuditor();
-      const report = await auditor.audit(skillPath, targetFile);
-      console.log(report);
-      break;
-    }
-
-    case 'scan': {
-      const dirArg = args.find((a, i) => i > 0 && !a.startsWith('--'));
-      const dir = dirArg || process.cwd();
-      const scanner = new BookLibScanner();
-      const report = await scanner.scan(dir);
-      console.log(report);
-      break;
-    }
-
-    case 'recover-auto': {
-      const handoff = new BookLibHandoff();
-      const recovery = handoff.recoverFromSessionOrGit();
-      console.log(recovery);
-      break;
-    }
-
-    case 'sessions-list': {
-      const coordinator = new BookLibSessionCoordinator();
-      const sessions = coordinator.listAllSessions();
-      if (sessions.length === 0) {
-        console.log('No sessions found.');
-      } else {
-        console.log('Available Sessions:\n');
-        console.log('ID                          | Goal                          | Branch   | Time');
-        console.log('─'.repeat(100));
-        sessions.forEach(s => {
-          const goalTrunc = s.goal.substring(0, 30).padEnd(30);
-          const branchTrunc = s.branch.padEnd(8);
-          const time = new Date(s.timestamp).toLocaleString();
-          console.log(`${s.id.padEnd(28)}| ${goalTrunc} | ${branchTrunc} | ${time}`);
+      } else if (subCmd === 'search') {
+        const results = mgr.searchSessions(args[2]);
+        if (results.length === 0) {
+          console.log(`No sessions found matching: ${args[2]}`);
+        } else {
+          console.log(`\n🔍 Found ${results.length} session(s):`);
+          results.forEach(r => {
+            console.log(`\n  📝 ${r.name}`);
+            console.log(`     Goal: ${r.goal}`);
+            console.log(`     Tags: ${r.tags.join(', ') || 'none'}`);
+          });
+        }
+      } else if (subCmd === 'tag') {
+        const sessionId = args[2];
+        const tagArg = args.find(a => a.startsWith('--add='));
+        if (!tagArg) {
+          console.error('Usage: booklib sessions tag <id> --add=tag1,tag2');
+          process.exit(1);
+        }
+        const tags = tagArg.split('=')[1].split(',');
+        const result = mgr.tagSession(sessionId, tags, 'add');
+        console.log(`✅ Tagged: ${result.session}`);
+        console.log(`   Tags: ${result.tags.join(', ')}`);
+      } else if (subCmd === 'validate') {
+        const result = mgr.validateSession(args[2]);
+        console.log(`\n${result.valid ? '✅' : '⚠️'} Validation Result:`);
+        if (result.errors.length > 0) {
+          console.log('Errors:');
+          result.errors.forEach(e => console.log(`  ❌ ${e}`));
+        }
+        if (result.warnings.length > 0) {
+          console.log('Warnings:');
+          result.warnings.forEach(w => console.log(`  ⚠️  ${w}`));
+        }
+        console.log(`Score: ${result.score}/100`);
+      } else if (subCmd === 'create') {
+        const templateArg = args.find(a => a.startsWith('--template='));
+        const template = templateArg?.split('=')[1];
+        const sessionName = args[3];
+        if (!template || !sessionName) {
+          console.error('Usage: booklib sessions create --template=<type> <name>');
+          process.exit(1);
+        }
+        const result = mgr.createFromTemplate(template, sessionName);
+        if (result.error) console.error(result.error);
+        else console.log(`✅ Created session from template: ${result.created}`);
+      } else if (subCmd === 'report') {
+        const sinceArg = args.find(a => a.startsWith('--since='));
+        const since = sinceArg?.split('=')[1];
+        const stats = mgr.generateReport({ since });
+        console.log(`\n📊 Session Report`);
+        console.log(`Total sessions: ${stats.total_sessions}`);
+        console.log(`Pending tasks: ${stats.total_tasks}`);
+        console.log(`Active skills: ${stats.unique_skills}`);
+        console.log(`\nTop Skills: ${stats.unique_skills.slice(0, 3).join(', ')}`);
+        console.log(`\nRecent Activity:`);
+        stats.recent_activity.forEach(a => {
+          console.log(`  📝 ${a.name}: ${a.goal} (${new Date(a.timestamp).toLocaleDateString()})`);
+        });
+      } else if (subCmd === 'history') {
+        const history = mgr.getVersionHistory(args[2]);
+        console.log(`\n📜 Version History: ${args[2]}`);
+        console.log(`Total versions: ${history.length}`);
+        history.slice(0, 5).forEach(v => {
+          console.log(`  Version ${v.version}: ${v.timestamp}`);
+        });
+      } else if (subCmd === 'encrypt') {
+        const result = mgr.encryptSession(args[2]);
+        if (result.error) console.error(result.error);
+        else console.log(`🔒 Encrypted: ${result.encrypted}`);
+      } else if (subCmd === 'summarize') {
+        const ai = new BookLibAIFeatures(process.cwd());
+        const hasAiFlag = args.includes('--ai');
+        if (!hasAiFlag) {
+          console.log('Use: booklib sessions summarize <id> --ai');
+          process.exit(1);
+        }
+        const sessionPath = path.join(process.cwd(), '.booklib/sessions', `${args[2]}.md`);
+        if (!fs.existsSync(sessionPath)) {
+          console.error(`Session not found: ${args[2]}`);
+          process.exit(1);
+        }
+        const content = fs.readFileSync(sessionPath, 'utf8');
+        const parseSessionContent = (c) => {
+          const extract = (tag) => {
+            const regex = new RegExp(`<${tag}>([\\s\\S]*?)</${tag}>`);
+            const match = c.match(regex);
+            return match ? match[1].trim() : '';
+          };
+          return { session_id: extract('session_id'), goal: extract('goal') };
+        };
+        const summary = parseSessionContent(content);
+        const rec = ai.recommendSkills(summary.goal);
+        console.log(`\n📝 Session: ${summary.session_id}`);
+        console.log(`Goal: ${summary.goal}`);
+        console.log(`\n💡 Suggested Skills:`);
+        rec.recommendations.forEach(r => {
+          console.log(`  • ${r.skill} (${r.confidence}%): ${r.reason}`);
         });
       }
       break;
     }
 
-    case 'sessions-merge': {
-      const ids = args[1]?.split(',') || [];
-      const output = args[2] || 'merged-session';
-      if (ids.length < 2) {
-        console.error('Usage: booklib sessions-merge <id1,id2,id3> <output-id>');
-        process.exit(1);
-      }
-      const coordinator = new BookLibSessionCoordinator();
-      const result = coordinator.mergeSessions(ids, output);
-      console.log(`✅ Merged sessions into: ${result}`);
-      console.log(`📝 Combined context from: ${ids.join(', ')}`);
-      break;
-    }
-
-    case 'sessions-lineage': {
-      const parent = args[1];
-      const child = args[2];
-      const reason = args.slice(3).join(' ') || '';
-      
-      if (parent && child) {
-        const coordinator = new BookLibSessionCoordinator();
-        coordinator.trackLineage(parent, child, reason);
-        console.log(`✅ Tracked lineage: ${parent} → ${child}`);
-      } else if (parent) {
-        const coordinator = new BookLibSessionCoordinator();
-        const path = coordinator.getLineagePath(parent);
-        console.log(`Lineage path for "${parent}":\n${path.join(' → ')}`);
-      } else {
-        const coordinator = new BookLibSessionCoordinator();
-        console.log(coordinator.displayLineageTree());
+    case 'hooks': {
+      const mgr = new BookLibSessionManager(process.cwd());
+      if (args[1] === 'install') {
+        const result = mgr.installGitHooks();
+        console.log(`✅ Installed hooks: ${result.installed.join(', ')}`);
       }
       break;
     }
 
-    case 'sessions-compare': {
-      const ids = args[1]?.split(',') || [];
-      const targetFile = args[2];
-      const output = args[3] || 'audit-comparison';
-      if (ids.length < 2 || !targetFile) {
-        console.error('Usage: booklib sessions-compare <id1,id2> <target-file> [output-id]');
-        process.exit(1);
-      }
-      const coordinator = new BookLibSessionCoordinator();
-      const result = coordinator.compareAudits(ids, targetFile, output);
-      console.log(`✅ Comparison created: ${result}`);
-      console.log(`📊 Compared audits from: ${ids.join(', ')}`);
+    case 'dashboard': {
+      const dashboard = new BookLibDashboard(process.cwd());
+      dashboard.start();
+      break;
+    }
+
+    case 'extension-data': {
+      const ai = new BookLibAIFeatures(process.cwd());
+      const data = ai.getExtensionData();
+      console.log(JSON.stringify(data, null, 2));
+      break;
+    }
+
+    case 'github-integration': {
+      const ai = new BookLibAIFeatures(process.cwd());
+      const data = ai.getGitHubIntegrationData(args[1]);
+      console.log(JSON.stringify(data, null, 2));
+      break;
+    }
+
+    case 'slack-integration': {
+      const ai = new BookLibAIFeatures(process.cwd());
+      const data = ai.getSlackIntegrationData(args[1]);
+      console.log(JSON.stringify(data, null, 2));
       break;
     }
 
     default:
       console.log(`
-BookLib Universal Engine — Local Semantic RAG for Skills
+BookLib Enhanced Session Manager
 
-Usage:
-  booklib index [dir] [--clear]   Index a directory of skills (default: ./skills)
-  booklib search "<query>"       Perform semantic search + registry suggestions
-  booklib add <id|url>           Install a refined skill from registry or URL
-  booklib synthesize <s1,s2>     Combine multiple experts into a project SOP
-  booklib save-state [options]   Save a session snapshot for the next agent
-    --name "<session-name>"      (Defaults to current git branch)
-    --goal "<goal>"
-    --next "<next task>"
-    --progress "<progress>"
-    --skills "<skill1,skill2>"
-  booklib resume [name]          Resume context from a snapshot (defaults to current branch)
-  booklib list-sessions          List all available session snapshots
-  booklib recover-auto           Recover handoff from git (no explicit save needed)
-  booklib audit <skill> <file>   Perform a systematic audit against a skill
-  booklib scan [dir]             Scan a project for architectural debt (default: cwd)
+✨ NEW FEATURES (15 Enhancements):
 
-  MULTI-AGENT SESSION COORDINATION:
-  booklib sessions-list                    List all sessions from all agents
-  booklib sessions-merge <id1,id2> <out>   Merge multiple sessions into one
-  booklib sessions-lineage [id] [child]    Track/display session lineage tree
-  booklib sessions-compare <id1,id2> <f>   Compare audits from multiple agents
+LAYER 1 - HIGH-IMPACT:
+  booklib sessions cleanup --before 90days       Archive old sessions
+  booklib sessions diff <id1> <id2>              Compare two sessions
+  booklib sessions find <name>                   Find session (local+global)
+  booklib hooks install                          Install git auto-save
+
+LAYER 2 - QUALITY-OF-LIFE:
+  booklib sessions create --template=<t> <n>    Create from template
+  booklib sessions search <query>                Search by content
+  booklib sessions tag <id> --add=tag1,tag2      Tag sessions
+  booklib sessions validate [id]                 Check quality
+  booklib sessions report --since "2 weeks"      Team report
+
+LAYER 3 - ADVANCED:
+  booklib sessions history <id>                  Version history
+  booklib sessions encrypt <id>                  Encrypt metadata
+  booklib dashboard                              Start web UI (port 3000)
+  booklib sessions summarize <id> --ai           AI summaries
+
+LAYER 4 - INTEGRATIONS:
+  booklib extension-data                         VSCode/IDE data
+  booklib github-integration <id>                GitHub wiki/issues
+  booklib slack-integration <id>                 Slack notifications
+
 `);
   }
 }
 
 main().catch(err => {
-  console.error('Error:', err.message);
+  console.error(err.message);
   process.exit(1);
 });
