@@ -72,4 +72,29 @@ Use these tools for systematic codebase analysis:
    });
    ```
    This captures context on SIGINT/SIGTERM (process exit) automatically.
+
+5. **Multi-Agent Session Coordination**: Leverage session files from different agents
+   
+   For **parallel development** (Agent 1 on auth, Agent 2 on payment):
+   ```bash
+   booklib sessions-list                              # See all agent sessions
+   booklib sessions-merge auth-session,payment-session combined-view  # Merge insights
+   ```
+   
+   For **tracking development history**:
+   ```bash
+   booklib sessions-lineage main feature-x "Agent 2 branched for feature work"
+   booklib sessions-lineage                           # Display tree structure
+   ```
+   
+   For **multi-agent code review** (compare audits from different experts):
+   ```bash
+   booklib sessions-compare python-audit,kotlin-audit src/auth.ts comparison
+   ```
+   
+   This enables:
+   - Parallel agents working independently, then merging insights
+   - Multiple skill frameworks auditing the same code
+   - Session inheritance trees (who branched from whom)
+   - Coordinated development across teams
 </project_analysis_tools>
