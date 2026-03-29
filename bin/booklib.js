@@ -136,6 +136,13 @@ async function main() {
       break;
     }
 
+    case 'recover-auto': {
+      const handoff = new BookLibHandoff();
+      const recovery = handoff.recoverFromGit();
+      console.log(recovery);
+      break;
+    }
+
     default:
       console.log(`
 BookLib Universal Engine — Local Semantic RAG for Skills
@@ -153,6 +160,7 @@ Usage:
     --skills "<skill1,skill2>"
   booklib resume [name]          Resume context from a snapshot (defaults to current branch)
   booklib list-sessions          List all available session snapshots
+  booklib recover-auto           Recover handoff from git (no explicit save needed)
   booklib audit <skill> <file>   Perform a systematic audit against a skill
   booklib scan [dir]             Scan a project for architectural debt (default: cwd)
 `);

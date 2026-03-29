@@ -53,4 +53,23 @@ Use these tools for systematic codebase analysis:
 3. **Session Handoff**: When switching to another AI agent or restarting:
    `node bin/booklib.js save-state --goal "<goal>" --next "<immediate task>" --progress "<what's done>"`
    Resume later with: `node bin/booklib.js resume`
+   
+   **If you forgot to save-state (quota hit suddenly):**
+   `node bin/booklib.js recover-auto`
+   This recovers context from git commits (branch, recent work, file changes).
+   Perfect for long-running sessions where work is already committed.
+
+4. **Auto-Save for Long Sessions**:
+   For extended development (2-3+ hours), enable auto-save in your session:
+   ```javascript
+   const { BookLibHandoff } = await import('./lib/engine/handoff.js');
+   const handoff = new BookLibHandoff();
+   handoff.setupAutoSave({
+     goal: 'Your goal here',
+     progress: 'Current progress',
+     next: 'Next immediate task',
+     skills: ['effective-typescript', 'clean-code-reviewer']
+   });
+   ```
+   This captures context on SIGINT/SIGTERM (process exit) automatically.
 </project_analysis_tools>
