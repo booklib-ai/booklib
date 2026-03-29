@@ -56,7 +56,11 @@ Use these tools for systematic codebase analysis:
    
    **If you forgot to save-state (quota hit suddenly):**
    `node bin/booklib.js recover-auto`
-   This recovers context from git commits (branch, recent work, file changes).
+   This recovers context from session files OR git commits (100% recovery):
+    - First checks: .booklib/sessions/{branch}.md (explicit session)
+    - Then checks: Parent session via lineage (_lineage.json)
+    - Then checks: Most recent session on your branch
+    - Finally falls back to: Git commit history
    Perfect for long-running sessions where work is already committed.
 
 4. **Auto-Save for Long Sessions**:
