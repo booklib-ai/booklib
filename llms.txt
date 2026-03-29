@@ -9,6 +9,8 @@ An open knowledge ecosystem for AI coding agents. Packages expert knowledge from
 
 ## Core Commands
 
+- `booklib context "<task>"` — cross-skill context builder: searches all skills, extracts relevant passages, explains every decision (auto-resolved and conflicting), compiles a sharp ready-to-use system prompt
+- `booklib context "<task>" --prompt-only` — just the compiled prompt (pipe-friendly)
 - `booklib search "<query>"` — semantic search over skill content (returns relevant chunks)
 - `booklib fetch <skill>` — download and index a community skill
 - `booklib setup` — fetch all trusted skills at once

@@ -212,6 +212,28 @@ Re-run after adding new skills — it updates all files in place.
 
 ---
 
+## Context Builder
+
+`booklib context` is the most powerful way to use BookLib before starting a task. It searches across all indexed skills simultaneously, extracts the most relevant passage from each matched book, and surfaces every decision it makes — including the quiet ones:
+
+```bash
+booklib context "implement a payment service in Kotlin with async error handling"
+```
+
+Output:
+- For each matched book: **book title + section + specific passage** that applies to your task
+- **Auto-resolved decisions** (one book clearly more relevant): shown with prose rationale — non-blocking, you just see why
+- **Genuine conflicts** (two books equally applicable): interactive `[a/b]` prompt with passage previews so you can make an informed choice
+- A final **sharp system-prompt block** with all resolved knowledge stitched together, every piece cited with its source
+
+```bash
+booklib context "design a rate limiter for a distributed API"
+booklib context "refactor a God class in Python" --prompt-only   # just the prompt, no report
+booklib context "add streaming to a Next.js chat UI" --prompt-only | pbcopy
+```
+
+---
+
 ## Semantic Search & Audit
 
 ```bash
