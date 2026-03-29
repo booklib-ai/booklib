@@ -3,6 +3,7 @@
     "oauth",
     "security",
     "phase-1",
-    "test"
+    "test",
+    "auth"
   ]
 }

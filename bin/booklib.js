@@ -12,7 +12,6 @@ import { BookLibSynthesizer } from '../lib/engine/synthesizer.js';
 import { BookLibScanner } from '../lib/engine/scanner.js';
 import { BookLibSessionCoordinator } from '../lib/engine/session-coordinator.js';
 import { BookLibSessionManager } from '../lib/engine/session-manager.js';
-import { BookLibDashboard } from '../lib/engine/dashboard.js';
 import { BookLibAIFeatures } from '../lib/engine/ai-features.js';
 
 const args = process.argv.slice(2);
@@ -160,12 +159,6 @@ async function main() {
       break;
     }
 
-    case 'dashboard': {
-      const dashboard = new BookLibDashboard(process.cwd());
-      dashboard.start();
-      break;
-    }
-
     case 'extension-data': {
       const ai = new BookLibAIFeatures(process.cwd());
       const data = ai.getExtensionData();
@@ -209,7 +202,6 @@ LAYER 2 - QUALITY-OF-LIFE:
 LAYER 3 - ADVANCED:
   booklib sessions history <id>                  Version history
   booklib sessions encrypt <id>                  Encrypt metadata
-  booklib dashboard                              Start web UI (port 3000)
   booklib sessions summarize <id> --ai           AI summaries
 
 LAYER 4 - INTEGRATIONS:
