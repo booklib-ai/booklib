@@ -72,7 +72,7 @@ async function main() {
 
     case 'recover-auto': {
       const handoff = new BookLibHandoff();
-      console.log(handoff.recoverAuto ? await handoff.recoverAuto() : handoff.resume());
+      console.log(handoff.recoverFromSessionOrGit());
       break;
     }
 
