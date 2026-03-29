@@ -43,6 +43,21 @@ BookLib is not a static install. It's a local knowledge engine: semantic search 
 
 ---
 
+## How Skills Activate
+
+| Mechanism | What triggers it | Detail |
+|-----------|-----------------|--------|
+| **PreToolUse hook** | Editing a file matching a skill's `filePattern` | Injects only relevant chunks — fine-grained, automatic, silent |
+| **Skill tool** | `Skill("effective-kotlin")` | Full skill dump on demand — used by orchestrators and subagents |
+| **Search** | `booklib search "<concept>"` | Semantic vector search — returns the most relevant chunks |
+| **Audit** | `booklib audit <skill> <file>` | Applies a skill's principles to a specific file |
+
+The **hook** is the fine-grained layer. After `booklib hooks install`, it fires on every `Read`/`Edit`/`Write`/`Bash` call, matches the file path against skill patterns, and silently injects the relevant skill sections into context — no manual invocation needed. Edit a `.kt` file and effective-kotlin appears. Edit a `.py` file and effective-python appears.
+
+The **Skill tool** is the coarse layer — a full knowledge dump for orchestrator subagents that need an entire skill domain up front.
+
+---
+
 ## Quick Start
 
 ```bash
@@ -51,6 +66,9 @@ npm install -g @booklib/skills
 
 # Build the local search index
 booklib index
+
+# Install the PreToolUse hook — auto-injects relevant skills when you edit files
+booklib hooks install
 
 # Search for wisdom by concept
 booklib search "how to handle null values in Kotlin"
@@ -119,6 +137,8 @@ booklib setup                 # fetch all trusted skills at once
 
 Source types: `registry` (bundled), `manifest` (JSON list at URL or local path), `github-skills-dir` (any repo with a `skills/` subdirectory), `github-org`, `npm-scope`.
 
+`"trusted": true` marks a source as auto-installable by `booklib setup`. Untrusted sources are discoverable but require explicit `booklib fetch <name>` with a confirmation prompt.
+
 > Set `GITHUB_TOKEN` to raise the GitHub API limit from 60 to 5000 req/hr:
 > `GITHUB_TOKEN=$(gh auth token) booklib discover --refresh`
 
@@ -161,25 +181,19 @@ booklib swarm-config feature    # architect → coder → reviewer → tester
 booklib swarm-config            # list all configured triggers
 ```
 
-Scaffold AI context files with optional orchestrator hints:
-
-```bash
-booklib init                         # .cursor/rules, CLAUDE.md, copilot-instructions, .gemini
-booklib init --orchestrator=obra     # + superpowers install hint
-booklib init --orchestrator=ruflo    # + ruflo install hint
-```
-
 ---
 
-## How Skills Activate
+## Project Setup
 
-| Mechanism | What triggers it | Detail |
-|-----------|-----------------|--------|
-| **PreToolUse hook** | Editing a file matching a skill's `filePattern` | Injects only relevant chunks — fine-grained, automatic, silent |
-| **Skill tool** | `Skill("effective-kotlin")` | Full skill dump on demand — used by orchestrators |
-| **Search** | `booklib search "<concept>"` | Semantic vector search — returns the most relevant chunks |
+Scaffold context files for every AI tool in the project from a single command:
 
-The hook is the fine-grained layer. It fires on every `Read`/`Edit`/`Write`/`Bash` call, matches the file against skill patterns, and injects the relevant sections without you asking. The Skill tool is the coarse layer — a full knowledge dump, used by subagents that need a complete skill domain.
+```bash
+booklib init                         # .cursor/rules, CLAUDE.md, copilot-instructions, .gemini/context.md
+booklib init --orchestrator=obra     # also shows superpowers install instructions
+booklib init --orchestrator=ruflo    # also shows ruflo install instructions
+```
+
+Re-run after adding new skills — it updates all files in place.
 
 ---
 
@@ -202,9 +216,9 @@ The hook is the fine-grained layer. It fires on every `Read`/`Edit`/`Write`/`Bas
 
 ```bash
 booklib search "how to handle null values in Kotlin"
-booklib search "event sourcing vs CQRS" --role=architect
-booklib audit effective-kotlin src/PaymentService.kt
-booklib scan    # wisdom heatmap across the whole project
+booklib search "event sourcing vs CQRS" --role=architect   # filter to skills tagged for that role
+booklib audit effective-kotlin src/PaymentService.kt        # systematic review of a file
+booklib scan    # wisdom heatmap — violations per skill across the whole project
 ```
 
 ---
@@ -247,6 +261,10 @@ MCP tools: `search_skills` · `audit_content` · `save_session_state` · `scan_p
 ---
 
 ## Quality
+
+Each bundled skill is evaluated by asking a model to review code with and without the skill active. **Delta** = pass rate with skill minus pass rate without — it measures how much the skill actually changes model behaviour. A delta of +0pp means the model already knew it; a high delta means the skill is genuinely teaching it something new.
+
+Thresholds: pass rate ≥ 80% · delta ≥ 20pp · baseline < 70%
 
 <!-- quality-table-start -->
 | Skill | Pass Rate | Baseline | Delta | Evals | Last Run |
