@@ -19,6 +19,63 @@ const command = args[0];
 
 async function main() {
   switch (command) {
+    case 'index': {
+      const indexer = new BookLibIndexer();
+      await indexer.indexDirectory(process.cwd(), args[1] === '--clear');
+      console.log('✅ Index built');
+      break;
+    }
+
+    case 'search': {
+      const searcher = new BookLibSearcher();
+      const query = args.slice(1).join(' ');
+      if (!query) { console.error('Usage: booklib search "<query>"'); process.exit(1); }
+      const results = await searcher.search(query, 5);
+      console.log(JSON.stringify(results, null, 2));
+      break;
+    }
+
+    case 'audit': {
+      const auditor = new BookLibAuditor();
+      const skillName = args[1];
+      const filePath = args[2];
+      if (!skillName || !filePath) { console.error('Usage: booklib audit <skill-name> <file-path>'); process.exit(1); }
+      const skillPath = path.join(process.cwd(), 'skills', skillName);
+      const report = await auditor.audit(skillPath, filePath);
+      console.log(report);
+      break;
+    }
+
+    case 'scan': {
+      const scanner = new BookLibScanner();
+      const report = await scanner.scan(args[1] || process.cwd());
+      console.log(report);
+      break;
+    }
+
+    case 'save-state': {
+      const handoff = new BookLibHandoff();
+      const parsed = {};
+      args.slice(1).forEach(a => {
+        const [k, ...v] = a.replace('--', '').split('=');
+        if (k && v.length) parsed[k] = v.join('=');
+      });
+      handoff.saveState(parsed);
+      break;
+    }
+
+    case 'resume': {
+      const handoff = new BookLibHandoff();
+      console.log(handoff.resume(args[1]));
+      break;
+    }
+
+    case 'recover-auto': {
+      const handoff = new BookLibHandoff();
+      console.log(handoff.recoverAuto ? await handoff.recoverAuto() : handoff.resume());
+      break;
+    }
+
     case 'sessions': {
       const mgr = new BookLibSessionManager(process.cwd());
       const subCmd = args[1];
