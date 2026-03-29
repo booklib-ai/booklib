@@ -9,8 +9,8 @@
 <h1 align="center">booklib-ai/skills</h1>
 
 <p align="center">
-  基于经典编程书籍的 AI 代理技能 — 适用于 Claude Code、Cursor、Copilot 和 Windsurf。<br/>
-  将权威编程书籍中的专家知识，打包为技能、代理和规则。
+  基于经典书籍的 AI 代理技能 — 适用于 Claude Code、Cursor、Copilot 和 Windsurf。<br/>
+  将权威书籍中的专家知识，打包为技能、命令、代理和规则。
 </p>
 
 <p align="center">

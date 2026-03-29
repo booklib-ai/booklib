@@ -9,8 +9,8 @@
 <h1 align="center">booklib-ai/skills</h1>
 
 <p align="center">
-  정통 프로그래밍 서적에 기반한 AI 에이전트 스킬 — Claude Code, Cursor, Copilot, Windsurf 지원.<br/>
-  권위 있는 프로그래밍 서적의 전문 지식을 스킬, 에이전트, 규칙으로 패키징.
+  정통 서적에 기반한 AI 에이전트 스킬 — Claude Code, Cursor, Copilot, Windsurf 지원.<br/>
+  권위 있는 서적의 전문 지식을 스킬, 커맨드, 에이전트, 규칙으로 패키징.
 </p>
 
 <p align="center">

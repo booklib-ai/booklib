@@ -38,6 +38,7 @@ Determine whether the code is application-level, systems-level (binary data, I/O
 
 **Critical rule**: Only flag genuine issues. If a pattern is idiomatic Rust, acknowledge it as correct. Do not manufacture problems where none exist. When code is well-written, say so and offer only minor suggestions. See the "Idiomatic Patterns — Do NOT Flag as Issues" section for patterns that must never be flagged.
 
+<core_principles>
 Check these areas in order of severity:
 
 1. **Ownership & Borrowing** (Ch 4): Unnecessary `.clone()`? Value moved when a borrow would suffice? Use references where full ownership is not required.
@@ -50,6 +51,7 @@ Check these areas in order of severity:
 8. **Concurrency** (Ch 10): Closures passed to threads must be `'static` or use `move`. Shared mutable state needs `Arc<Mutex<T>>`. Use channels for message passing over shared state. Thread pool patterns over spawning one thread per task.
 9. **Time** (Ch 9): Don't use `std::time::SystemTime` for elapsed measurement — it can go backwards. Use `std::time::Instant` for durations. For network time, NTP requires epoch conversion (NTP epoch: 1900 vs Unix: 1970 — offset 70 years = 2_208_988_800 seconds).
 10. **Idioms**: Iterator adapters over manual loops. `for item in &collection` not `for i in 0..collection.len()`. `if let`/`while let` for single-variant matching. Exhaustive `match` — no silent wildcard arms.
+</core_principles>
 
 ### Step 3: Report Findings
 For each issue, report:
@@ -68,6 +70,7 @@ Offer a corrected version with comments explaining each change.
 
 When the user asks you to **write** new Rust code, apply these core principles:
 
+<core_principles>
 ### Language Foundations (Ch 2)
 
 1. **Use cargo, not rustc directly** (Ch 2). `cargo new`, `cargo build`, `cargo test`, `cargo doc`. Add third-party crates via `Cargo.toml` — never manually link.
@@ -144,6 +147,7 @@ When the user asks you to **write** new Rust code, apply these core principles:
 26. **Use `Instant` for elapsed time, `SystemTime` for wall clock** (Ch 9). `SystemTime` can go backwards (NTP adjustments, leap seconds). `Instant` is monotonic.
 
 27. **Apply the NTP epoch offset when working with network time** (Ch 9). NTP timestamps count seconds from 1900-01-01; Unix timestamps count from 1970-01-01. Offset: `2_208_988_800u64` seconds.
+</core_principles>
 
 ---
 
@@ -169,7 +173,8 @@ Is the data shared across threads?
 
 ## Code Structure Templates
 
-### Binary Protocol Field (Ch 5, 7)
+<examples>
+<example id="1" title="Binary Protocol Field (Ch 5, 7)">
 ```rust
 /// Parse a 4-byte big-endian u32 from a byte buffer at offset.
 fn read_u32_be(buf: &[u8], offset: usize) -> Result<u32, ParseError> {
@@ -183,8 +188,9 @@ fn extract_flags(byte: u8) -> u8 {
     byte & FLAGS_MASK
 }
 ```
+</example>
 
-### Library Error Type (Ch 8)
+<example id="2" title="Library Error Type (Ch 8)">
 ```rust
 #[derive(Debug)]
 pub enum AppError {
@@ -211,8 +217,9 @@ impl From<std::net::AddrParseError> for AppError {
     fn from(e: std::net::AddrParseError) -> Self { AppError::Network(e) }
 }
 ```
+</example>
 
-### State Machine with Enum (Ch 8)
+<example id="3" title="State Machine with Enum (Ch 8)">
 ```rust
 #[derive(Debug, Clone, PartialEq)]
 enum ConnectionState {
@@ -229,8 +236,9 @@ impl ConnectionState {
     }
 }
 ```
+</example>
 
-### Thread Pool Pattern (Ch 10)
+<example id="4" title="Thread Pool Pattern (Ch 10)">
 ```rust
 use std::sync::{Arc, Mutex};
 use std::sync::mpsc;
@@ -265,9 +273,12 @@ impl ThreadPool {
     }
 }
 ```
+</example>
+</examples>
 
 ---
 
+<strengths_to_praise>
 ## Idiomatic Patterns — Do NOT Flag as Issues
 
 When reviewing code, recognize these patterns as **correct and idiomatic**. Do not manufacture issues from them:
@@ -277,14 +288,16 @@ When reviewing code, recognize these patterns as **correct and idiomatic**. Do n
 - **`AtomicU64` with `Ordering::Relaxed`** — appropriate for counters where exact cross-thread ordering is not required, e.g. telemetry, stats (Ch 10). Not a bug.
 - **`&Path` parameters** — correct; prefer `&Path` over `&str` or `String` for file paths (Ch 7).
 - **Custom error enums with `Display` + `Error` + `From` impls** — the canonical library error pattern (Ch 3, 8). Praise it, don't critique it.
-- **`.expect("mutex poisoned")`** with a descriptive reason — correct idiom for panicking on a poisoned mutex (Ch 10).
+- **`.expect("mutex poisoned")` with a descriptive reason** — correct idiom for panicking on a poisoned mutex (Ch 10).
 - **`Arc::clone(&ptr)` idiom** — correct; makes cheap refcount increment explicit (Ch 10).
 - **`move` closures for threads** — required and correct (Ch 10).
 
 If code is already correct, say so. Only flag real issues. If the only things left to say are minor suggestions, label them as suggestions, not bugs or important issues.
+</strengths_to_praise>
 
 ---
 
+<anti_patterns>
 ## Priority of Practices by Impact
 
 ### Critical (Safety, Correctness, UB)
@@ -307,3 +320,28 @@ If code is already correct, say so. Only flag real issues. If the only things le
 - Ch 7: `BufReader`/`BufWriter` for all file I/O — syscall batching
 - Ch 7: Checksums on binary writes — detect corruption on read
 - Ch 9: NTP epoch offset constant — `const NTP_UNIX_OFFSET: u64 = 2_208_988_800`
+
+### Anti-Patterns to Always Flag
+- **`static mut`** — a data race waiting to happen in concurrent code; replace with `Arc<Mutex<T>>` or an atomic type (Ch 6, 10)
+- **`from_ne_bytes` / `to_ne_bytes` in protocols** — native endianness is host-dependent; always use `from_le_bytes`/`from_be_bytes` (Ch 5, 7)
+- **`.unwrap()` in library or I/O code** — panics on error; use `?` with `Result` propagation (Ch 3, 8)
+- **`Box<Vec<T>>`** — `Vec<T>` already heap-allocates; wrapping it in `Box` adds a pointless double-indirection; return `Vec<T>` directly (Ch 6)
+- **`Rc<T>` passed to `thread::spawn`** — `Rc` is not `Send`; use `Arc<T>` for shared ownership across threads (Ch 6)
+- **Indexing slices without bounds checks** — `bytes[0..4]` panics on short input; use `bytes.get(0..4).ok_or(...)` (Ch 5, 7)
+- **Not returning `JoinHandle` from thread-spawning functions** — callers cannot join threads or detect panics; return `thread::JoinHandle<()>` (Ch 10)
+</anti_patterns>
+
+<guidelines>
+## Review Guidelines Summary
+
+When reviewing Rust code:
+1. Always identify all endianness issues — `from_ne_bytes`/`to_ne_bytes` in network or file contexts is always wrong.
+2. Always flag `static mut` — it is undefined behavior in concurrent contexts; replace with atomics or `Arc<Mutex<T>>`.
+3. Always flag `.unwrap()` in non-test I/O or library code — use `?` and `Result`.
+4. Flag `Box<Vec<T>>` as redundant double-indirection.
+5. Flag `Rc<T>` used with `thread::spawn` — it will not compile, but explain why and offer `Arc<T>`.
+6. Flag unchecked slice indexing — suggest `.get(range).ok_or(...)`.
+7. Flag thread-spawning functions that discard the `JoinHandle`.
+8. Recognize and praise: `Arc<Mutex<T>>`, `BufReader`, `AtomicU64` with `Ordering::Relaxed`, `&Path` parameters, custom error enums, `.expect("mutex poisoned")`, `Arc::clone(&ptr)`, `move` closures.
+9. Always provide corrected code with comments explaining each change.
+</guidelines>

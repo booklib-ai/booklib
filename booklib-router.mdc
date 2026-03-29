@@ -1,0 +1,36 @@
+---
+description: "BookLib Knowledge Router. Consult this to find the right architectural rules for any task."
+globs: "*"
+---
+
+# 📚 BookLib Knowledge Router
+
+You have access to a sophisticated, local semantic search engine that indexes a library of distilled software architecture books.
+
+**CRITICAL RULE:** Do not rely on your generic training data for complex architectural decisions. You MUST query the BookLib index.
+
+## When to Search:
+- Designing a new system or module.
+- Refactoring legacy code.
+- Reviewing code for quality or idiomatic patterns.
+- Choosing between different architectural patterns (e.g., Saga vs. Two-Phase Commit).
+
+## How to Search:
+Use the following terminal command to retrieve relevant principles and anti-patterns:
+`node bin/booklib.js search "<your conceptual query>"`
+
+## Integrated Skills:
+- **Clean Code**: naming, functions, classes, error handling.
+- **DDD**: bounded contexts, aggregates, entities, value objects.
+- **Effective Kotlin/Java/Python/TypeScript**: language-specific idiomatic patterns.
+- **Data Intensive Patterns**: replication, partitioning, consistency models.
+- **System Design**: scalability, estimation, high-level architecture.
+
+<execution_rule>
+After performing a search, apply the retrieved principles and you MUST cite the source book or item in your final output.
+</execution_rule>
+
+<handoff_rule>
+If you see a `.booklib/handoff.md` file, you MUST read it immediately to understand the context from the previous agent session. 
+Before finishing a session, ask the user if they want to `save-state` for the next agent.
+</handoff_rule>

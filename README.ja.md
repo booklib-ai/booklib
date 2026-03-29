@@ -9,8 +9,8 @@
 <h1 align="center">booklib-ai/skills</h1>
 
 <p align="center">
-  定番プログラミング書籍に基づいた AI エージェントスキル — Claude Code、Cursor、Copilot、Windsurf 対応。<br/>
-  権威ある書籍の専門知識を、スキル・エージェント・ルールとしてパッケージ化。
+  定番書籍に基づいた AI エージェントスキル — Claude Code、Cursor、Copilot、Windsurf 対応。<br/>
+  権威ある書籍の専門知識を、スキル・コマンド・エージェント・ルールとしてパッケージ化。
 </p>
 
 <p align="center">

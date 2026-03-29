@@ -1,58 +1,39 @@
-# booklib-ai/skills
+# BookLib: Claude Operational Guidelines
 
-22 AI agent skills grounded in canonical programming books. Each skill packages expert practices from a specific book into reusable instructions that Claude and other AI agents can apply to code generation, code review, and design decisions.
+You are operating within the BookLib repository, a curated library of software architecture and best-practice distillations. Your goal is to apply these high-level principles to the user's codebase using the built-in search engine.
 
-## Quick Install
+<workflow>
+When a user asks you to write, review, or refactor code, you MUST follow this sequence:
 
-```bash
-npx skills add booklib-ai/skills --all -g
-```
+1. **Semantic Search**: Use your terminal to query the BookLib index for relevant architectural wisdom:
+   `node bin/booklib.js search "<conceptual query>"`
+   *Example: `node bin/booklib.js search "handling nulls in Kotlin"`*
 
-## Available Skills
+2. **Retrieve Skill**: If the search points to a specific file (e.g., `skills/effective-kotlin/SKILL.md`), use your file-reading tool to read it for detailed principles.
 
-| Skill | Book |
-|-------|------|
-| `animation-at-work` | Animation at Work — Rachel Nabors |
-| `clean-code-reviewer` | Clean Code — Robert C. Martin |
-| `data-intensive-patterns` | Designing Data-Intensive Applications — Martin Kleppmann |
-| `data-pipelines` | Data Pipelines Pocket Reference — James Densmore |
-| `design-patterns` | Head First Design Patterns |
-| `domain-driven-design` | Domain-Driven Design — Eric Evans |
-| `effective-java` | Effective Java — Joshua Bloch |
-| `effective-kotlin` | Effective Kotlin — Marcin Moskała |
-| `effective-python` | Effective Python — Brett Slatkin |
-| `effective-typescript` | Effective TypeScript — Dan Vanderkam |
-| `kotlin-in-action` | Kotlin in Action |
-| `programming-with-rust` | Programming with Rust — Donis Marshall |
-| `rust-in-action` | Rust in Action — Tim McNamara |
-| `spring-boot-in-action` | Spring Boot in Action — Craig Walls |
-| `lean-startup` | The Lean Startup — Eric Ries |
-| `microservices-patterns` | Microservices Patterns — Chris Richardson |
-| `refactoring-ui` | Refactoring UI — Adam Wathan & Steve Schoger |
-| `skill-router` | Meta-skill — routes to the right skill automatically |
-| `storytelling-with-data` | Storytelling with Data — Cole Nussbaumer Knaflic |
-| `system-design-interview` | System Design Interview — Alex Xu |
-| `using-asyncio-python` | Using Asyncio in Python — Caleb Hattingh |
-| `web-scraping-python` | Web Scraping with Python — Ryan Mitchell |
+3. **Apply Principles**: Strictly follow the `<core_principles>` and avoid the `<anti_patterns>` found in the search results and skill files.
 
-## Project Structure
+4. **Cite Your Source**: When outputting code or reviews, you MUST append a brief citation indicating which book or skill guided your decision. 
+   *Example: "> Refactored per Effective Kotlin: Item 1 (Limit Mutability)"*
 
-```
-skills/
-├── <skill-name>/
-│   ├── SKILL.md          # Required — instructions + YAML frontmatter
-│   ├── examples/         # before.md and after.md
-│   ├── references/       # Deep reference material
-│   ├── scripts/          # Executable Python/Bash scripts
-│   └── evals/            # evals.json test cases
-```
+<handoff_protocol>
+If you are finishing a planning session and the user wants to switch to a coding agent (or vice-versa), run:
+`node bin/booklib.js save-state --goal "<final goal>" --next "<immediate next task>"`
+This creates a snapshot that the next agent can resume.
+</handoff_protocol>
+</workflow>
 
-## Contributing
+<navigation_map>
+- **Kotlin**: `skills/effective-kotlin/`
+- **Java**: `skills/effective-java/`
+- **TypeScript**: `skills/effective-typescript/`
+- **Python**: `skills/effective-python/`
+- **DDD**: `skills/domain-driven-design/`
+- **Clean Code**: `skills/clean-code-reviewer/`
+- **Architecture**: `skills/data-intensive-patterns/`, `skills/system-design-interview/`
+</navigation_map>
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for how to add a new skill. Each skill must pass Bronze quality checks at minimum:
-
-```bash
-npx @booklib/skills check <skill-name>
-```
-
-All 22 existing skills are at Platinum (13/13 checks).
+<universal_indexer>
+Before using the search tool for the first time, ensure the index is built:
+`node bin/booklib.js index`
+</universal_indexer>

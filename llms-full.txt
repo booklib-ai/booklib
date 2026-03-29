@@ -1,0 +1,155 @@
+# BookLib Full Skill Catalog
+
+This file contains detailed descriptions and triggers for every skill in the BookLib library, optimized for RAG retrieval.
+
+## Skill: animation-at-work
+**Description**: Apply web animation principles from Animation at Work by Rachel Nabors. Covers human perception of motion, 12 principles of animation, animation patterns (transitions, supplements, feedback, demonstrations, decorations), CSS transitions, CSS animations, Web Animations API, SVG/Canvas/WebGL, communicating animation with storyboards and motion comps, performance (composite-only properties, will-change, RAIL), accessibility (prefers- reduced-motion, vestibular disorders), and team workflow. Trigger on "animation", "transition", "CSS animation", "keyframe", "easing", "motion design", "web animation", "prefers-reduced-motion", "storyboard", "parallax", "loading animation", "hover effect", "micro-interaction".
+
+**Directory**: `skills/animation-at-work/`
+
+---
+
+## Skill: clean-code-reviewer
+**Description**: Reviews code against Robert C. Martin's Clean Code principles. Use when users share code for review, ask for refactoring suggestions, or want to improve code quality. Produces actionable feedback organized by Clean Code principles with concrete before/after examples.
+**Directory**: `skills/clean-code-reviewer/`
+
+---
+
+## Skill: data-intensive-patterns
+**Description**: Generate and review data-intensive application code using patterns from Martin Kleppmann's "Designing Data-Intensive Applications." Use this skill whenever the user asks about data storage engines, replication, partitioning, transactions, distributed systems, batch or stream processing, encoding/serialization, consistency models, consensus, event sourcing, CQRS, change data capture, or anything related to building reliable, scalable, and maintainable data systems. Trigger on phrases like "data-intensive", "replication", "partitioning", "sharding", "LSM-tree", "B-tree", "transaction isolation", "distributed consensus", "stream processing", "batch processing", "event sourcing", "CQRS", "CDC", "change data capture", "serialization format", "schema evolution", "consensus algorithm", "leader election", "total order broadcast", or "data pipeline."
+
+**Directory**: `skills/data-intensive-patterns/`
+
+---
+
+## Skill: data-pipelines
+**Description**: Apply Data Pipelines Pocket Reference practices (James Densmore). Covers Infrastructure (Ch 1-2: warehouses, lakes, cloud), Patterns (Ch 3: ETL, ELT, CDC), DB Ingestion (Ch 4: MySQL, PostgreSQL, MongoDB, full/incremental), File Ingestion (Ch 5: CSV, JSON, cloud storage), API Ingestion (Ch 6: REST, pagination, rate limiting), Streaming (Ch 7: Kafka, Kinesis, event-driven), Storage (Ch 8: Redshift, BigQuery, Snowflake), Transforms (Ch 9: SQL, Python, dbt), Validation (Ch 10: Great Expectations, schema checks), Orchestration (Ch 11: Airflow, DAGs, scheduling), Monitoring (Ch 12: SLAs, alerting), Best Practices (Ch 13: idempotency, backfilling, error handling). Trigger on "data pipeline", "ETL", "ELT", "data ingestion", "Airflow", "dbt", "data warehouse", "Kafka streaming", "CDC", "data orchestration".
+
+**Directory**: `skills/data-pipelines/`
+
+---
+
+## Skill: design-patterns
+**Description**: Apply and review GoF design patterns from Head First Design Patterns. Use for Creational patterns (Factory Method, Abstract Factory, Singleton, Builder, Prototype), Structural patterns (Adapter, Bridge, Composite, Decorator, Facade, Flyweight, Proxy), Behavioral patterns (Chain of Responsibility, Command, Interpreter, Iterator, Mediator, Memento, Observer, State, Strategy, Template Method, Visitor), compound patterns (MVC), and OO design principles. Trigger on "design pattern", "GoF", "Gang of Four", "factory", "singleton", "observer", "strategy", "decorator", "adapter", "facade", "proxy", "composite", "command", "iterator", "state", "template method", "builder", "prototype", "bridge", "flyweight", "mediator", "memento", "visitor", "chain of responsibility", "interpreter", "MVC", "refactor to pattern", or "code smells."
+
+**Directory**: `skills/design-patterns/`
+
+---
+
+## Skill: domain-driven-design
+**Description**: Design and review software using patterns from Eric Evans' "Domain-Driven Design." Use for DDD tactical patterns (Entities, Value Objects, Aggregates, Repositories, Factories, Domain Services), strategic patterns (Bounded Context, Context Map, Anticorruption Layer, Shared Kernel, Open Host Service), supple design (Intention-Revealing Interfaces, Side-Effect-Free Functions, Closure of Operations), distillation (Core Domain, Segregated Core), large-scale structure (Responsibility Layers, Knowledge Level), and Ubiquitous Language. Trigger on "DDD", "domain-driven design", "bounded context", "aggregate root", "value object", "entity", "repository pattern", "domain service", "anticorruption layer", "context map", "ubiquitous language", "core domain", "specification pattern", "supple design", "layered architecture", or "strategic design."
+
+**Directory**: `skills/domain-driven-design/`
+
+---
+
+## Skill: effective-java
+**Description**: Generate and review Java code using patterns and best practices from Joshua Bloch's "Effective Java" (3rd Edition). Use this skill whenever the user asks about Java best practices, API design, object creation patterns, generics, enums, lambdas, streams, concurrency, serialization, method design, exception handling, or writing clean, maintainable Java code. Trigger on phrases like "Effective Java", "Java best practices", "builder pattern", "static factory", "defensive copy", "immutable class", "enum type", "generics", "bounded wildcard", "PECS", "stream pipeline", "optional", "thread safety", "serialization proxy", "checked exception", "try-with-resources", "composition over inheritance", "method reference", "functional interface", or "Java API design."
+
+**Directory**: `skills/effective-java/`
+
+---
+
+## Skill: effective-kotlin
+**Description**: Apply Effective Kotlin best practices (Marcin Moskała, 2nd Ed). Covers Safety (Items 1-10: mutability, scope, nulls, types, expectations, errors, resources, tests), Readability (Items 11-18: operators, receivers, properties, naming), Reusability (Items 19-25: DRY, generics, delegation, variance), Abstraction (Items 26-32: levels, stability, visibility, contracts), Object Creation (Items 33-35: factories, constructors, DSLs), Class Design (Items 36-44: composition, data classes, sealed hierarchies, equals/hashCode/compareTo, extensions), Efficiency (Items 45-52: object creation, inline, sequences, collections). Trigger on "Effective Kotlin", "Kotlin best practice", "Kotlin idiom", "Kotlin style", "Kotlin review", "Kotlin safety", "Kotlin performance", "Kotlin readability", or "Kotlin design".
+
+**Directory**: `skills/effective-kotlin/`
+
+---
+
+## Skill: effective-python
+**Description**: Review existing Python code and write new Python code following the 90 best practices from "Effective Python" by Brett Slatkin (2nd Edition). Use when writing Python, reviewing Python code, or wanting idiomatic, Pythonic solutions.
+**Directory**: `skills/effective-python/`
+
+---
+
+## Skill: effective-typescript
+**Description**: Review existing TypeScript code and write new TypeScript following the 62 items from "Effective TypeScript" by Dan Vanderkam. Use when writing TypeScript, reviewing TypeScript code, working with type design, avoiding any, managing type declarations, or migrating JavaScript to TypeScript. Trigger on: "TypeScript best practices", "type safety", "any", "type assertions", "type design", "strict mode", "TypeScript review", "migrate to TypeScript".
+
+**Directory**: `skills/effective-typescript/`
+
+---
+
+## Skill: kotlin-in-action
+**Description**: Apply Kotlin In Action practices (Elizarov, Isakova, Aigner, Jemerov, 2nd Ed). Covers Basics (Ch 1-3: functions, extensions, default args), Classes (Ch 4: sealed, data, delegation, companion objects), Lambdas (Ch 5-6: functional APIs, sequences, scope functions), Nullability (Ch 7-8: safe calls, Elvis, platform types, primitives), Conventions (Ch 9: operators, delegated properties), Higher-Order (Ch 10: inline, noinline, crossinline), Generics (Ch 11: variance, reified), Reflection (Ch 12: KClass, KProperty), DSLs (Ch 13: receivers, @DslMarker), Coroutines (Ch 14: structured concurrency, dispatchers, cancellation), Flows (Ch 15: operators, StateFlow, SharedFlow). Trigger on "Kotlin In Action", "Kotlin idiom", "Kotlin coroutine", "Kotlin flow", "Kotlin DSL", "Kotlin generics", "Kotlin null safety", "Kotlin delegation", "Kotlin inline", or "Kotlin extension".
+
+**Directory**: `skills/kotlin-in-action/`
+
+---
+
+## Skill: lean-startup
+**Description**: Apply The Lean Startup practices (Eric Ries). Covers Vision (Ch 1-4: Start, Define, Learn, Experiment — validated learning, Build-Measure-Learn loop), Steer (Ch 5-8: Leap of faith assumptions, MVP testing, innovation accounting, pivot or persevere decisions), Accelerate (Ch 9-14: small batches, engines of growth — sticky/viral/paid, adaptive organization, Five Whys, innovation sandbox, startup within enterprise). Trigger on "lean startup", "MVP", "minimum viable product", "validated learning", "pivot", "Build-Measure-Learn", "innovation accounting", "product-market fit", "startup strategy", "lean methodology", "growth engine", "Five Whys".
+
+**Directory**: `skills/lean-startup/`
+
+---
+
+## Skill: microservices-patterns
+**Description**: Generate and review microservices code using patterns from Chris Richardson's "Microservices Patterns." Use this skill whenever the user asks about microservices architecture, wants to generate service code, design distributed systems, review microservices code, implement sagas, set up CQRS, configure API gateways, handle inter-service communication, or anything related to breaking apart monoliths. Trigger on phrases like "microservice", "saga pattern", "event sourcing", "CQRS", "API gateway", "service mesh", "domain-driven design for services", "distributed transactions", "decompose my monolith", or "review my microservice."
+
+**Directory**: `skills/microservices-patterns/`
+
+---
+
+## Skill: programming-with-rust
+**Description**: Write and review Rust code using practices from "Programming with Rust" by Donis Marshall. Covers ownership, borrowing, lifetimes, error handling with Result/Option, traits, generics, pattern matching, closures, fearless concurrency, and macros. Use when writing Rust, reviewing Rust code, or learning Rust idioms. Trigger on: "Rust", "ownership", "borrow checker", "lifetimes", "Result", "Option", "traits", "fearless concurrency", ".rs files", "cargo".
+
+**Directory**: `skills/programming-with-rust/`
+
+---
+
+## Skill: refactoring-ui
+**Description**: Apply UI design principles from Refactoring UI by Adam Wathan & Steve Schoger. Covers visual hierarchy (size, weight, color, spacing), layout systems (spacing scales, grids), typography (type scales, line-height, alignment), color (HSL palettes, shade systems, accessible contrast), depth (shadow elevation, overlap), images (text on images, user content, icons), and finishing touches (accent borders, empty states, fewer borders). Trigger on "UI design", "visual hierarchy", "spacing system", "type scale", "color palette", "shadow", "layout", "design system", "component design", "card design", "form design", "button design", "refactoring UI", "design tokens", "dark mode", "responsive design".
+
+**Directory**: `skills/refactoring-ui/`
+
+---
+
+## Skill: rust-in-action
+**Description**: Write and review Rust code using systems programming concepts from "Rust in Action" by Tim McNamara. Covers language foundations, ownership and borrowing, smart pointers, data representation (bits, endianness, floats), memory (stack/heap/virtual), file I/O, networking (TCP/HTTP), concurrency (threads/closures), and OS-level programming. Use when writing systems-level Rust, working with binary data, raw pointers, file formats, network protocols, or low-level memory. Trigger on: "Rust", "systems programming", "smart pointers", "endianness", "bit manipulation", "TCP", "raw pointers", "serde", "borrow checker", "ownership", "concurrency", "kernel", ".rs files", "cargo".
+
+**Directory**: `skills/rust-in-action/`
+
+---
+
+## Skill: skill-router
+**Description**: Select the 1-2 most relevant @booklib/skills for a given file, PR, or task. Use before applying any skill when unsure which book's lens applies, or when multiple skills could apply. Trigger on "which skill", "which book", "route this", "what skill should I use", or whenever a user describes a task without specifying a skill. Returns a ranked recommendation with rationale and anti-triggers.
+
+**Directory**: `skills/skill-router/`
+
+---
+
+## Skill: spring-boot-in-action
+**Description**: Write and review Spring Boot applications using practices from "Spring Boot in Action" by Craig Walls. Covers auto-configuration, starter dependencies, externalizing configuration with properties and profiles, Spring Security, testing with MockMvc and @SpringBootTest, Spring Actuator for production observability, and deployment strategies (JAR, WAR, Cloud Foundry). Use when building Spring Boot apps, configuring beans, writing integration tests, setting up health checks, or deploying to production. Trigger on: "Spring Boot", "Spring", "@SpringBootApplication", "auto-configuration", "application.properties", "application.yml", "@RestController", "@Service", "@Repository", "SpringBootTest", "Actuator", "starter", ".java files", "Maven", "Gradle".
+
+**Directory**: `skills/spring-boot-in-action/`
+
+---
+
+## Skill: storytelling-with-data
+**Description**: Apply data visualization and storytelling principles from Storytelling with Data by Cole Nussbaumer Knaflic. Covers choosing effective visuals (line, bar, table, scatterplot), eliminating clutter (Gestalt principles, data-ink ratio), focusing attention (preattentive attributes, strategic color), thinking like a designer (affordances, alignment, white space), and narrative structure (three-act story, horizontal/vertical logic, Big Idea). Trigger on "data visualization", "chart design", "dashboard design", "data storytelling", "presentation chart", "declutter chart", "bar chart", "line chart", "data narrative", "slide deck data", "chart review", "viz critique", "storytelling with data".
+
+**Directory**: `skills/storytelling-with-data/`
+
+---
+
+## Skill: system-design-interview
+**Description**: Apply system design principles from System Design Interview by Alex Xu. Covers scaling (load balancing, DB replication, sharding, caching, CDN), estimation (QPS, storage, bandwidth), the 4-step framework, and 12 real designs: rate limiter, consistent hashing, key-value store, unique ID generator, URL shortener, web crawler, notification system, news feed, chat system, search autocomplete, YouTube, Google Drive. Trigger on "system design", "scale", "high-level design", "distributed system", "rate limiter", "consistent hashing", "back-of-envelope", "QPS", "sharding", "load balancer", "CDN", "cache", "message queue", "web crawler", "news feed", "chat system", "autocomplete", "URL shortener".
+
+**Directory**: `skills/system-design-interview/`
+
+---
+
+## Skill: using-asyncio-python
+**Description**: Apply Using Asyncio in Python practices (Caleb Hattingh). Covers Introducing Asyncio (Ch 1: what it is, I/O-bound concurrency), Threads (Ch 2: drawbacks, race conditions, GIL, ThreadPoolExecutor), Asyncio Walk-Through (Ch 3: event loop, coroutines, async def/await, tasks, futures, gather, wait, async with, async for, async comprehensions, startup/shutdown, signal handling, executors), Libraries (Ch 4: aiohttp, aiofiles, Sanic, aioredis, asyncpg), Concluding Thoughts (Ch 5), History (App A: generators to async/await), Supplementary (App B). Trigger on "asyncio", "async/await", "event loop", "coroutine", "aiohttp", "async Python", "concurrent I/O", "non-blocking".
+
+**Directory**: `skills/using-asyncio-python/`
+
+---
+
+## Skill: web-scraping-python
+**Description**: Apply Web Scraping with Python practices (Ryan Mitchell). Covers First Scrapers (Ch 1: urllib, BeautifulSoup), HTML Parsing (Ch 2: find, findAll, CSS selectors, regex, lambda), Crawling (Ch 3-4: single-domain, cross-site, crawl models), Scrapy (Ch 5: spiders, items, pipelines, rules), Storing Data (Ch 6: CSV, MySQL, files, email), Reading Documents (Ch 7: PDF, Word, encoding), Cleaning Data (Ch 8: normalization, OpenRefine), NLP (Ch 9: n-grams, Markov, NLTK), Forms & Logins (Ch 10: POST, sessions, cookies), JavaScript (Ch 11: Selenium, headless, Ajax), APIs (Ch 12: REST, undocumented), Image/OCR (Ch 13: Pillow, Tesseract), Avoiding Traps (Ch 14: headers, honeypots), Testing (Ch 15: unittest, Selenium), Parallel (Ch 16: threads, processes), Remote (Ch 17: Tor, proxies), Legalities (Ch 18: robots.txt, CFAA, ethics). Trigger on "web scraping", "BeautifulSoup", "Scrapy", "crawler", "spider", "scraper", "parse HTML", "Selenium scraping", "data extraction".
+
+**Directory**: `skills/web-scraping-python/`
+
+---

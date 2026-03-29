@@ -10,7 +10,7 @@
 
 <p align="center">
   Book-grounded AI agent skills for Claude Code, Cursor, Copilot, and Windsurf.<br/>
-  Expert knowledge from canonical programming books — packaged as skills, agents, and rules.
+  Expert knowledge from canonical books — packaged as skills, commands, agents, and rules.
 </p>
 
 <p align="center">
@@ -41,6 +41,28 @@ npx @booklib/skills add --profile=ts --global       # TypeScript
 npx @booklib/skills add --profile=python --global   # Python
 npx @booklib/skills add --profile=rust --global     # Rust
 npx @booklib/skills add --profile=jvm --global      # Java / Kotlin
+```
+
+## Universal BookLib Engine
+
+The BookLib Universal Engine is a local-first semantic RAG (Retrieval-Augmented Generation) system that allows AI agents to surgically retrieve wisdom from this library. It prevents "context rot" and ensures hyper-precise instruction adherence.
+
+### Core Capabilities
+- **Semantic Search**: Conceptual retrieval across the entire library (not just keyword matching).
+- **Active Auditing**: Systematic code review scripts that scan your files against specific book principles.
+- **Context Handoff**: Stateless-to-stateful transition protocol between different agents (e.g., Claude → Cursor).
+- **MCP Server**: Integrated Model Context Protocol server for seamless IDE integration.
+
+### Quick Start
+```bash
+# 1. Build the local index (CPU-based embeddings, zero-config)
+node bin/booklib.js index
+
+# 2. Search for conceptual wisdom
+node bin/booklib.js search "how to handle null values in Kotlin"
+
+# 3. Audit a file against a specific skill
+node bin/booklib.js audit effective-kotlin src/PaymentService.kt
 ```
 
 ## Four tiers

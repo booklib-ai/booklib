@@ -48,6 +48,7 @@ Determine which chapters apply to the code under review and read those reference
 ### Step 3: Praise Good Patterns (when present)
 When the code uses these patterns correctly, explicitly praise them:
 
+<strengths_to_praise>
 - **`@contextmanager`** for resource management: "Good use of `@contextmanager` (Item 66) — avoids boilerplate try/finally and makes the cleanup intent clear."
 - **Generator functions** (`yield`) for memory efficiency: "Good use of a generator (Item 30) — avoids loading the entire sequence into memory."
 - **Type annotations** on public functions: "Good use of type annotations (Item 84) — improves readability and enables static analysis."
@@ -55,10 +56,12 @@ When the code uses these patterns correctly, explicitly praise them:
 - **`@dataclass`** for plain data holders: "Good use of `@dataclass` (Items 37–43) — reduces boilerplate and provides automatic `__repr__`, `__eq__`."
 - **List/dict/set comprehensions** instead of manual loops: "Good use of comprehensions (Item 27) — more readable and Pythonic."
 - **`enumerate`** instead of `range(len(...))`: "Good use of `enumerate` (Item 7)."
+</strengths_to_praise>
 
 ### Step 4: Analyze the Code for Issues
 For each relevant item from the book, check whether the code follows or violates the guideline. Focus on:
 
+<core_principles>
 1. **Style and Idiom** (Items 1-10): Is it Pythonic? Does it use f-strings, unpacking, enumerate, zip properly?
 2. **Data Structures** (Items 11-18): Are lists and dicts used correctly? Is sorting done with key functions?
 3. **Function Design** (Items 19-26): Do functions raise exceptions instead of returning None? Are args well-structured?
@@ -69,6 +72,74 @@ For each relevant item from the book, check whether the code follows or violates
 8. **Robustness** (Items 65-76): Is error handling structured with try/except/else/finally? Are the right data structures chosen?
 9. **Testing** (Items 77-85): Are tests well-structured? Are mocks used appropriately?
 10. **Collaboration** (Items 86-90): Are docstrings present? Are APIs stable?
+
+### Key Anti-Patterns to Always Check
+
+<anti_patterns>
+- **Mutable default arguments** (Item 24): `def f(items=[])` is a critical bug — the list is shared across all calls. Always use `None` and initialize inside the function body.
+  ```python
+  # WRONG — shared mutable default
+  def process(results=[]):
+      results.append(...)
+
+  # RIGHT — use None sentinel
+  def process(results=None):
+      if results is None:
+          results = []
+      results.append(...)
+  ```
+
+- **Bare `except:`** clause (Item 65): `except:` without a type catches `KeyboardInterrupt`, `SystemExit`, and `GeneratorExit`, silently killing the program. Always catch specific exception types: `except (ValueError, KeyError):` or at minimum `except Exception:`.
+
+- **`for i in range(len(seq))`** (Item 7): Use `for item in seq` directly, or `for i, item in enumerate(seq)` when you need the index.
+
+- **Manual list-building loops** (Item 27): Any loop that creates an empty list and appends inside the loop body should be a list comprehension.
+  ```python
+  # WRONG
+  result = []
+  for x in items:
+      if x > 0:
+          result.append(x * 2)
+
+  # RIGHT
+  result = [x * 2 for x in items if x > 0]
+  ```
+
+- **Java-style getter/setter methods** (Item 44): `get_name()`, `set_price()`, `get_value()` are non-Pythonic. Access attributes directly or use `@property` when validation is required.
+
+- **`== True` / `== False` comparisons** (Item 2 / PEP 8): `if x == True:` should be `if x:`. `return self.in_stock == True` should be `return self.in_stock`.
+
+- **Double-underscore name mangling** (Item 42): `self.__items` makes the attribute inaccessible to subclasses and creates maintenance friction. Use single underscore `self._items` to signal "internal use" without enforced hiding.
+
+- **Plain data-holder class without `@dataclass`** (Items 37–43): Any class whose `__init__` only assigns parameters to `self.attr` with no logic should be a `@dataclass`. Dataclasses automatically generate `__repr__`, `__eq__`, and `__init__`, and signal the data-holder intent. **Crucially: `@dataclass` and `@property` can coexist.** If one field needs validation, make it a `@property` with a setter inside the `@dataclass`. This is the correct Pythonic pattern — do NOT abandon `@dataclass` just because one field has a validator.
+  ```python
+  from dataclasses import dataclass, field
+
+  @dataclass
+  class Product:
+      name: str
+      category: str
+      in_stock: bool = True
+      _price: float = field(default=0.0, repr=False)
+
+      @property
+      def price(self) -> float:
+          return self._price
+
+      @price.setter
+      def price(self, value: float) -> None:
+          if value < 0:
+              raise ValueError('Price cannot be negative')
+          self._price = value
+  ```
+
+- **Missing `__repr__`** (Items 37–43): Any class that is not a `@dataclass` should define `__repr__` to aid debugging. Without it, `repr(obj)` shows only the class name and memory address.
+
+- **Returning `None` for failure** (Item 20): Functions should raise exceptions for error conditions, not return `None`. Returning `None` forces callers to check for `None` every time and doesn't carry error information.
+
+- **`else` block after `for`/`while`** (Item 9): The loop-`else` clause fires when the loop completes without a `break`, which is rarely the intended semantics and confuses readers. Avoid it.
+</anti_patterns>
+</core_principles>
 
 ### Step 5: Report Findings
 For each issue found, report:
@@ -89,6 +160,7 @@ When the user asks you to **write** new Python code, follow these principles:
 
 ### Always Apply These Core Practices
 
+<guidelines>
 1. **Follow PEP 8** — Use consistent naming (snake_case for functions/variables, PascalCase for classes). Use `pylint` and `black`-compatible style.
 
 2. **Use f-strings** for string formatting (Item 4). Never use % or .format() for simple cases.
@@ -105,29 +177,35 @@ When the user asks you to **write** new Python code, follow these principles:
 
 8. **Raise exceptions** instead of returning None for failure cases (Item 20).
 
-9. **Use keyword-only arguments** for clarity (Item 25). Use positional-only args to separate API from implementation (Item 25).
+9. **Use `None` as the default for mutable default arguments** (Item 24). Never use `[]`, `{}`, or any other mutable object as a default argument value; initialize inside the function body.
 
-10. **Use functools.wraps** on all decorators (Item 26).
+10. **Use keyword-only arguments** for clarity (Item 25). Use positional-only args to separate API from implementation (Item 25).
 
-11. **Prefer comprehensions** over map/filter (Item 27). Keep them simple — no more than two expressions (Item 28).
+11. **Use functools.wraps** on all decorators (Item 26).
 
-12. **Use generators** for large sequences instead of returning lists (Item 30).
+12. **Prefer comprehensions** over map/filter (Item 27). Keep them simple — no more than two expressions (Item 28).
 
-13. **Use `@dataclass`** for plain data-holder classes (Items 37–43). A `@dataclass` automatically provides `__init__`, `__repr__`, and `__eq__`, and makes the data-holder intent explicit. Only write a manual `__init__` when you need real logic that a dataclass can't handle. Add `__repr__` to any class that doesn't use `@dataclass`, to make debugging easier.
+13. **Use generators** for large sequences instead of returning lists (Item 30).
 
-14. **Prefer composition** over deeply nested classes (Item 37).
+14. **Use `@dataclass`** for plain data-holder classes (Items 37–43). A `@dataclass` automatically provides `__init__`, `__repr__`, and `__eq__`, and makes the data-holder intent explicit. Only write a manual `__init__` when you need real logic that a dataclass can't handle. Add `__repr__` to any class that doesn't use `@dataclass`, to make debugging easier.
 
-15. **Use @classmethod** for polymorphic constructors (Item 39).
+15. **Prefer composition** over deeply nested classes (Item 37).
 
-16. **Always call super().__init__** (Item 40).
+16. **Use @classmethod** for polymorphic constructors (Item 39).
 
-17. **Use plain attributes** instead of getter/setter methods. Use @property for special behavior (Item 44).
+17. **Always call super().__init__** (Item 40).
 
-18. **Use try/except/else/finally** structure correctly (Item 65).
+18. **Use plain attributes** instead of getter/setter methods. Use @property for special behavior (Item 44).
 
-19. **Write docstrings** for every module, class, and function (Item 84).
+19. **Use try/except/else/finally** structure correctly (Item 65). Always catch specific exception types, never bare `except:`.
+
+20. **Write docstrings** for every module, class, and function (Item 84).
+</guidelines>
 
 ### Code Structure Template
+
+<examples>
+<example id="1" title="Module and class structure template">
 
 When writing new modules or classes, follow this structure:
 
@@ -170,6 +248,124 @@ class MyClass:
         """
         pass
 ```
+</example>
+
+<example id="2" title="Mutable default argument — correct pattern">
+
+```python
+# WRONG — mutable default causes shared state across all calls
+def append_to(element, to=[]):
+    to.append(element)
+    return to
+
+# RIGHT — use None sentinel, initialize inside
+def append_to(element, to=None):
+    if to is None:
+        to = []
+    to.append(element)
+    return to
+```
+</example>
+
+<example id="3" title="Plain data holder — use @dataclass, even with @property validation">
+
+```python
+# WRONG — manual __init__ boilerplate for data holder
+class Point:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+# RIGHT — @dataclass provides __init__, __repr__, __eq__ for free
+from dataclasses import dataclass
+
+@dataclass
+class Point:
+    x: float
+    y: float
+```
+
+**Important:** `@dataclass` and `@property` are compatible. When one field needs validation, use both — the `@dataclass` handles the boilerplate and the `@property` handles validation. Do NOT fall back to a plain class just because one field has a setter.
+
+```python
+# WRONG — abandoning @dataclass because price needs validation
+class Product:
+    def __init__(self, name, price, category):
+        self.name = name
+        self.price = price   # validation via set_price()
+        self.category = category
+
+    def set_price(self, value):
+        if value < 0:
+            raise ValueError("Price cannot be negative")
+        self.price = value
+
+# RIGHT — @dataclass + @property work together
+from dataclasses import dataclass, field
+
+@dataclass
+class Product:
+    name: str
+    category: str
+    in_stock: bool = True
+    _price: float = field(default=0.0, repr=False)
+
+    @property
+    def price(self) -> float:
+        return self._price
+
+    @price.setter
+    def price(self, value: float) -> None:
+        if value < 0:
+            raise ValueError("Price cannot be negative")
+        self._price = value
+```
+</example>
+
+<example id="4" title="Getter/setter vs plain attribute and @property">
+
+```python
+# WRONG — Java-style getter/setter
+class Temperature:
+    def get_celsius(self):
+        return self._celsius
+
+    def set_celsius(self, value):
+        if value < -273.15:
+            raise ValueError("Temperature below absolute zero")
+        self._celsius = value
+
+# RIGHT — use @property for validation, direct access otherwise
+class Temperature:
+    def __init__(self, celsius: float) -> None:
+        self.celsius = celsius  # triggers setter on construction
+
+    @property
+    def celsius(self) -> float:
+        return self._celsius
+
+    @celsius.setter
+    def celsius(self, value: float) -> None:
+        if value < -273.15:
+            raise ValueError("Temperature below absolute zero")
+        self._celsius = value
+```
+</example>
+
+<example id="5" title="List comprehension vs manual loop">
+
+```python
+# WRONG — manual loop to build list
+result = []
+for order in orders:
+    if order['total'] > threshold:
+        result.append(order)
+
+# RIGHT — list comprehension
+result = [order for order in orders if order['total'] > threshold]
+```
+</example>
+</examples>
 
 ### Concurrency Guidelines
 
@@ -196,29 +392,30 @@ When time is limited, focus on these highest-impact items first:
 
 ### Critical (Correctness & Bugs)
 - Item 20: Raise exceptions instead of returning None
+- Item 24: Use None as default for mutable arguments (never `[]` or `{}`)
 - Item 53: Use threads for I/O only, not parallelism
 - Item 54: Use Lock to prevent data races
 - Item 40: Initialize parent classes with super()
-- Item 65: Use try/except/else/finally correctly
+- Item 65: Use try/except/else/finally correctly; always catch specific exception types
 - Item 73: Use datetime instead of time module for timezone handling
 
 ### Important (Maintainability)
 - Item 1: Follow PEP 8 style
 - Item 4: Use f-strings
+- Item 7: Use `for item in seq` or `enumerate`; never `range(len(seq))`
 - Item 19: Never unpack more than 3 variables
 - Item 25: Use keyword-only and positional-only arguments
 - Item 26: Use functools.wraps for decorators
 - Items 37–43: Use `@dataclass` for plain data holders; add `__repr__` to any class without it
-- Item 42: Prefer public attributes over private
-- Item 44: Use plain attributes over getter/setter
+- Item 42: Prefer public attributes over private; use single underscore for internal
+- Item 44: Use plain attributes over getter/setter; use @property for validation
 - Item 66: Use `@contextmanager` for reusable resource management patterns
 - Item 84: Write docstrings for all public APIs
 
 ### Suggestions (Polish & Optimization)
-- Item 7: Use enumerate instead of range
 - Item 8: Use zip for parallel iteration
 - Item 10: Use walrus operator to reduce repetition
-- Item 27: Use comprehensions over map/filter
+- Item 27: Use comprehensions over map/filter and manual loops
 - Item 30: Use generators for large sequences
 - Item 70: Profile before optimizing (cProfile)
 

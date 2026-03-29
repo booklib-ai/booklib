@@ -1,0 +1,29 @@
+{
+  "name": "Effective Kotlin Static Checks",
+  "rules": [
+    {
+      "id": "Item 8",
+      "pattern": "!!",
+      "message": "Found '!!' (not-null assertion). Prefer safe calls (?.), Elvis (?:), or requireNotNull().",
+      "severity": "🔴 Critical"
+    },
+    {
+      "id": "Item 1",
+      "pattern": "\\bvar\\b",
+      "message": "Found 'var'. Prefer 'val' to limit mutability where possible.",
+      "severity": "🟡 Improvement"
+    },
+    {
+      "id": "Item 17",
+      "pattern": "\\+\\s*\"",
+      "message": "Found string concatenation with '+'. Use string templates (\"$var\") instead.",
+      "severity": "🟢 Suggestion"
+    },
+    {
+      "id": "Item 5",
+      "pattern": "\\bthrow\\b",
+      "message": "Found 'throw'. Consider using 'require()' or 'check()' for preconditions.",
+      "severity": "🟡 Improvement"
+    }
+  ]
+}

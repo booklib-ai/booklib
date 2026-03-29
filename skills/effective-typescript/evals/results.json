@@ -1,13 +1,13 @@
 {
-  "pass_rate": 0.933,
-  "passed": 14,
+  "pass_rate": 1,
+  "passed": 15,
   "total": 15,
-  "baseline_pass_rate": 0.267,
-  "baseline_passed": 4,
+  "baseline_pass_rate": 0.333,
+  "baseline_passed": 5,
   "baseline_total": 15,
   "delta": 0.667,
   "model": "default",
   "evals_run": 3,
-  "date": "2026-03-28",
+  "date": "2026-03-29",
   "non_standard_provider": true
 }

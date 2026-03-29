@@ -61,6 +61,7 @@ Read `references/items-catalog.md` for full item details. Quick decision guide:
 
 ### Step 3 — Generate the Code
 
+<core_principles>
 Follow these principles when writing Java code:
 
 - **Static factories over constructors** — Use `of`, `from`, `valueOf`, `create` naming. Return interface types. Cache instances when possible (Item 1)
@@ -76,6 +77,7 @@ Follow these principles when writing Java code:
 - **Exceptions done right** — Use unchecked for programming errors, checked for recoverable conditions. Translate exceptions at abstraction boundaries. Include failure-capture info (Items 69-77)
 - **Thread safety by design** — Document thread safety levels. Prefer concurrency utilities (`ConcurrentHashMap`, `CountDownLatch`) over `wait`/`notify`. Use lazy initialization only when needed (Items 78-84)
 - **Avoid Java serialization** — Use JSON, protobuf, or other formats. If you must use Serializable, use serialization proxies (Items 85-90)
+</core_principles>
 
 When generating code, produce:
 
@@ -87,7 +89,8 @@ When generating code, produce:
 
 ### Code Generation Examples
 
-**Example 1 — Immutable Value Class with Builder:**
+<examples>
+<example id="1" title="Immutable Value Class with Builder">
 ```
 User: "Create a class to represent a nutritional facts label"
 
@@ -99,8 +102,9 @@ You should generate:
 - Defensive copies for any mutable fields (Item 50)
 - @Override annotations (Item 40)
 ```
+</example>
 
-**Example 2 — Strategy Enum:**
+<example id="2" title="Strategy Enum">
 ```
 User: "Model different payment processing strategies"
 
@@ -110,8 +114,9 @@ You should generate:
 - EnumSet for combining payment options (Item 36)
 - EnumMap for payment-method-to-processor mapping (Item 37)
 ```
+</example>
 
-**Example 3 — Thread-Safe Service:**
+<example id="3" title="Thread-Safe Service">
 ```
 User: "Build a caching service that handles concurrent access"
 
@@ -122,6 +127,8 @@ You should generate:
 - Composition over inheritance for wrapping underlying store (Item 18)
 - Try-with-resources for any closeable resources (Item 9)
 ```
+</example>
+</examples>
 
 ---
 
@@ -143,6 +150,7 @@ Apply these categories systematically:
 9. **Concurrency** — Thread safety documented? Proper synchronization? Modern utilities used?
 10. **Serialization** — Java serialization avoided? If present, proxies used?
 
+<strengths_to_praise>
 ### What to Praise in Good Code
 
 When reviewing well-written code, actively call out what is done correctly — don't manufacture issues just to have something to say. Common strengths to recognize:
@@ -153,6 +161,7 @@ When reviewing well-written code, actively call out what is done correctly — d
 - **Parameter validation** — `Objects.requireNonNull`, `IllegalArgumentException` with descriptive message → praise Item 49
 - **equals/hashCode/toString contract** — all three properly overridden, `equals` uses `instanceof`, `hashCode` uses `Objects.hash` → praise Items 10-12
 - **Builder with fluent API** — private constructor, nested static Builder, mandatory params in Builder constructor → praise Item 2
+</strengths_to_praise>
 
 ### Review Output Format
 
@@ -176,10 +185,14 @@ For each issue:
 Priority-ordered list of improvements, from most critical to nice-to-have.
 ```
 
+<anti_patterns>
 ### Common Anti-Patterns to Flag
 
 - **Telescoping constructors** — Multiple constructors with increasing parameters instead of Builder (Item 2). When flagging, note whether a Java Record or Builder is more appropriate: Records suit simple, fully-required, value-oriented data; Builder suits classes with many optional parameters. For a class with 4+ optional fields, Builder wins.
+- **Boolean parameters at unknown positions** — Multiple boolean parameters in a constructor or method call (e.g., the 6th and 9th arguments in a large constructor) are especially dangerous: callers cannot tell what each boolean means at the call site, and swapping them causes a bug with no compile-time error. Flag this explicitly and recommend named methods or a Builder to eliminate positional boolean ambiguity (Item 51).
+- **Public mutable fields** — Exposing all fields as `public` with no access control violates the 'minimal accessibility' principle (Item 15/16) and enables uncontrolled mutation. All fields should be `private`; mutable classes should expose controlled setters only as needed; immutable classes expose no setters at all. Flag public fields explicitly and recommend `private final` with getters only.
 - **Mutable class that could be immutable** — Public setters on a class that doesn't need to change after construction (Item 17)
+- **No defensive copies on mutable constructor arguments** — When a mutable object (e.g., `Map`, `List`, `Date`) is passed to a constructor and stored directly, external code retains a reference and can mutate the object's internal state after construction. Always copy mutable parameters in constructors and return defensive copies from accessors (Item 50).
 - **Concrete class inheritance** — Extending a concrete class for code reuse instead of composition (Item 18)
 - **Raw types** — Using `List` instead of `List<String>` (Item 26). When reviewing event-bus or registry patterns that key handlers by String, also flag that String keys are fragile: a single typo causes a silent miss at runtime. Prefer `Class<T>` as the key — it is self-documenting, refactoring-safe, and enables compile-time type binding.
 - **Overloading confusion** — Overloaded methods with same arity but different behavior depending on runtime type (Item 52)
@@ -190,9 +203,13 @@ Priority-ordered list of improvements, from most critical to nice-to-have.
 - **String concatenation in loops** — Using `+` in a loop instead of `StringBuilder` (Item 63)
 - **Using `float`/`double` for money** — Should be `BigDecimal`, `int`, or `long` (Item 60)
 - **Ignoring return value of `Optional`** — Calling `.get()` without `.isPresent()` check or using `orElse`/`orElseThrow` (Item 55)
+- **ClassCastException handling as design** — Catching `ClassCastException` at runtime to handle type mismatches is a design smell; proper generics eliminate the need entirely (Item 26)
+- **Unchecked cast warnings suppressed or ignored** — Code that generates many unchecked cast warnings (Item 27) signals a deeper generics design flaw, not just a warning to suppress
+</anti_patterns>
 
 ---
 
+<guidelines>
 ## General Guidelines
 
 - Be practical, not dogmatic. Not every class needs a Builder; not every hierarchy needs interfaces.
@@ -204,3 +221,4 @@ Priority-ordered list of improvements, from most critical to nice-to-have.
 - When a simpler solution works, don't over-engineer. Bloch himself emphasizes minimizing complexity.
 - For deeper item details, read `references/items-catalog.md` before generating code.
 - For review checklists, read `references/review-checklist.md` before reviewing code.
+</guidelines>

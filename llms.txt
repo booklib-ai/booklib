@@ -1,0 +1,24 @@
+# BookLib Skills
+
+Distilled architectural wisdom from industry-leading books, formatted as high-precision AI skills.
+
+## Core Capabilities
+- **Semantic Search**: Use `node bin/booklib.js search "<query>"` for conceptual retrieval.
+- **Active Auditing**: Use `node bin/booklib.js audit <skill> <file>` for systematic reviews.
+- **Context Handoff**: Use `node bin/booklib.js save-state` to pass context between agents.
+
+## Available Skills
+- **Clean Code**: Robert C. Martin's principles for readable, maintainable code.
+- **Domain-Driven Design (DDD)**: Eric Evans' patterns for complex domain modeling.
+- **Effective Kotlin/Java/Python/TypeScript**: Language-specific best practices.
+- **Data Intensive Patterns**: Martin Kleppmann's guide to reliable, scalable systems.
+- **Microservices Patterns**: Chris Richardson's patterns for distributed architectures.
+- **System Design Interview**: High-level scalability and estimation patterns.
+- **Refactoring UI**: Adam Wathan's tactics for visual design.
+
+## Technical Metadata
+- **Format**: Markdown with XML tags (`<core_principles>`, `<anti_patterns>`).
+- **Engine**: Local semantic RAG using `@xenova/transformers`.
+- **Primary Router**: `CLAUDE.md` (Claude Code) and `booklib-router.mdc` (Cursor).
+
+For full details on each skill, see [llms-full.txt](llms-full.txt).

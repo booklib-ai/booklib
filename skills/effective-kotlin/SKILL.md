@@ -64,6 +64,7 @@ Read `references/practices-catalog.md` for the full 52-item catalog. Quick decis
 
 Every code generation should honor these principles:
 
+<core_principles>
 1. **Limit mutability** — Use val, immutable collections, data class copy() instead of mutable state
 2. **Minimize scope** — Declare variables in the narrowest scope; prefer local over property, private over public
 3. **Favor composition over inheritance** — Use delegation, interface composition, and HAS-A relationships
@@ -72,6 +73,7 @@ Every code generation should honor these principles:
 6. **Be explicit when clarity demands it** — Explicit types for public APIs, named arguments for boolean/numeric params, explicit receivers in scoping functions
 7. **Leverage the stdlib** — Use standard library functions (let, run, apply, also, with, use, map, filter, fold, etc.) idiomatically
 8. **Design for extension** — Use sealed interfaces, function types as parameters, and extension functions for non-essential API parts
+</core_principles>
 
 ### Step 4 — Generate the Code
 
@@ -93,7 +95,8 @@ When generating code, produce:
 
 ### Code Generation Examples
 
-**Example 1 — Safe API Design:**
+<examples>
+<example id="1" title="Safe API Design">
 ```
 User: "Create a user repository with proper error handling"
 
@@ -108,8 +111,9 @@ Generate:
 - Implementation with require() preconditions, use() for resources
 - Private mutable state, public immutable view
 ```
+</example>
 
-**Example 2 — Collection Processing Pipeline:**
+<example id="2" title="Collection Processing Pipeline">
 ```
 User: "Process a large CSV of transactions for reporting"
 
@@ -123,8 +127,9 @@ Generate:
 - Efficient aggregation using fold/groupBy
 - Primitive arrays for numeric accumulation in hot path
 ```
+</example>
 
-**Example 3 — DSL Builder:**
+<example id="3" title="DSL Builder">
 ```
 User: "Create a type-safe HTML DSL"
 
@@ -137,6 +142,8 @@ Generate:
 - Type-safe tag hierarchy using sealed classes
 - Extension functions for tag creation
 ```
+</example>
+</examples>
 
 ---
 
@@ -198,6 +205,7 @@ If code is excellent, frame minor suggestions as optional enhancements, not requ
 
 When you see these, call them out as strengths by name:
 
+<strengths_to_praise>
 - **Sealed interface/class for state modeling** — Item 39: "makes illegal states unrepresentable"; praise exhaustive `when` expressions and extensibility outside the module
 - **`@JvmInline value class` wrappers** — Items 46/49: zero boxing overhead, type-safe domain primitives; praise especially when combined with `require()` in init block
 - **`operator fun plus/minus/times` on value types** — Item 12: operator overloading that follows naming conventions and has clear semantic meaning (Money arithmetic, Point geometry, etc.)
@@ -209,9 +217,11 @@ When you see these, call them out as strengths by name:
 - **Extension functions for domain operations** — e.g., `fun Point.translate(dx: Double, dy: Double) = copy(x = x + dx, y = y + dy)` is cleaner than a standalone `translatePoints()` function; places behavior on the type it extends and can leverage `copy()` for immutable update (Item 44)
 - **`minByOrNull`, `map`, `filter`, `fold` from stdlib** — Item 20: using existing algorithms instead of hand-rolled loops
 - **Variable scope tightly matched to usage** — Item 2: class-wide properties that are only meaningful in a subset of states (e.g., logged-in fields that become null on logout) violate scope minimization; praise when fields are scoped correctly or redesigned via sealed states
+</strengths_to_praise>
 
 ### Common Kotlin Anti-Patterns to Flag
 
+<anti_patterns>
 - **Mutable where immutable works** → Item 1: Use val, immutable collections, copy()
 - **Overly broad variable scope** → Item 2: Move declarations closer to usage; also flag class-level properties that are only valid/meaningful in a subset of the object's lifecycle (e.g., nullable fields that are null in the "logged out" state and non-null in the "logged in" state — this is class-wide scope for state that should be narrowed via sealed class redesign)
 - **Platform types leaking** → Item 3: Add explicit nullability annotations at Java boundaries
@@ -240,11 +250,13 @@ When you see these, call them out as strengths by name:
 - **Lambda overhead in hot paths** → Item 46: Use inline modifier
 - **Eager collection processing on large data** → Item 49: Switch to Sequence
 - **Redundant collection operations** → Item 50: Combine or use specialized functions (any vs filter+isEmpty)
+</anti_patterns>
 
 ---
 
 ## General Guidelines
 
+<guidelines>
 - Be practical — Kotlin is designed for pragmatic developers. Don't over-abstract or over-engineer.
 - **Safety first** — Kotlin's type system prevents many bugs. Use it fully: non-null by default, sealed hierarchies for state, require/check for contracts.
 - **Readability is king** — Code is read far more than written. Prefer clarity over cleverness.
@@ -253,3 +265,4 @@ When you see these, call them out as strengths by name:
 - **Efficiency where it matters** — Don't optimize prematurely, but know the tools: inline, Sequence, value classes, primitive arrays.
 - For deeper practice details, read `references/practices-catalog.md` before generating code.
 - For review checklists, read `references/review-checklist.md` before reviewing code.
+</guidelines>

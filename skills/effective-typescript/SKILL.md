@@ -86,6 +86,8 @@ If there are real issues, offer a corrected version with comments explaining eac
 
 When the user asks you to **write** new TypeScript code, apply these core practices:
 
+<core_principles>
+
 ### Always Apply These Core Practices
 
 1. **Enable strict mode** (Item 2). Never write TypeScript without `"strict": true` in tsconfig.json.
@@ -118,7 +120,13 @@ When the user asks you to **write** new TypeScript code, apply these core practi
 
 15. **Use TSDoc for API comments** (Item 48). `/** */` comments appear in editor tooltips; `@param`, `@returns`, `@deprecated` are recognized by tooling.
 
+</core_principles>
+
+<examples>
+
 ### Type Structure Template
+
+<example id="1" title="Core type patterns — branded types, tagged unions, unknown, async/await">
 
 ```typescript
 // Prefer interfaces for object shapes (extendable); type aliases for unions/intersections
@@ -150,15 +158,25 @@ async function fetchUser(id: UserId): Promise<User> {
 }
 ```
 
+</example>
+
+</examples>
+
+<guidelines>
+
 ### any Guidelines
 - If `any` is unavoidable, apply it to the smallest possible scope (Item 38)
 - Prefer `unknown` for values received from external sources (Item 42)
 - Hide unsafe assertions inside well-typed wrapper functions (Item 40)
 - Track type coverage with `type-coverage` CLI to prevent regressions (Item 44)
 
+</guidelines>
+
 ---
 
 ## Priority of Items by Impact
+
+<core_principles>
 
 ### Critical (Correctness & Bugs)
 - Item 2: Enable `strict` mode — `noImplicitAny` and `strictNullChecks` prevent whole classes of bugs
@@ -168,6 +186,10 @@ async function fetchUser(id: UserId): Promise<User> {
 - Item 42: Use `unknown` instead of `any` — `any` silently disables type checking
 
 > **Item 40 exception:** `raw as SomeType` inside a function with a fully-typed signature is explicitly endorsed by Item 40. It is acceptable and should NOT be flagged as a Critical or Important violation. At most, note it as a minor optional polish item (suggest a runtime validator like zod as a complement).
+
+</core_principles>
+
+<guidelines>
 
 ### Important (Maintainability)
 - Item 13: Know the differences between `type` and `interface`
@@ -185,3 +207,53 @@ async function fetchUser(id: UserId): Promise<User> {
 - Item 37: Consider brands for nominal typing
 - Item 44: Track type coverage
 - Item 53: Prefer ECMAScript features over TypeScript-only equivalents
+
+</guidelines>
+
+<anti_patterns>
+
+## Common Anti-Patterns to Flag
+
+### any overuse (Items 38, 42)
+- Return type `Promise<any>` — use `Promise<unknown>` or a concrete typed interface
+- `as any` cast at call-site or on a public-facing value — narrowest-scope rule violated
+- Interface fields typed as `any` (e.g., `result?: any`) — use `unknown` or a typed union
+
+### Interface of unions (Items 28, 32)
+- An interface with `boolean` + optional fields that only make sense together: `{ isLoading: boolean; data?: T; error?: string }` is an interface-of-unions anti-pattern
+  - Invalid combinations are representable (e.g., `{ isLoading: true, data: [...] }` or `{ isLoading: false, data: undefined }`)
+  - Fix: replace with a tagged union using a `status` discriminant field
+  - Non-null assertions (`!`) inside render/display logic are a strong symptom of this pattern
+
+### Plain string parameters (Item 33)
+- Function parameters typed as `string` when only a small, known set of values is valid
+  - Fix: `type Theme = 'light' | 'dark'` or similar literal union
+
+### Type assertions at call-sites (Item 9)
+- `value as SomeType` appearing in application code (not inside a well-typed wrapper function)
+  - Fix: use a type declaration `const x: SomeType = value` or a validator function that returns the typed value
+
+### Missing strict mode (Item 2)
+- TypeScript files without `"strict": true` in tsconfig — whole classes of bugs (null dereferences, implicit any) go undetected
+
+### Callbacks over async/await (Item 25)
+- `.then()` chains instead of `async`/`await` — harder to read, worse type inference
+
+</anti_patterns>
+
+<strengths_to_praise>
+
+## Strengths to Recognize in Good Code
+
+When reviewing code that applies these patterns correctly, explicitly acknowledge:
+
+- **Branded types** (Item 37): `type FooId = string & { readonly __brand: 'FooId' }` — prevents mixing up identifiers of different domain entities
+- **Tagged/discriminated unions** (Item 28, 32): `type Result = { status: 'success'; data: T } | { status: 'error'; message: string }` — only valid states representable
+- **`unknown` for external data** (Item 42): `const raw: unknown = await response.json()` — forces explicit narrowing before use
+- **Assertion inside well-typed wrapper** (Item 40): `as T` inside a function with a fully-typed signature — safe encapsulation of unsafe boundary
+- **`readonly` fields** (Item 17): `readonly id: UserId` on domain entity interfaces — communicates immutability intent
+- **`async`/`await`** (Item 25): cleaner than `.then()` chains, better type inference
+- **TSDoc on public functions** (Item 48): `/** @param ... @returns ... */` — shows up in editor tooltips
+- **String literal unions** (Item 33): `type Status = 'pending' | 'processing' | 'shipped'` instead of `string`
+
+</strengths_to_praise>

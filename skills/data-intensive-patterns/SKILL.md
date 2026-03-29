@@ -66,6 +66,7 @@ Read `references/patterns-catalog.md` for full pattern details. Quick decision g
 
 Follow these principles when writing code:
 
+<core_principles>
 - **Choose the right storage engine** — LSM-trees (LevelDB, RocksDB, Cassandra) for write-heavy workloads; B-trees (PostgreSQL, MySQL InnoDB) for read-heavy workloads with point lookups
 - **Schema evolution from day one** — Use encoding formats that support forward and backward compatibility (Avro with schema registry, Protobuf with field tags)
 - **Replication topology matches the use case** — Single-leader for strong consistency needs; multi-leader for multi-datacenter writes; leaderless for high availability with tunable consistency
@@ -74,6 +75,7 @@ Follow these principles when writing code:
 - **Idempotent operations everywhere** — Every retry, every message consumer, every saga step must be safe to re-execute
 - **Derive, don't share** — Derived data (caches, search indexes, materialized views) should be rebuilt from the log of record, not maintained by shared writes
 - **End-to-end correctness** — Don't rely on a single component for exactly-once; use idempotency keys and deduplication at application boundaries
+</core_principles>
 
 When generating code, produce:
 
@@ -89,7 +91,8 @@ infrastructure components, SQL for schema definitions.
 
 ### Code Generation Examples
 
-**Example 1 — Event-Sourced Order System with CDC:**
+<examples>
+<example id="1" title="Event-Sourced Order System with CDC">
 ```
 User: "Build an order tracking system that keeps a search index and analytics dashboard in sync"
 
@@ -104,8 +107,9 @@ You should generate:
 - Idempotent consumers with deduplication by event ID
 - Schema registry configuration for event evolution
 ```
+</example>
 
-**Example 2 — Partitioned Time-Series Ingestion:**
+<example id="2" title="Partitioned Time-Series Ingestion">
 ```
 User: "I need to ingest millions of sensor readings per second with range queries by time"
 
@@ -118,8 +122,9 @@ You should generate:
 - Compaction strategy: time-window compaction for efficient cleanup
 - Retention policy configuration
 ```
+</example>
 
-**Example 3 — Distributed Transaction with Saga:**
+<example id="3" title="Distributed Transaction with Saga">
 ```
 User: "Coordinate a payment and inventory reservation across two services"
 
@@ -131,6 +136,8 @@ You should generate:
 - Dead letter queue for failed messages
 - Monitoring: saga state machine with observable transitions
 ```
+</example>
+</examples>
 
 ---
 
@@ -189,6 +196,8 @@ When you encounter well-designed code that correctly applies data-intensive patt
 **your primary job is to recognize and praise the good design**, not to find problems.
 
 Key patterns to recognize and praise explicitly when present:
+
+<strengths_to_praise>
 - **Event sourcing with `from_events`** — aggregate state rebuilt from the event log means the log is the source of truth (Ch 11)
 - **Optimistic concurrency via `expected_version`** — prevents lost updates without pessimistic locking (Ch 7)
 - **Immutable event objects** — frozen dataclasses/records for events enforce append-only semantics (Ch 11)
@@ -196,6 +205,7 @@ Key patterns to recognize and praise explicitly when present:
 - **CQRS — write model (aggregate) separate from read model (projection)** — enables independent scaling (Ch 11)
 - **Transactional outbox** — atomically writes event and publishes it (Ch 11)
 - **Snapshotting** — when suggested, frame it as a future optimization for performance, not a current deficiency
+</strengths_to_praise>
 
 For well-designed systems: if you have no genuine concerns, state that clearly. Any
 suggestions for well-designed code must go in the **Recommendations** section and must be
@@ -204,6 +214,7 @@ framed as optional future optimizations — never as "Issues Found", never descr
 
 **Specific false positives to reject when the code correctly uses event sourcing with idempotent consumers:**
 
+<false_positives>
 - **Schema evolution** — In-process Python/Java dataclasses with no Avro/Protobuf/JSON
   serialization layer do NOT need a schema registry. Absence of a serialization format is
   NOT a defect. Only flag schema evolution when there is an explicit encoding format present.
@@ -211,12 +222,14 @@ framed as optional future optimizations — never as "Issues Found", never descr
   deduplication, the atomicity gap is handled. This is the correct pattern; do NOT flag it
   as a production-blocking issue.
 - **Snapshotting** — Always a future performance optimization, never a current deficiency.
+</false_positives>
 
 ### Common Anti-Patterns to Flag
 
+<anti_patterns>
 - **Wrong storage engine for the workload** — Using B-tree for append-heavy logging; using LSM-tree where point reads dominate
 - **Missing schema evolution strategy** — Encoding formats (Avro/Protobuf/JSON) without backward/forward compatibility; only applicable when there is an explicit serialization layer
-- **Inappropriate isolation level** — Using READ COMMITTED where snapshot isolation is needed, or paying for SERIALIZABLE when not required
+- **Inappropriate isolation level for check-then-act patterns** — Using READ COMMITTED or Snapshot Isolation (REPEATABLE READ) for check-then-act patterns (read a value, decide to write based on it) allows write skew: two concurrent transactions both pass the check and both write, violating the invariant; READ COMMITTED is insufficient because it only prevents dirty reads, not this race; Snapshot Isolation is also insufficient because both transactions read the same pre-write snapshot; only SERIALIZABLE isolation or SELECT FOR UPDATE (which materializes the conflict as a row lock) prevents write skew (Ch 7: write skew, phantoms, serializable snapshot isolation)
 - **Shared mutable state across services** — Multiple services writing to the same database table
 - **Synchronous replication where async suffices** — Unnecessary latency from waiting for all replicas
 - **Hot partition** — All writes landing on the same partition (e.g., monotonically increasing key with hash partitioning, or celebrity user in social feed)
@@ -225,11 +238,19 @@ framed as optional future optimizations — never as "Issues Found", never descr
 - **Missing backpressure** — Producer overwhelms consumer with no flow control
 - **Derived data maintained by dual writes** — Updating both primary store and derived view in application code instead of via CDC/events
 - **Clock-dependent ordering** — Using wall-clock timestamps for event ordering across nodes instead of logical clocks or sequence numbers
+- **Synchronous chain without idempotency** — Chained service calls where any downstream failure leaves the system inconsistent; non-idempotent endpoints get called multiple times on retry, causing duplicate side effects (e.g., double reservation, double charge); the recommended fix is to replace the full chain with event-driven processing: publish a domain event (`OrderPlaced`, `PaymentInitiated`) and have each downstream service consume it asynchronously — this is not the same as wrapping the chain in a saga, which is still synchronous orchestration
+- **Non-transactional services in synchronous chain** — Side-effect-only services (notifications, emails, analytics) should never be in a synchronous chain; their failure must not roll back business-critical operations
+- **No event log in stateful services** — Services that mutate state without an append-only event log have no replayable source of truth; flag this as a concrete reliability issue, not a vague "future consideration" — crash recovery, audit trails, and derived view rebuilding all require a durable event log or WAL (Ch 11)
+- **Event-driven transition without transactional outbox** — When recommending replacement of a synchronous chain with event-driven processing, always specify the transactional outbox pattern: write the domain state change and the outbox event in the same local database transaction, then have a separate relay process publish events to the message broker; this is the only way to guarantee events are not lost on crash between the write and the publish (Ch 11)
+- **DELETE/cancel without idempotency tracking** — While a bare SQL DELETE is accidentally idempotent (deleting a non-existent row is a no-op), cancel operations in distributed contexts (sagas, at-least-once message delivery, API retries) need idempotency keys or logged outcomes to ensure exactly-once semantics; flag cancel handlers that lack deduplication
+- **OLTP and analytics sharing the same tables** — Analytics queries (aggregations, range scans, multi-table JOINs) running against the same tables as transactional workloads cause lock contention and slow both; separate the OLTP write path from the OLAP read path via CDC, batch export, or a dedicated analytics store (Ch 10: OLTP vs OLAP separation)
+</anti_patterns>
 
 ---
 
 ## General Guidelines
 
+<guidelines>
 - Be practical, not dogmatic. A single-node PostgreSQL database handles most workloads.
   Recommend distributed patterns only when the problem actually demands them.
 - The three pillars are **reliability** (fault-tolerant), **scalability** (handles growth),
@@ -240,3 +261,4 @@ framed as optional future optimizations — never as "Issues Found", never descr
   often beats a distributed system.
 - For deeper pattern details, read `references/patterns-catalog.md` before generating code.
 - For review checklists, read `references/review-checklist.md` before reviewing code.
+</guidelines>

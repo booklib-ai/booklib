@@ -3,14 +3,18 @@
   "version": "1.10.0",
   "description": "Book knowledge distilled into structured AI skills for Claude Code and other AI assistants",
   "bin": {
-    "skills": "bin/skills.js"
+    "skills": "bin/skills.js",
+    "booklib": "bin/booklib.js"
   },
+  "type": "module",
   "keywords": [
     "claude",
     "claude-code",
     "ai",
     "skills",
-    "agent-skills"
+    "agent-skills",
+    "mcp",
+    "rag"
   ],
   "license": "MIT",
   "homepage": "https://booklib-ai.github.io/skills/",
@@ -19,7 +23,13 @@
     "url": "git+https://github.com/booklib-ai/skills.git"
   },
   "engines": {
-    "node": ">=16"
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.6.0",
+    "@xenova/transformers": "^2.17.2",
+    "gray-matter": "^4.0.3",
+    "vectra": "^0.1.2"
   },
   "devDependencies": {
     "puppeteer": "^24.39.1"

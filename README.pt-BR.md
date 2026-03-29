@@ -9,8 +9,8 @@
 <h1 align="center">booklib-ai/skills</h1>
 
 <p align="center">
-  Skills de agentes IA baseadas em livros canônicos de programação — para Claude Code, Cursor, Copilot e Windsurf.<br/>
-  Conhecimento especializado de livros de referência, empacotado como skills, agentes e regras.
+  Skills de agentes IA baseadas em livros canônicos — para Claude Code, Cursor, Copilot e Windsurf.<br/>
+  Conhecimento especializado de livros de referência, empacotado como skills, comandos, agentes e regras.
 </p>
 
 <p align="center">

@@ -43,6 +43,8 @@ For each issue, reference the specific heuristic code when applicable (e.g., "G2
 
 ---
 
+<core_principles>
+
 ## The Principles
 
 ### 1. Meaningful Names (Ch. 2)
@@ -64,6 +66,7 @@ For each issue, reference the specific heuristic code when applicable (e.g., "G2
 - **Problem domain names**: When there's no CS term, use the domain language. Code that relates more to problem domain concepts should have problem domain names.
 - **Add meaningful context**: `state` alone is ambiguous. `addrState` or better: wrap in an `Address` class so the context is structural, not just prefix-based.
 - **Don't add gratuitous context**: In an app called "Gas Station Deluxe", don't prefix every class with `GSD`. Short names are better than long ones, *so long as they're clear*.
+- **Variable name `id` is a weak name**: In non-trivial scope, `id` is almost as bad as a single-letter name — it says nothing about which entity or which kind of identifier. Prefer `user_id`, `sequence_number`, `order_uuid`, etc. Also avoid shadowing language built-ins (e.g., Python's `id()` function).
 
 ### 2. Functions (Ch. 3)
 
@@ -83,6 +86,7 @@ For each issue, reference the specific heuristic code when applicable (e.g., "G2
 - **Command-Query Separation**: Functions should either *do something* (command) or *answer something* (query), not both. `if (set("username", "unclebob"))` is confusing.
 - **Prefer exceptions to error codes**: Error codes force nested `if` chains and violate command-query separation. Extract try/catch bodies into their own functions. Error handling is one thing (a function that handles errors should do nothing else).
 - **DRY**: Duplication is the root of all evil in software. Duplication may be the source of many other principles (Codd's database normal forms, OO, structured programming are all strategies for eliminating duplication).
+- **Guard clauses / early returns flatten nesting**: Deeply nested positive conditionals are a readability smell. Invert conditions to exit early — the happy path becomes the linear path. If the deepest `if` block is where the real work happens, that's a sign the function needs guard clauses.
 
 ### 3. Comments (Ch. 4)
 
@@ -137,8 +141,9 @@ The proper use of comments is to compensate for our failure to express ourselves
 - **Use unchecked exceptions**: Checked exceptions violate OCP — every change in a low-level method forces signature changes up the call chain.
 - **Provide context with exceptions**: Include the failed operation and failure type. Stack traces alone aren't enough.- **Define exception classes in terms of the caller's needs**: Wrap third-party exceptions into a common type.
 - **Define the normal flow**: SPECIAL CASE PATTERN (Martin Fowler) — create a class that handles the special case so the client doesn't have to deal with exceptional behavior.
-- **Don't return null**: Every null return is a potential NPE waiting to happen. Return Special Case objects or throw exceptions. `Collections.emptyList()` not `null`.
+- **Don't return null**: Every null return is a potential NPE waiting to happen. Return Special Case objects or throw exceptions. `Collections.emptyList()` not `null`. In Python: raise a specific exception or return a typed Optional/sentinel — do not return `None` from a method that callers expect to return a valid object.
 - **Don't pass null**: Passing null into methods is even worse than returning it. There's no good way to deal with a null passed by a caller.
+- **Swallowing exceptions**: A `catch` block that silently returns `null`, returns an error sentinel, or logs nothing is an anti-pattern. It erases context (which file failed? why?) and turns recoverable errors into mysterious downstream failures. Always at minimum re-raise with context, or throw a typed exception that includes the original cause.
 
 ### 7. Boundaries (Ch. 8)
 
@@ -182,7 +187,11 @@ The proper use of comments is to compensate for our failure to express ourselves
 - **Threads should be as independent as possible**: Each thread processes one request with no shared data.
 - **Know your execution models**: Producer-Consumer, Readers-Writers, Dining Philosophers — understand the patterns.
 
+</core_principles>
+
 ---
+
+<anti_patterns>
 
 ## Smells and Heuristics Quick Reference (Ch. 17)
 
@@ -279,7 +288,11 @@ This is the definitive checklist. Reference these codes in reviews.
 | **T8** | Test Coverage Patterns Can Be Revealing |
 | **T9** | Tests Should Be Fast |
 
+</anti_patterns>
+
 ---
+
+<guidelines>
 
 ## Adaptation Rules
 
@@ -290,7 +303,11 @@ This is the definitive checklist. Reference these codes in reviews.
 - **Show, don't just tell**: Always include at least one concrete before/after code example.
 - **Note when code is already clean**: Don't manufacture issues. Praise what's done well with specifics. When a reviewer finds *nothing significant to criticize*, that is itself a valuable signal — say it clearly ("This is well-written code. Here's what makes it good:") rather than hunting for micro-issues to justify the review.
 
+</guidelines>
+
 ---
+
+<strengths_to_praise>
 
 ## Positive Patterns to Recognise (don't flag these as issues)
 
@@ -308,6 +325,8 @@ When reviewing code, these patterns are **good** by Clean Code standards. Praise
 | Guard clauses / early returns | Reduces nesting, makes the happy path linear and readable |
 
 **When a file consists entirely of these patterns**, your review should lead with "this is clean code" and explain *specifically which patterns make it good*, rather than appending a list of minor optional enhancements under an "Issues" heading.
+
+</strengths_to_praise>
 
 ## Tone
 

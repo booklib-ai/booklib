@@ -1,0 +1,29 @@
+{
+  "name": "Effective TypeScript Static Checks",
+  "rules": [
+    {
+      "id": "Item 5",
+      "pattern": ":\\s*any\\b",
+      "message": "Found 'any' type annotation. Replace with specific type or 'unknown' (Item 5/38).",
+      "severity": "🔴 Critical"
+    },
+    {
+      "id": "Item 28",
+      "pattern": "!\\.",
+      "message": "Found non-null assertion (!). Fix the type or use optional chaining (?.) (Item 28/31).",
+      "severity": "🔴 Critical"
+    },
+    {
+      "id": "Item 38",
+      "pattern": "@ts-ignore|@ts-nocheck",
+      "message": "Found @ts-ignore. Fix the underlying type issue (Item 38).",
+      "severity": "🔴 Critical"
+    },
+    {
+      "id": "Item 10",
+      "pattern": "\\b(String|Number|Boolean)\\b",
+      "message": "Found object wrapper type. Use primitive types (string, number, boolean) instead (Item 10).",
+      "severity": "🟡 Improvement"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "name": "Clean Code Static Checks",
+  "rules": [
+    {
+      "id": "G5",
+      "pattern": "^.{0,50}(.{5,})\\s*\\n\\s*\\1",
+      "message": "Potential immediate duplication found. Check for copy-pasted logic (G5).",
+      "severity": "🔴 Critical"
+    },
+    {
+      "id": "C5",
+      "pattern": "//.*[;{}]",
+      "message": "Found commented-out code. Delete it (C5).",
+      "severity": "🔴 Critical"
+    },
+    {
+      "id": "F3",
+      "pattern": "boolean\\s+\\w+\\s*=\\s*(true|false)",
+      "message": "Potential flag argument or selector found. Functions should do one thing (G30).",
+      "severity": "🟡 Improvement"
+    },
+    {
+      "id": "G25",
+      "pattern": "\\b[0-9]{2,}\\b",
+      "message": "Found magic number. Replace with named constant (G25).",
+      "severity": "🟡 Improvement"
+    },
+    {
+      "id": "N1",
+      "pattern": "\\b(Manager|Processor|Data|Info|Service|Handler|Helper)\\b",
+      "message": "Noise word found in name. Be more descriptive (N1).",
+      "severity": "🟢 Suggestion"
+    }
+  ]
+}
