@@ -50,7 +50,7 @@ The BookLib Universal Engine is a local-first semantic RAG (Retrieval-Augmented 
 ### Core Capabilities
 - **Semantic Search**: Conceptual retrieval across the entire library (not just keyword matching).
 - **Active Auditing**: Systematic code review scripts that scan your files against specific book principles.
-- **Context Handoff**: Stateless-to-stateful transition protocol between different agents (e.g., Claude → Cursor).
+- **Session Handoff**: Stateless-to-stateful transition protocol between different agents (e.g., Claude → Cursor → Copilot).
 - **MCP Server**: Integrated Model Context Protocol server for seamless IDE integration.
 
 ### Quick Start
@@ -63,6 +63,64 @@ node bin/booklib.js search "how to handle null values in Kotlin"
 
 # 3. Audit a file against a specific skill
 node bin/booklib.js audit effective-kotlin src/PaymentService.kt
+
+# 4. Save session state before switching agents
+node bin/booklib.js save-state --goal "Refactor auth module" --next "Add refresh tokens"
+
+# 5. Resume in a new agent session
+node bin/booklib.js resume
+```
+
+### Session Management
+
+When switching between AI agents or hitting rate limits, booklib preserves full context so the next agent picks up exactly where you left off — including git state, active skills, and pending tasks.
+
+```bash
+# Save & restore
+node bin/booklib.js save-state --name=my-feature --goal="..." --next="..." --progress="..."
+node bin/booklib.js resume my-feature
+node bin/booklib.js recover-auto          # auto-recover from last session or git history
+
+# Organise sessions
+node bin/booklib.js sessions find my-feature
+node bin/booklib.js sessions search "oauth"
+node bin/booklib.js sessions tag my-feature --add=auth,security
+node bin/booklib.js sessions diff session-a session-b
+node bin/booklib.js sessions validate my-feature   # quality score 0-100
+node bin/booklib.js sessions report --since "2 weeks"
+
+# Templates — start with structure, not a blank slate
+node bin/booklib.js sessions create --template=feature my-feature
+node bin/booklib.js sessions create --template=bug-fix my-bug
+node bin/booklib.js sessions create --template=refactor my-refactor
+node bin/booklib.js sessions create --template=docs my-docs
+
+# Advanced
+node bin/booklib.js sessions history my-feature    # version history
+node bin/booklib.js sessions encrypt my-feature    # encrypt sensitive sessions
+node bin/booklib.js sessions cleanup --before=90days
+node bin/booklib.js hooks install                  # git post-commit auto-save
+```
+
+All session data is stored in `.booklib/` (gitignored) — nothing is sent to any server.
+
+### Multi-Agent Coordination
+
+Run parallel agents on different features, then merge their context — or have multiple skill frameworks audit the same file and compare findings.
+
+```bash
+# See all sessions across agents
+node bin/booklib.js sessions-list
+
+# Merge two agent sessions into one combined view
+node bin/booklib.js sessions-merge auth-session,payment-session combined-view
+
+# Track which session branched from which (lineage tree)
+node bin/booklib.js sessions-lineage main feature-x "Agent 2 branched for feature work"
+node bin/booklib.js sessions-lineage   # display full tree
+
+# Compare multi-agent audits on the same file
+node bin/booklib.js sessions-compare python-audit,kotlin-audit src/auth.ts comparison
 ```
 
 ## Four tiers
@@ -214,13 +272,18 @@ Run evals: `ANTHROPIC_API_KEY=... npx @booklib/skills eval <name>`
 
 ```
 booklib-ai/skills/
-├── skills/      22 book-grounded skills (SKILL.md + examples + evals)
-├── agents/      8 autonomous reviewer agents
-├── commands/    22 slash commands, one per skill
-├── rules/       6 always-on language standards
-├── hooks/       Claude Code UserPromptSubmit hook
-└── bin/         CLI (skills.js)
+├── skills/           22 book-grounded skills (SKILL.md + examples + evals)
+├── agents/           8 autonomous reviewer agents
+├── commands/         22 slash commands, one per skill
+├── rules/            6 always-on language standards
+├── hooks/            Claude Code UserPromptSubmit hook
+├── lib/engine/       BookLib engine (indexer, searcher, auditor, scanner, handoff, sessions)
+└── bin/
+    ├── booklib.js    CLI — search, audit, scan, session management
+    └── booklib-mcp.js  MCP server for IDE integration
 ```
+
+> **`.booklib/`** (gitignored) — local engine state: `sessions/` for agent handoffs, `index/` for the semantic search index. Never committed.
 
 ---
 
@@ -290,6 +353,7 @@ This project is the **original open-source implementation** of the books → AI 
 | First public article on dev.to | **February 2026** |
 | LobeHub marketplace listing | **February 2026** |
 | v1.10.0 — 22 skills, 8 agents, profiles, rules | **March 28, 2026** |
+| Enhanced session management — save-state, resume, recover-auto, templates, search, tags, validation, git hooks | **March 29, 2026** |
 
 The concept, format, and CLI were developed independently and released under MIT before any known competing project existed. The full commit history is public and timestamped at [github.com/booklib-ai/skills](https://github.com/booklib-ai/skills).
 

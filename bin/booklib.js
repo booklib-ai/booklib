@@ -207,6 +207,46 @@ async function main() {
       break;
     }
 
+    case 'sessions-list': {
+      const coord = new BookLibSessionCoordinator();
+      const sessions = coord.listAllSessions();
+      if (sessions.length === 0) { console.log('No sessions found.'); break; }
+      sessions.forEach(s => console.log(`  📝 ${s.id} — ${s.goal} [${s.branch}]`));
+      break;
+    }
+
+    case 'sessions-merge': {
+      const coord = new BookLibSessionCoordinator();
+      const ids = args[1]?.split(',');
+      const output = args[2];
+      if (!ids || !output) { console.error('Usage: booklib sessions-merge <id1,id2,...> <output-name>'); process.exit(1); }
+      const result = coord.mergeSessions(ids, output);
+      console.log(result.message || `✅ Merged into: ${output}`);
+      break;
+    }
+
+    case 'sessions-lineage': {
+      const coord = new BookLibSessionCoordinator();
+      if (args[1] && args[2]) {
+        coord.trackLineage(args[1], args[2], args[3] || '');
+        console.log(`✅ Lineage tracked: ${args[1]} → ${args[2]}`);
+      } else {
+        console.log(coord.displayLineageTree());
+      }
+      break;
+    }
+
+    case 'sessions-compare': {
+      const coord = new BookLibSessionCoordinator();
+      const ids = args[1]?.split(',');
+      const targetFile = args[2];
+      const output = args[3];
+      if (!ids || !targetFile || !output) { console.error('Usage: booklib sessions-compare <id1,id2,...> <file> <output-name>'); process.exit(1); }
+      const result = coord.compareAudits(ids, targetFile, output);
+      console.log(result.message || `✅ Comparison saved: ${output}`);
+      break;
+    }
+
     case 'hooks': {
       const mgr = new BookLibSessionManager(process.cwd());
       if (args[1] === 'install') {
