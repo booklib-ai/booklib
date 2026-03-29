@@ -17,6 +17,7 @@ import { resolveBookLibPaths } from '../lib/paths.js';
 import { SkillFetcher, RequiresConfirmationError } from '../lib/skill-fetcher.js';
 import { DiscoveryEngine } from '../lib/discovery-engine.js';
 import { ProjectInitializer } from '../lib/project-initializer.js';
+import { ContextBuilder } from '../lib/context-builder.js';
 
 const args = process.argv.slice(2);
 const command = args[0];
@@ -114,6 +115,20 @@ async function main() {
       const scanner = new BookLibScanner();
       const report = await scanner.scan(args[1] || process.cwd());
       console.log(report);
+      break;
+    }
+
+    case 'context': {
+      const promptOnly = args.includes('--prompt-only');
+      const task = args.slice(1).filter(a => !a.startsWith('--')).join(' ');
+      if (!task) {
+        console.error('Usage: booklib context "<task description>" [--prompt-only]');
+        console.error('Example: booklib context "implement a payment service in Kotlin with async error handling"');
+        process.exit(1);
+      }
+      const builder = new ContextBuilder();
+      const result = await builder.build(task, { promptOnly });
+      console.log(result);
       break;
     }
 
@@ -677,6 +692,7 @@ CORE:
   booklib search "<query>"                       Hybrid search (local + registry)
   booklib audit <skill> <file>                   Deep-audit a file
   booklib scan [dir]                             Project-wide compliance heatmap
+  booklib context "<task>" [--prompt-only]       Cross-skill context + conflict resolution for a task
 
 SKILLS:
   booklib init [--tool=cursor|claude|copilot|gemini|all] [--skills=s1,s2]
