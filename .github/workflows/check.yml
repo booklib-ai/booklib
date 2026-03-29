@@ -17,4 +17,4 @@ jobs:
           node-version: 20
 
       - name: Check all skills (Gold minimum)
-        run: node bin/skills.js check --all
+        run: node bin/skills.cjs check --all
