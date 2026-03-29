@@ -139,7 +139,7 @@ async function main() {
 
     case 'recover-auto': {
       const handoff = new BookLibHandoff();
-      const recovery = handoff.recoverFromGit();
+      const recovery = handoff.recoverFromSessionOrGit();
       console.log(recovery);
       break;
     }
