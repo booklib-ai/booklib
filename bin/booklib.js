@@ -26,6 +26,13 @@ import { ContextBuilder } from '../lib/context-builder.js';
 const args = process.argv.slice(2);
 const command = args[0];
 
+function parseFlag(args, flag) {
+  const long = args.find(a => a.startsWith(`--${flag}=`))?.replace(`--${flag}=`, '');
+  if (long !== undefined) return long;
+  const idx = args.indexOf(`--${flag}`);
+  return idx !== -1 ? args[idx + 1] : null;
+}
+
 async function main() {
   switch (command) {
     case 'index': {
@@ -724,11 +731,13 @@ async function main() {
     }
 
     case 'component': {
-      const sub = args[1];
-      if (sub !== 'add') { console.error('Usage: booklib component add <name> "<glob>"'); process.exit(1); }
+      const subcommand = args[1];
       const name = args[2];
       const glob = args[3];
-      if (!name || !glob) { console.error('Usage: booklib component add <name> "<glob>"'); process.exit(1); }
+      if (subcommand !== 'add' || !name || !glob) {
+        console.error('Usage: booklib component add <name> "<glob>"');
+        process.exit(1);
+      }
       const id = `comp_${name.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
       const content = serializeNode({
         id,
@@ -745,9 +754,8 @@ async function main() {
 
     case 'link': {
       const [, from, to] = args;
-      const typeArg = args.find(a => a.startsWith('--type='))?.replace('--type=', '')
-        ?? (args.includes('--type') ? args[args.indexOf('--type') + 1] : null);
-      const weightArg = args.find(a => a.startsWith('--weight='))?.replace('--weight=', '');
+      const typeArg = parseFlag(args, 'type');
+      const weightArg = parseFlag(args, 'weight');
       if (!from || !to || !typeArg) {
         console.error('Usage: booklib link <node1> <node2> --type <edge-type> [--weight 0.9]');
         process.exit(1);
@@ -770,8 +778,8 @@ async function main() {
     }
 
     case 'nodes': {
-      const sub = args[1];
-      if (!sub || sub === 'list') {
+      const subcommand = args[1];
+      if (!subcommand || subcommand === 'list') {
         const ids = listNodes();
         if (ids.length === 0) { console.log('No knowledge nodes yet. Try: booklib note "title"'); break; }
         console.log(`\n📝 Knowledge nodes (${ids.length}):\n`);
@@ -783,7 +791,7 @@ async function main() {
         }
         break;
       }
-      if (sub === 'show') {
+      if (subcommand === 'show') {
         const id = args[2];
         if (!id) { console.error('Usage: booklib nodes show <id>'); process.exit(1); }
         const raw = loadNode(id);
