@@ -18,6 +18,7 @@ import { BookLibAIFeatures } from '../lib/engine/ai-features.js';
 import { resolveBookLibPaths } from '../lib/paths.js';
 import { SkillFetcher, RequiresConfirmationError, listInstalledSkillNames, countInstalledSlots } from '../lib/skill-fetcher.js';
 import { runWizard } from '../lib/wizard/index.js';
+import { SKILL_LIMIT } from '../lib/wizard/skill-recommender.js';
 import {
   generateNodeId, serializeNode, saveNode, loadNode,
   listNodes, appendEdge, parseNodeFrontmatter, resolveKnowledgePaths,
@@ -658,11 +659,11 @@ async function main() {
       }
       // Slot limit warning
       const slotCount = countInstalledSlots();
-      if (slotCount >= 32) {
-        console.log(`\n  ⚠  You now have ${slotCount}/32 skill slots used.`);
+      if (slotCount >= SKILL_LIMIT) {
+        console.log(`\n  ⚠  You now have ${slotCount}/${SKILL_LIMIT} skill slots used.`);
         console.log('     Claude may truncate skill descriptions. Run "booklib doctor" to clean up.');
-      } else if (slotCount >= 28) {
-        console.log(`\n  ⚠  ${slotCount}/32 slots used — approaching limit.`);
+      } else if (slotCount >= SKILL_LIMIT - 4) {
+        console.log(`\n  ⚠  ${slotCount}/${SKILL_LIMIT} slots used — approaching limit.`);
         console.log('     Run "booklib doctor" to review installed skills.');
       }
       break;
@@ -1044,7 +1045,7 @@ async function main() {
       fetcher.desyncFromClaudeSkills({ name: skillName });
       const remaining = countInstalledSlots();
       console.log(`✓ Removed ${skillName} from ~/.claude/skills/`);
-      console.log(`  ${remaining}/32 slots now used`);
+      console.log(`  ${remaining}/${SKILL_LIMIT} slots now used`);
       break;
     }
 
@@ -1055,10 +1056,10 @@ async function main() {
         console.log('No BookLib-managed skills installed. Run "booklib init" to get started.');
         break;
       }
-      console.log(`\nInstalled skills (${slots}/32 slots):\n`);
+      console.log(`\nInstalled skills (${slots}/${SKILL_LIMIT} slots):\n`);
       for (const name of names) console.log(`  · ${name}`);
       console.log('');
-      if (slots > 28) console.log('  ⚠  Approaching slot limit. Run "booklib doctor" to review.');
+      if (slots > SKILL_LIMIT - 4) console.log('  ⚠  Approaching slot limit. Run "booklib doctor" to review.');
       break;
     }
 
