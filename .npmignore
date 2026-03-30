@@ -6,10 +6,6 @@ __pycache__/
 # Reference PDFs (not needed at runtime)
 *.pdf
 
-# Large media
-demo.gif
-demo.tape
-
 # Dev-only directories
 benchmark/
 docs/
