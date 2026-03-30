@@ -39,6 +39,10 @@ async function main() {
           await indexer.indexDirectory(communitySkillsDir, false);
         }
       }
+      // Index knowledge nodes from .booklib/knowledge/nodes/
+      const { resolveKnowledgePaths } = await import('../lib/engine/graph.js');
+      const { nodesDir } = resolveKnowledgePaths();
+      await indexer.indexKnowledgeNodes(nodesDir);
       console.log('✅ Index built');
       break;
     }
@@ -86,7 +90,11 @@ async function main() {
         console.log('\n📚 Local results:\n');
         local.forEach(r => {
           const rationale = r._rationale ? `  ↳ ${r._rationale}` : '';
-          console.log(`  [${r.score?.toFixed(2)}] ${r.metadata?.name ?? r.metadata?.filePath ?? '?'} (${r.metadata?.type ?? 'chunk'})`);
+          const isNode = r.metadata?.nodeKind === 'knowledge';
+          const label = isNode
+            ? `📝 ${r.metadata?.title ?? r.metadata?.filePath ?? '?'} [${r.metadata?.type ?? 'note'}]`
+            : `📚 ${r.metadata?.name ?? r.metadata?.filePath ?? '?'} (${r.metadata?.type ?? 'chunk'})`;
+          console.log(`  [${r.score?.toFixed(2)}] ${label}`);
           if (rationale) console.log(rationale);
         });
       }
