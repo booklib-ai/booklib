@@ -18,7 +18,7 @@ import { SkillFetcher, RequiresConfirmationError } from '../lib/skill-fetcher.js
 import {
   generateNodeId, serializeNode, saveNode, loadNode,
   listNodes, appendEdge, parseNodeFrontmatter, resolveKnowledgePaths,
-  resolveNodeRef,
+  resolveNodeRef, EDGE_TYPES,
 } from '../lib/engine/graph.js';
 import { DiscoveryEngine } from '../lib/discovery-engine.js';
 import { ProjectInitializer } from '../lib/project-initializer.js';
@@ -181,6 +181,14 @@ async function main() {
         ? await builder.buildWithGraph(task, fileArg)
         : await builder.build(task, { promptOnly });
       console.log(result);
+
+      if (fileArg && useGraph && !result.includes('## Knowledge Graph Context')) {
+        process.stderr.write(
+          `\nTip: no component is mapped to "${fileArg}".\n` +
+          `  To enable graph context injection: booklib component add <name> "<glob>"\n` +
+          `  Example: booklib component add auth "src/auth/**"\n`
+        );
+      }
       break;
     }
 
@@ -785,9 +793,8 @@ async function main() {
         console.error('Usage: booklib link "<title-or-id>" "<title-or-id>" --type <edge-type> [--weight 0.9]');
         process.exit(1);
       }
-      const VALID_TYPES = ['implements','contradicts','extends','applies-to','see-also','inspired-by','supersedes','depends-on'];
-      if (!VALID_TYPES.includes(typeArg)) {
-        console.error(`Invalid edge type "${typeArg}". Valid: ${VALID_TYPES.join(', ')}`);
+      if (!EDGE_TYPES.includes(typeArg)) {
+        console.error(`Invalid edge type "${typeArg}". Valid: ${EDGE_TYPES.join(', ')}`);
         process.exit(1);
       }
       let from, to;
@@ -942,7 +949,7 @@ async function main() {
       await autoIndexNode(filePath);
       console.log(`✅ Research template created: ${filePath}`);
       console.log(`   ID: ${id}`);
-      console.log(`   Fill in the findings and run booklib index to update the search index.`);
+      console.log(`   Fill in the findings — this node is already indexed and searchable.`);
       break;
     }
 

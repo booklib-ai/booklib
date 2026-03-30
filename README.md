@@ -66,24 +66,46 @@ The **Skill tool** is the coarse layer — a full knowledge dump for orchestrato
 ## Quick Start
 
 ```bash
-# Install the CLI
+# 1. Install
 npm install -g @booklib/skills
 
-# Build the local search index
+# 2. Connect to your AI tool (writes CLAUDE.md, .cursor/rules/, copilot-instructions.md)
+booklib init
+
+# 3. Build the local search index
+#    First run downloads a ~25 MB embedding model — takes about 1 minute.
 booklib index
 
-# Install the PreToolUse hook — auto-injects relevant skills when you edit files
+# 4. Install the PreToolUse hook — injects relevant skills when you edit files
 booklib hooks install
 
-# Search for wisdom by concept
+# 5. Search for wisdom by concept
 booklib search "how to handle null values in Kotlin"
-
-# Discover and install all trusted skills (bundled + community)
-booklib setup
-
-# Sync all fetched skills → available to Claude Code's Skill tool and orchestrators
-booklib sync
 ```
+
+**Using Cursor, Copilot, or Gemini?** `booklib init` writes the right context file for each tool automatically. For MCP-compatible editors, see [MCP Server](#mcp-server) below.
+
+---
+
+## Your First 5 Minutes with the Knowledge Graph
+
+After the Quick Start, do this once to see BookLib's full power:
+
+```bash
+# 1. Define a component — maps source files to a named node in the graph
+booklib component add auth "src/auth/**"
+
+# 2. Capture a note about your architecture decision
+echo "Use short-lived JWTs (15 min) with refresh token rotation" | booklib note "JWT strategy"
+
+# 3. Link the note to the component
+booklib link "JWT strategy" "auth" --type applies-to
+
+# 4. Now ask for context — BookLib injects both book wisdom and your own captured knowledge
+booklib context "implement JWT middleware" --file src/auth/middleware.js
+```
+
+You'll see a `## Knowledge Graph Context` section in the output with your note alongside the relevant book principles. This is graph-aware context injection — it traverses the graph from the component owning the file, finds linked knowledge, and combines it with semantic search.
 
 ---
 
@@ -259,9 +281,13 @@ Components are just `component` nodes in `.booklib/knowledge/nodes/` — same fo
 Connect nodes with typed relationships:
 
 ```bash
-booklib link node_abc comp_auth --type applies-to
-booklib link comp_auth comp_payments --type depends-on
-booklib link node_jwt node_rfc7519 --type see-also
+# Link by title — no need to look up IDs
+booklib link "JWT strategy" "auth" --type applies-to
+booklib link "auth" "payments" --type depends-on
+booklib link "JWT strategy" "RFC 7519 notes" --type see-also
+
+# Exact IDs still work if you prefer
+booklib link node_abc123 comp_auth456 --type applies-to
 ```
 
 Edge types: `implements` · `contradicts` · `extends` · `applies-to` · `see-also` · `inspired-by` · `supersedes` · `depends-on`
@@ -352,15 +378,36 @@ All session data lives in `.booklib/` (gitignored). Nothing sent to any server.
 
 ## MCP Server
 
+BookLib ships a local MCP server that gives any MCP-compatible AI agent access to both the skill library and the knowledge graph.
+
 ```bash
 # Claude Code
-claude mcp add booklib -- node /path/to/bin/booklib-mcp.js
+claude mcp add booklib -- npx @booklib/skills mcp
 
-# Cursor / Windsurf
-{ "mcpServers": { "booklib": { "command": "node", "args": ["/path/to/bin/booklib-mcp.js"] } } }
+# Cursor / Windsurf / Zed — add to your mcp_servers config
+{ "mcpServers": { "booklib": { "command": "npx", "args": ["@booklib/skills", "mcp"] } } }
 ```
 
-MCP tools: `search_skills` · `audit_content` · `save_session_state` · `scan_project`
+**Available tools:**
+
+| Tool | What it does |
+|---|---|
+| `get_context` | Full context builder — returns compiled book wisdom + knowledge graph for a task |
+| `get_context` (with `file`) | Graph-aware context: also injects knowledge linked to the file's component |
+| `create_note` | Create a knowledge node and index it immediately |
+| `search_knowledge` | Semantic search across skills + knowledge nodes (filterable by source) |
+| `list_nodes` | List all knowledge graph nodes with id, title, type |
+| `link_nodes` | Create a typed edge between two nodes (by title or ID) |
+| `audit_content` | Systematic file audit against a specific skill |
+| `save_session_state` | Save agent progress for handoff to another agent |
+
+**Agent compatibility:**
+
+| | Claude Code | Cursor | Windsurf | Zed | Continue.dev | Copilot |
+|---|---|---|---|---|---|---|
+| Skills (auto-inject) | ✅ hook | via MCP | via MCP | via MCP | via MCP | ❌ |
+| Context builder | ✅ | ✅ MCP | ✅ MCP | ✅ MCP | ✅ MCP | ❌ |
+| Knowledge graph | ✅ | ✅ MCP | ✅ MCP | ✅ MCP | ✅ MCP | ❌ |
 
 ---
 
