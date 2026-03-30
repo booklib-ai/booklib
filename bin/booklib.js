@@ -18,6 +18,7 @@ import { SkillFetcher, RequiresConfirmationError } from '../lib/skill-fetcher.js
 import {
   generateNodeId, serializeNode, saveNode, loadNode,
   listNodes, appendEdge, parseNodeFrontmatter, resolveKnowledgePaths,
+  resolveNodeRef,
 } from '../lib/engine/graph.js';
 import { DiscoveryEngine } from '../lib/discovery-engine.js';
 import { ProjectInitializer } from '../lib/project-initializer.js';
@@ -48,35 +49,6 @@ async function autoIndexNode(filePath) {
   }
 }
 
-/** Resolves a node reference (exact ID or partial title) to a node ID. Exits on ambiguity. */
-function resolveNodeRef(ref) {
-  const { nodesDir } = resolveKnowledgePaths();
-  const allIds = listNodes({ nodesDir });
-
-  // Exact ID match
-  if (allIds.includes(ref)) return ref;
-
-  // Title match (case-insensitive, partial)
-  const matches = allIds
-    .map(id => {
-      const raw = loadNode(id, { nodesDir });
-      if (!raw) return null;
-      const parsed = parseNodeFrontmatter(raw);
-      return { id, title: parsed.title ?? '', type: parsed.type ?? '' };
-    })
-    .filter(n => n && n.title.toLowerCase().includes(ref.toLowerCase()));
-
-  if (matches.length === 1) return matches[0].id;
-
-  if (matches.length === 0) {
-    console.error(`No node found matching "${ref}". Run: booklib nodes list`);
-    process.exit(1);
-  }
-
-  console.error(`Multiple nodes match "${ref}" — use the exact ID:`);
-  matches.forEach(m => console.error(`  ${m.id}  [${m.type}]  ${m.title}`));
-  process.exit(1);
-}
 
 async function main() {
   switch (command) {

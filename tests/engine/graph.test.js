@@ -14,6 +14,7 @@ import {
   appendEdge,
   loadEdges,
   traverseEdges,
+  resolveNodeRef,
 } from '../../lib/engine/graph.js';
 
 function tmpDir() {
@@ -155,34 +156,22 @@ test('serializeNode preserves body content passed via stdin path', async (t) => 
   assert.ok(result.includes('title: My note'), 'title is in frontmatter');
 });
 
-test('resolveNodeRef logic — exact ID found in listNodes', async (t) => {
-  const tmpDir = mkdtempSync(path.join(tmpdir(), 'ref-test-'));
-  const opts = { nodesDir: tmpDir };
+test('resolveNodeRef — returns exact ID unchanged', (t) => {
+  const tmpNodeDir = mkdtempSync(path.join(tmpdir(), 'ref-test-'));
+  const opts = { nodesDir: tmpNodeDir };
   const id = 'node_aaaabbbb';
   saveNode(serializeNode({ id, type: 'note', title: 'Auth decisions' }), id, opts);
-  const ids = listNodes(opts);
-  assert.ok(ids.includes(id), 'exact ID is found in listNodes');
-  rmSync(tmpDir, { recursive: true });
+  const result = resolveNodeRef(id, opts);
+  assert.strictEqual(result, id);
+  rmSync(tmpNodeDir, { recursive: true });
 });
 
-test('resolveNodeRef logic — finds node by partial title', async (t) => {
-  const tmpDir = mkdtempSync(path.join(tmpdir(), 'ref-test2-'));
-  const opts = { nodesDir: tmpDir };
+test('resolveNodeRef — finds node by partial title', (t) => {
+  const tmpNodeDir = mkdtempSync(path.join(tmpdir(), 'ref-test2-'));
+  const opts = { nodesDir: tmpNodeDir };
   const id = 'node_ccccdddd';
   saveNode(serializeNode({ id, type: 'note', title: 'JWT refresh patterns' }), id, opts);
-
-  const allIds = listNodes(opts);
-  const query = 'jwt refresh';
-  const matches = allIds
-    .map(nid => {
-      const raw = loadNode(nid, opts);
-      if (!raw) return null;
-      const parsed = parseNodeFrontmatter(raw);
-      return { id: nid, title: parsed.title ?? '' };
-    })
-    .filter(n => n && n.title.toLowerCase().includes(query.toLowerCase()));
-
-  assert.strictEqual(matches.length, 1);
-  assert.strictEqual(matches[0].id, id);
-  rmSync(tmpDir, { recursive: true });
+  const result = resolveNodeRef('jwt refresh', opts);
+  assert.strictEqual(result, id);
+  rmSync(tmpNodeDir, { recursive: true });
 });
