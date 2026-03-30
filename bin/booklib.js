@@ -1087,7 +1087,13 @@ MULTI-AGENT:
   }
 }
 
-main().catch(err => {
-  console.error(err.message);
-  process.exit(1);
-});
+main()
+  .then(() => {
+    if (Math.random() < 0.1) {
+      console.error('\n  ⭐  If BookLib is useful, a star helps: https://github.com/booklib-ai/skills\n');
+    }
+  })
+  .catch(err => {
+    console.error(err.message);
+    process.exit(1);
+  });
