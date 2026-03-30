@@ -16,7 +16,8 @@ import { BookLibSessionCoordinator } from '../lib/engine/session-coordinator.js'
 import { BookLibSessionManager } from '../lib/engine/session-manager.js';
 import { BookLibAIFeatures } from '../lib/engine/ai-features.js';
 import { resolveBookLibPaths } from '../lib/paths.js';
-import { SkillFetcher, RequiresConfirmationError } from '../lib/skill-fetcher.js';
+import { SkillFetcher, RequiresConfirmationError, listInstalledSkillNames, countInstalledSlots } from '../lib/skill-fetcher.js';
+import { runWizard } from '../lib/wizard/index.js';
 import {
   generateNodeId, serializeNode, saveNode, loadNode,
   listNodes, appendEdge, parseNodeFrontmatter, resolveKnowledgePaths,
@@ -492,176 +493,90 @@ async function main() {
     }
 
     case 'init': {
-      const orchestratorArg = args.find(a => a.startsWith('--orchestrator='))?.split('=')[1] ?? null;
-      const dryRun        = args.includes('--dry-run');
-      const hasToolFlag   = args.some(a => a.startsWith('--tool='));
+      // Backwards-compat: if legacy flags are passed, run old init flow
+      const hasLegacyFlags = args.some(a =>
+        a.startsWith('--tool=') || a.startsWith('--skills=') ||
+        a.includes('--dry-run') || a.includes('--ecc')
+      );
 
-      // Resolve which tools to write — priority: --tool flag > saved config > interactive prompt
-      let targetArg;
-      if (hasToolFlag) {
-        targetArg = args.find(a => a.startsWith('--tool='))?.split('=')[1];
-      } else if (!dryRun) {
-        const { configPath } = resolveBookLibPaths();
-        let savedConfig = {};
-        try { savedConfig = JSON.parse(fs.readFileSync(configPath, 'utf8')); } catch { /* no config yet */ }
-        if (savedConfig.tools?.length) {
-          targetArg = savedConfig.tools.join(',');
-          console.log(`Using saved tool selection: ${targetArg} (pass --tool=X to override)\n`);
-        } else {
-          targetArg = await promptToolSelection();
-          // Persist the choice so future re-runs skip the prompt
-          const updatedConfig = { ...savedConfig, tools: targetArg === 'all'
-            ? ['claude', 'cursor', 'copilot', 'gemini', 'codex', 'windsurf']
-            : targetArg.split(',') };
-          try { fs.writeFileSync(configPath, JSON.stringify(updatedConfig, null, 2)); } catch { /* best-effort */ }
-        }
-      } else {
-        targetArg = 'all';
-      }
-      const skillsArg = args.find(a => a.startsWith('--skills='))?.split('=')[1];
-      const rulesArg  = args.find(a => a.startsWith('--rules='))?.split('=')[1];
-      const pullEcc       = args.includes('--ecc');
-      const includeAgents   = pullEcc || args.includes('--agents');
-      const includeCommands = pullEcc || args.includes('--commands');
-      const includeRules    = pullEcc || args.includes('--rules') || rulesArg != null;
-      const skillList = skillsArg?.split(',').map(s => s.trim());
-
-      // Languages to pull rules for: --rules (all) or --rules=kotlin,python (specific)
-      const langList = rulesArg ? rulesArg.split(',').map(s => s.trim()) : (includeRules ? null : false);
-
-      const initializer = new ProjectInitializer();
-
-      if (!skillList) {
-        const detected = initializer.detectRelevantSkills();
-        if (detected.length === 0 && !includeAgents && !includeCommands && !includeRules) {
-          console.log('No skills auto-detected. Specify with --skills=skill1,skill2 or use --ecc to pull agents/commands/rules.');
-          process.exit(1);
-        }
-        if (detected.length > 0) console.log(`Auto-detected skills: ${detected.join(', ')}\n`);
-      }
-
-      // If --tool was passed explicitly, persist the new selection
-      if (hasToolFlag && !dryRun) {
-        const { configPath } = resolveBookLibPaths();
-        let savedConfig = {};
-        try { savedConfig = JSON.parse(fs.readFileSync(configPath, 'utf8')); } catch { /* no config yet */ }
-        const toolList = targetArg === 'all'
-          ? ['claude', 'cursor', 'copilot', 'gemini', 'codex', 'windsurf']
-          : targetArg.split(',');
-        try { fs.writeFileSync(configPath, JSON.stringify({ ...savedConfig, tools: toolList }, null, 2)); } catch { /* best-effort */ }
-      }
-
-      // Generate AI tool context files from skills
-      if (skillList || initializer.detectRelevantSkills().length > 0) {
-        console.log(`Generating context files for: ${targetArg === 'all' ? 'claude, cursor, copilot, gemini, codex, windsurf' : targetArg}\n`);
-        const written = await initializer.init({ skills: skillList, target: targetArg, dryRun });
-        if (!dryRun && written.length > 0) {
-          console.log('');
-        }
-      }
-
-      // Pull ECC artifacts (rules / agents / commands)
-      if (includeAgents || includeCommands || includeRules) {
-        const pulling = [];
-        if (includeRules)    pulling.push(langList ? `rules (${langList.join(',')})` : 'rules (all languages)');
-        if (includeAgents)   pulling.push('agents → .claude/agents/');
-        if (includeCommands) pulling.push('commands → .claude/commands/');
-        console.log(`Pulling ECC artifacts: ${pulling.join(', ')}\n`);
-
-        try {
-          const eccWritten = await initializer.fetchEccArtifacts({
-            languages: langList,
-            includeAgents,
-            includeCommands,
-            dryRun,
-          });
-          if (!dryRun && eccWritten.length > 0) {
-            console.log(`\nPulled ${eccWritten.length} artifact(s) from ECC.`);
-          }
-        } catch (err) {
-          console.error(`ECC fetch failed: ${err.message}`);
-        }
-      }
-
-      // Orchestrator integration
-      if (orchestratorArg && !dryRun) {
-        const ORCHESTRATORS = {
-          obra: {
-            label: 'obra/superpowers',
-            install: '/plugin install superpowers',
-            note: 'BookLib skills are already in ~/.claude/skills/ — superpowers will surface them via the Skill tool.',
-          },
-          ruflo: {
-            label: 'ruflo',
-            install: 'npm install -g ruflo',
-            note: 'BookLib skills are already in ~/.claude/skills/ — ruflo will surface them via the Skill tool.',
-          },
-        };
-        const orch = ORCHESTRATORS[orchestratorArg];
-        if (!orch) {
-          console.log(`\nUnknown orchestrator "${orchestratorArg}". Available: ${Object.keys(ORCHESTRATORS).join(', ')}`);
-        } else {
-          console.log(`\n🐝 Orchestrator: ${orch.label}`);
-          console.log(`   Install : ${orch.install}`);
-          console.log(`   Note    : ${orch.note}`);
-        }
-      }
-
-      // ── Phase 2: MCP server setup ─────────────────────────────────────────
-      if (!dryRun) {
-        const { configPath: cfgPath } = resolveBookLibPaths();
-        let mcpSavedConfig = {};
-        try { mcpSavedConfig = JSON.parse(fs.readFileSync(cfgPath, 'utf8')); } catch { /* no config yet */ }
-
-        const hasMcpToolFlag = args.some(a => a.startsWith('--mcp-tool='));
-        let mcpTargets;
-
-        if (hasMcpToolFlag) {
-          const mcpToolArg = args.find(a => a.startsWith('--mcp-tool='))?.split('=')[1];
-          mcpTargets = mcpToolArg === 'all'
-            ? ['claude', 'cursor', 'gemini', 'codex', 'zed', 'continue']
-            : mcpToolArg.split(',').map(t => t.trim());
-        } else if (mcpSavedConfig.mcpTools?.length) {
-          mcpTargets = mcpSavedConfig.mcpTools;
-          console.log(`Using saved MCP tool selection: ${mcpTargets.join(', ')} (pass --mcp-tool=X to override)\n`);
-        } else {
-          const selection = await promptMcpToolSelection();
-          if (selection === null) {
-            mcpTargets = null;
+      if (hasLegacyFlags) {
+        // ── Legacy init path ─────────────────────────────────────────────────
+        const orchestratorArg = args.find(a => a.startsWith('--orchestrator='))?.split('=')[1] ?? null;
+        const dryRun          = args.includes('--dry-run');
+        const hasToolFlag     = args.some(a => a.startsWith('--tool='));
+        let targetArg;
+        if (hasToolFlag) {
+          targetArg = args.find(a => a.startsWith('--tool='))?.split('=')[1];
+        } else if (!dryRun) {
+          const { configPath } = resolveBookLibPaths();
+          let savedConfig = {};
+          try { savedConfig = JSON.parse(fs.readFileSync(configPath, 'utf8')); } catch { /* no config yet */ }
+          if (savedConfig.tools?.length) {
+            targetArg = savedConfig.tools.join(',');
+            console.log(`Using saved tool selection: ${targetArg} (pass --tool=X to override)\n`);
           } else {
-            mcpTargets = selection === 'all'
-              ? ['claude', 'cursor', 'gemini', 'codex', 'zed', 'continue']
-              : selection.split(',');
+            targetArg = await promptToolSelection();
+            const updatedConfig = { ...savedConfig, tools: targetArg === 'all'
+              ? ['claude', 'cursor', 'copilot', 'gemini', 'codex', 'windsurf']
+              : targetArg.split(',') };
+            try { fs.writeFileSync(configPath, JSON.stringify(updatedConfig, null, 2)); } catch { /* best-effort */ }
+          }
+        } else {
+          targetArg = 'all';
+        }
+        const skillsArg = args.find(a => a.startsWith('--skills='))?.split('=')[1];
+        const rulesArg  = args.find(a => a.startsWith('--rules='))?.split('=')[1];
+        const pullEcc         = args.includes('--ecc');
+        const includeAgents   = pullEcc || args.includes('--agents');
+        const includeCommands = pullEcc || args.includes('--commands');
+        const includeRules    = pullEcc || args.includes('--rules') || rulesArg != null;
+        const skillList = skillsArg?.split(',').map(s => s.trim());
+        const langList  = rulesArg ? rulesArg.split(',').map(s => s.trim()) : (includeRules ? null : false);
+        const initializer = new ProjectInitializer();
+
+        if (!skillList) {
+          const detected = initializer.detectRelevantSkills();
+          if (detected.length === 0 && !includeAgents && !includeCommands && !includeRules) {
+            console.log('No skills auto-detected. Specify with --skills=skill1,skill2 or use --ecc to pull agents/commands/rules.');
+            process.exit(1);
+          }
+          if (detected.length > 0) console.log(`Auto-detected skills: ${detected.join(', ')}\n`);
+        }
+
+        if (hasToolFlag && !dryRun) {
+          const { configPath } = resolveBookLibPaths();
+          let savedConfig = {};
+          try { savedConfig = JSON.parse(fs.readFileSync(configPath, 'utf8')); } catch { /* no config yet */ }
+          const toolList = targetArg === 'all'
+            ? ['claude', 'cursor', 'copilot', 'gemini', 'codex', 'windsurf']
+            : targetArg.split(',');
+          try { fs.writeFileSync(configPath, JSON.stringify({ ...savedConfig, tools: toolList }, null, 2)); } catch { /* best-effort */ }
+        }
+
+        if (skillList || initializer.detectRelevantSkills().length > 0) {
+          console.log(`Generating context files for: ${targetArg === 'all' ? 'claude, cursor, copilot, gemini, codex, windsurf' : targetArg}\n`);
+          const written = await initializer.init({ skills: skillList, target: targetArg, dryRun });
+          if (!dryRun && written.length > 0) console.log('');
+        }
+
+        if (includeAgents || includeCommands || includeRules) {
+          const pulling = [];
+          if (includeRules)    pulling.push(langList ? `rules (${langList.join(',')})` : 'rules (all languages)');
+          if (includeAgents)   pulling.push('agents → .claude/agents/');
+          if (includeCommands) pulling.push('commands → .claude/commands/');
+          console.log(`Pulling ECC artifacts: ${pulling.join(', ')}\n`);
+          try {
+            const eccWritten = await initializer.fetchEccArtifacts({ languages: langList, includeAgents, includeCommands, dryRun });
+            if (!dryRun && eccWritten.length > 0) console.log(`\nPulled ${eccWritten.length} artifact(s) from ECC.`);
+          } catch (err) {
+            console.error(`ECC fetch failed: ${err.message}`);
           }
         }
-
-        // Persist selection (whether from prompt or --mcp-tool flag)
-        if (mcpTargets) {
-          try {
-            fs.writeFileSync(cfgPath, JSON.stringify({ ...mcpSavedConfig, mcpTools: mcpTargets }, null, 2));
-          } catch { /* best-effort */ }
-
-          console.log(`\nConfiguring MCP server for: ${mcpTargets.join(', ')}\n`);
-          await initializer.generateMcpConfigs({ tools: mcpTargets });
-          console.log('');
-        }
-
-        // Note for Windsurf users: MCP config is global-only
-        const phase1ToolList = targetArg === 'all'
-          ? ['claude', 'cursor', 'copilot', 'gemini', 'codex', 'windsurf']
-          : (targetArg?.split(',') ?? []);
-        if (phase1ToolList.includes('windsurf')) {
-          console.log('  ℹ️  Windsurf: MCP config is global-only. Set it up at ~/.codeium/windsurf/mcp_config.json manually.');
-        }
+        break;
       }
 
-      if (!dryRun) {
-        console.log('\nDone. Add these files to your repo so all AI tools share the same standards.');
-        console.log('Re-run after adding new skills: booklib init');
-        if (!orchestratorArg) {
-          console.log('Tip: booklib init --orchestrator=obra|ruflo  to add an agent orchestrator');
-        }
-      }
+      // ── New guided wizard ─────────────────────────────────────────────────
+      await runWizard(process.cwd());
       break;
     }
 
@@ -1107,6 +1022,34 @@ async function main() {
       console.log(`✅ Research template created: ${filePath}`);
       console.log(`   ID: ${id}`);
       console.log(`   Fill in the findings — this node is already indexed and searchable.`);
+      break;
+    }
+
+    case 'uninstall': {
+      const skillName = args[1];
+      if (!skillName) {
+        console.error('Usage: booklib uninstall <skill-name>');
+        process.exit(1);
+      }
+      const fetcher = new SkillFetcher();
+      fetcher.desyncFromClaudeSkills({ name: skillName });
+      const remaining = countInstalledSlots();
+      console.log(`✓ Removed ${skillName} from ~/.claude/skills/`);
+      console.log(`  ${remaining}/32 slots now used`);
+      break;
+    }
+
+    case 'list': {
+      const names = listInstalledSkillNames();
+      const slots = countInstalledSlots();
+      if (names.length === 0) {
+        console.log('No BookLib-managed skills installed. Run "booklib init" to get started.');
+        break;
+      }
+      console.log(`\nInstalled skills (${slots}/32 slots):\n`);
+      for (const name of names) console.log(`  · ${name}`);
+      console.log('');
+      if (slots > 28) console.log('  ⚠  Approaching slot limit. Run "booklib doctor" to review.');
       break;
     }
 
