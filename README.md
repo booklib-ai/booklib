@@ -44,6 +44,8 @@ BookLib is not a static install. It's a local knowledge engine: semantic search 
 
 **Not just for code.** BookLib works for any domain where expert knowledge matters. The community registry includes skills for product management, technical writing, brand design, market research, and business strategy — `booklib context` extracts relevant principles from all of them the same way it does for code.
 
+**Knowledge Graph.** Beyond book skills, BookLib lets you build a personal knowledge graph from your actual work — research findings, architectural decisions, team notes — and link that knowledge to the components of your own project. When you edit a file, the graph injects not just book wisdom but your own captured context too.
+
 ---
 
 ## How Skills Activate
@@ -215,12 +217,83 @@ Re-run after adding new skills — it updates all files in place.
 
 ---
 
+## Knowledge Graph
+
+BookLib can capture knowledge from your actual work and link it to your project's own topology — forming a unified graph where book skills, research notes, and architectural decisions all live together.
+
+### Nodes
+
+Every piece of knowledge is a plain Markdown file in `.booklib/knowledge/nodes/` with YAML frontmatter. Node types: `research` · `note` · `decision` · `fact` · `component` · `feature` · `skill`.
+
+```bash
+# Capture a note (opens $EDITOR, or pipe content in)
+booklib note "JWT refresh token patterns"
+echo "Short expiry + rotation" | booklib note "JWT refresh token patterns"
+
+# Type or dictate — AI structures it, fixes grammar, extracts title + tags
+booklib dictate
+booklib dictate --raw                  # verbatim, no AI processing
+booklib dictate --title "auth idea"
+
+# Save the current agent conversation as a knowledge node
+booklib save-chat --title "Auth redesign decisions"
+booklib save-chat --summarize          # AI extracts key decisions, attaches transcript
+
+# Create a research stub (saves as a node for you to fill in)
+booklib research "JWT refresh token patterns"
+```
+
+### Project Components
+
+Define which parts of your project map to which components. When you edit a file, BookLib finds the owning component and injects all knowledge attached to it:
+
+```bash
+booklib component add auth "src/auth/**"
+booklib component add payments "src/payments/**" "src/billing/**"
+```
+
+Components are just `component` nodes in `.booklib/knowledge/nodes/` — same format, no separate config file.
+
+### Edges
+
+Connect nodes with typed relationships:
+
+```bash
+booklib link node_abc comp_auth --type applies-to
+booklib link comp_auth comp_payments --type depends-on
+booklib link node_jwt node_rfc7519 --type see-also
+```
+
+Edge types: `implements` · `contradicts` · `extends` · `applies-to` · `see-also` · `inspired-by` · `supersedes` · `depends-on`
+
+All edges live in `.booklib/knowledge/graph.jsonl` — append-only, git-trackable.
+
+### Inspect
+
+```bash
+booklib nodes list                     # list all nodes
+booklib nodes show node_abc123         # view a specific node
+```
+
+### Context Injection with Graph
+
+`booklib context` automatically incorporates the knowledge graph alongside book skills when you pass a file path:
+
+```bash
+booklib context "implement jwt auth" --file src/auth/middleware.js
+```
+
+This finds the owning component (`comp_auth`), traverses its edges, runs semantic search, and injects the most relevant book wisdom + your own captured knowledge together.
+
+---
+
 ## Context Builder
 
 `booklib context` is the most powerful way to use BookLib before starting a task. It searches across all indexed skills simultaneously, extracts the most relevant passage from each matched book, and surfaces every decision it makes — including the quiet ones:
 
 ```bash
 booklib context "implement a payment service in Kotlin with async error handling"
+booklib context "implement jwt auth" --file src/auth/middleware.js   # also injects graph context
 ```
 
 Output:
@@ -337,10 +410,14 @@ booklib-ai/skills/
 ├── agents/                   8 autonomous reviewer agents
 ├── commands/                 slash commands, one per skill
 ├── rules/                    always-on language standards
-├── hooks/                    Claude Code PreToolUse hook
+├── hooks/                    Claude Code hooks (PreToolUse + PostToolUse)
 ├── booklib.config.json       discovery source configuration
 └── lib/
     ├── engine/               indexer, searcher, auditor, scanner, handoff, sessions
+    │   ├── graph.js          knowledge graph: node CRUD, edge append, BFS traversal
+    │   ├── capture.js        node creation: editor, stdin, AI structuring, dictation
+    │   └── graph-injector.js injection pipeline: semantic + graph traversal combined
+    ├── context-builder.js    cross-skill context builder (+ graph-aware buildWithGraph)
     ├── skill-fetcher.js      fetch skills from GitHub/npm, sync to ~/.claude/skills/
     ├── discovery-engine.js   scan configured sources for available skills
     ├── project-initializer.js generate context files for all AI tools
@@ -350,7 +427,7 @@ bin/
     └── booklib-mcp.js        MCP server
 ```
 
-> **`.booklib/`** (gitignored) — local state: `sessions/` for handoffs, `index/` for search index, `skills/` for fetched community skills.
+> **`.booklib/`** (gitignored) — local state: `sessions/` for handoffs, `index/` for search index, `skills/` for fetched community skills, `knowledge/` for graph nodes and edges.
 
 ---
 
@@ -361,7 +438,7 @@ bin/
 - **Open discovery** — community registry and source config are public and auditable
 - **Local-first** — indexing, search, and session data stays on your machine
 - **Marker-based ownership** — `.booklib` marker tracks which `~/.claude/skills/` dirs BookLib manages; never overwrites yours
-- **Four runtime deps** — `@xenova/transformers`, `vectra`, `gray-matter`, `@modelcontextprotocol/sdk`
+- **Five runtime deps** — `@xenova/transformers`, `vectra`, `gray-matter`, `@modelcontextprotocol/sdk`, `minimatch`
 
 ---
 
@@ -394,6 +471,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for the full guide.
 | BookLib Engine — semantic search, session handoff, multi-agent coordination | Mar 29, 2026 |
 | Discovery engine — GitHub, npm, community registry, obra/superpowers, ruflo compatibility | Mar 29, 2026 |
 | v1.11.0 — Non-code domain support (product, writing, strategy, design), `scan --docs` mode | Mar 30, 2026 |
+| v1.12.0 — Knowledge Graph: nodes, edges, components, dictation, save-chat, graph-aware context injection | Mar 30, 2026 |
 
 Full commit history at [github.com/booklib-ai/skills](https://github.com/booklib-ai/skills).
 

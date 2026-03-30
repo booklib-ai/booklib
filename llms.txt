@@ -9,9 +9,10 @@ An open knowledge ecosystem for AI coding agents. Packages expert knowledge from
 
 ## Core Commands
 
-- `booklib context "<task>"` — cross-skill context builder: searches all skills, extracts relevant passages, explains every decision (auto-resolved and conflicting), compiles a sharp ready-to-use system prompt
+- `booklib context "<task>"` — cross-skill context builder: searches all skills + knowledge graph, extracts relevant passages, compiles a sharp ready-to-use system prompt
+- `booklib context "<task>" --file <path>` — also injects graph context for the file's owning component
 - `booklib context "<task>" --prompt-only` — just the compiled prompt (pipe-friendly)
-- `booklib search "<query>"` — semantic search over skill content (returns relevant chunks)
+- `booklib search "<query>"` — semantic search over skill content + knowledge nodes
 - `booklib fetch <skill>` — download and index a community skill
 - `booklib setup` — fetch all trusted skills at once
 - `booklib sync` — sync fetched skills to `~/.claude/skills/` for Skill tool / orchestrator access
@@ -21,6 +22,19 @@ An open knowledge ecosystem for AI coding agents. Packages expert knowledge from
 - `booklib swarm-config [trigger]` — skill map for swarm agent pipelines
 - `booklib init [--orchestrator=obra|ruflo]` — scaffold context files for all AI tools
 - `booklib save-state / resume / recover-auto` — session handoff between agents
+
+## Knowledge Graph Commands
+
+- `booklib note "<title>"` — create a note node (opens $EDITOR or reads stdin)
+- `booklib dictate` — type or dictate → AI structures + saves as a note
+- `booklib dictate --raw` — type or dictate → saved verbatim, no AI processing
+- `booklib save-chat --title "<title>"` — save current conversation as a knowledge node
+- `booklib save-chat --summarize` — AI extracts key decisions + findings → clean note
+- `booklib research "<topic>"` — create a research stub node
+- `booklib component add <name> "<glob>"` — define a project component node with path patterns
+- `booklib link <node1> <node2> --type <edge-type>` — add a typed edge between nodes
+- `booklib nodes list` — list all knowledge nodes
+- `booklib nodes show <id>` — view a specific node
 
 ## Bundled Skills (22)
 
@@ -49,7 +63,8 @@ Works with obra/superpowers (`/plugin install superpowers`) and ruflo (`npm inst
 
 - Format: Markdown with XML tags (`<core_principles>`, `<anti_patterns>`, `<framework>`)
 - Engine: local semantic RAG using `@xenova/transformers` + `vectra`
+- Knowledge Graph: nodes as `.md` files with YAML frontmatter; edges as append-only JSONL
 - Config: `booklib.config.json` (discovery sources), `.booklib/` (local state, gitignored)
-- Runtime deps: `@xenova/transformers`, `vectra`, `gray-matter`, `@modelcontextprotocol/sdk`
+- Runtime deps: `@xenova/transformers`, `vectra`, `gray-matter`, `@modelcontextprotocol/sdk`, `minimatch`
 
 For full skill catalog, see [llms-full.txt](llms-full.txt).

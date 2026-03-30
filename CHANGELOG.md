@@ -5,6 +5,25 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.12.0] - 2026-03-30
+
+### Added
+- **Knowledge Graph** — unified node+edge model where any piece of knowledge (research, notes, decisions) and any part of your project (components, features) is a node; relationships are typed edges stored in `.booklib/knowledge/graph.jsonl`
+- **`booklib note "<title>"`** — create a note node from `$EDITOR`, stdin pipe, or interactive input
+- **`booklib dictate`** — type or dictate a note; AI structures the text, fixes grammar, extracts title and tags; `--raw` flag saves verbatim with no AI processing
+- **`booklib save-chat`** — save the current agent conversation as a knowledge node; `--summarize` flag uses AI to extract key decisions and findings into a clean note with transcript attached
+- **`booklib research "<topic>"`** — create a research stub node pre-populated with a template
+- **`booklib component add <name> "<glob>"`** — define a project component with glob path patterns; component nodes replace `areas.yaml` (additive migration)
+- **`booklib link <node1> <node2> --type <edge-type>`** — add a typed edge between any two nodes; edge types: `implements` · `contradicts` · `extends` · `applies-to` · `see-also` · `inspired-by` · `supersedes` · `depends-on`
+- **`booklib nodes list`** / **`booklib nodes show <id>`** — list and inspect knowledge nodes
+- **`booklib context --file <path>`** — graph-aware context injection: finds the file's owning component, traverses edges via BFS (up to 2 hops), combines with semantic search, injects book wisdom + personal knowledge together
+- **PostToolUse hook** (`hooks/posttooluse-capture.mjs`) — fires after `WebFetch`/`WebSearch` tool calls and suggests saving captured knowledge as a node
+- **`lib/engine/graph.js`** — node CRUD, edge append, BFS traversal with cycle prevention
+- **`lib/engine/capture.js`** — node creation helpers: stdin, `$EDITOR`, interactive readline, Anthropic API structuring
+- **`lib/engine/graph-injector.js`** — injection pipeline: semantic search + BFS graph traversal + dedup + ranking
+- **Knowledge nodes indexed** — `booklib index` now indexes `.booklib/knowledge/nodes/` alongside skills; `booklib search` returns both with `📝` prefix for knowledge hits
+- **`minimatch`** added as a runtime dependency for component path-glob matching
+
 ## [1.11.0] - 2026-03-30
 
 ### Added
