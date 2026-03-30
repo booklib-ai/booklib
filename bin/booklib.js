@@ -1110,5 +1110,6 @@ main()
   .then(() => maybeNudgeStar())
   .catch(err => {
     console.error(err.message);
+    console.error('\n  If this looks like a bug, please report it: https://github.com/booklib-ai/skills/issues\n');
     process.exit(1);
   });

@@ -524,6 +524,12 @@ Full commit history at [github.com/booklib-ai/skills](https://github.com/booklib
 
 ---
 
+## Feedback & Issues
+
+Found a bug? Have a suggestion? [Open an issue](https://github.com/booklib-ai/skills/issues) — all feedback welcome.
+
+---
+
 ## Star
 
 If BookLib has helped you write better code, a ⭐ on [GitHub](https://github.com/booklib-ai/skills) helps me know people are using it — and helps others discover it.
