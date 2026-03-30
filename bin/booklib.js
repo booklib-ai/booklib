@@ -179,7 +179,7 @@ async function main() {
         for (const dir of dirsToAdd) {
           if (fs.existsSync(dir) && fs.readdirSync(dir).length > 0) {
             const count = fs.readdirSync(dir).length;
-            console.log(`Indexing ${count} community skill(s) from ${dir}...`);
+            if (verboseIndex) console.log(`Indexing ${count} community skill(s) from ${dir}...`);
             await indexer.indexDirectory(dir, false, { quiet: !verboseIndex });
           }
         }
