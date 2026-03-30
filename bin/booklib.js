@@ -582,8 +582,16 @@ async function main() {
 
         if (skillList || initializer.detectRelevantSkills().length > 0) {
           console.log(`Generating context files for: ${targetArg === 'all' ? 'claude, cursor, copilot, gemini, codex, windsurf' : targetArg}\n`);
-          const written = await initializer.init({ skills: skillList, target: targetArg, dryRun });
+          const effectiveSkills = skillList ?? initializer.detectRelevantSkills();
+          const written = await initializer.init({ skills: effectiveSkills, target: targetArg, dryRun });
           if (!dryRun && written.length > 0) console.log('');
+
+          // Discovery hint: suggest related skills
+          const related = initializer.suggestRelatedSkills(effectiveSkills, process.cwd());
+          if (related.length > 0) {
+            console.log('  \u{1F4A1} Also consider for your stack:');
+            related.forEach(s => console.log(`     booklib init --skills=${effectiveSkills.join(',')},${s}`));
+          }
         }
 
         if (includeAgents || includeCommands || includeRules) {
