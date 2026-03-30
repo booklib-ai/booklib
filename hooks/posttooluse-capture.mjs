@@ -24,10 +24,40 @@ process.stdin.on('end', () => {
   const captureTools = ['WebFetch', 'WebSearch', 'web_fetch', 'web_search'];
   if (!captureTools.includes(toolName)) process.exit(0);
 
-  const url = toolInput.url ?? toolInput.query ?? '';
-  const hint = url
-    ? `\n[booklib] You just fetched: ${url}\nIf this contains useful knowledge: booklib note "title" or booklib research "topic"\n`
-    : `\n[booklib] If the above result contains useful knowledge: booklib note "title"\n`;
+  const isSearch = ['WebSearch', 'web_search'].includes(toolName);
+  const url = toolInput.url ?? '';
+  const query = toolInput.query ?? toolInput.input ?? '';
+
+  let suggestedTitle;
+  let sourceDesc;
+
+  if (isSearch && query) {
+    suggestedTitle = query.slice(0, 60);
+    sourceDesc = `search: "${query}"`;
+  } else if (url) {
+    try {
+      const u = new URL(url);
+      const lastSegment = u.pathname.split('/').filter(Boolean).pop() ?? '';
+      const readable = lastSegment.replace(/[-_]/g, ' ').replace(/\.\w+$/, '').trim();
+      suggestedTitle = (readable ? `${readable} (${u.hostname})` : u.hostname).slice(0, 60);
+    } catch {
+      suggestedTitle = url.slice(0, 60);
+    }
+    sourceDesc = url;
+  } else {
+    process.stdout.write('\n[booklib] To save what you found: booklib note "<title>"\n');
+    process.exit(0);
+  }
+
+  const hint = [
+    '',
+    `[booklib] Knowledge capture — ${sourceDesc}`,
+    `  Save what you found:`,
+    `    echo "paste key findings here" | booklib note "${suggestedTitle}"`,
+    `  Or create a research template:`,
+    `    booklib research "${suggestedTitle}"`,
+    '',
+  ].join('\n');
 
   process.stdout.write(hint);
   process.exit(0);
