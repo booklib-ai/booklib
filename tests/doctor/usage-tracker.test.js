@@ -1,7 +1,7 @@
 // tests/doctor/usage-tracker.test.js
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { appendUsage, readUsage, summarize } from '../../lib/doctor/usage-tracker.js';
@@ -114,16 +114,27 @@ test('appendUsage creates nested directories if absent', () => {
 test('summarize sorts healthy skills before suggestions', () => {
   const now = new Date().toISOString();
   const oldDate = new Date(Date.now() - 62 * 24 * 60 * 60 * 1000).toISOString();
+  // design-patterns installed 20 days ago (established, no recent use → low-activity)
+  const installDates = { 'design-patterns': new Date(Date.now() - 20 * 24 * 60 * 60 * 1000) };
   const entries = [
     { skill: 'effective-python', timestamp: now },
     { skill: 'effective-python', timestamp: now },
     { skill: 'effective-python', timestamp: now },
     { skill: 'effective-java', timestamp: oldDate },
   ];
-  const result = summarize(entries, ['effective-python', 'effective-java', 'design-patterns']);
+  const result = summarize(entries, ['effective-python', 'effective-java', 'design-patterns'], installDates);
   // healthy first
   assert.equal(result[0].suggestion, null);
   assert.equal(result[0].name, 'effective-python');
   // suggestions after
   assert.ok(result.slice(1).every(r => r.suggestion !== null));
+});
+
+test('readUsage returns [] for corrupt file', () => {
+  const dir = tmp();
+  const file = join(dir, 'usage.json');
+  writeFileSync(file, 'not valid json{{{');
+  const result = readUsage(file);
+  assert.deepEqual(result, []);
+  rmSync(dir, { recursive: true });
 });
