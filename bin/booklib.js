@@ -17,7 +17,7 @@ import { resolveBookLibPaths } from '../lib/paths.js';
 import { SkillFetcher, RequiresConfirmationError } from '../lib/skill-fetcher.js';
 import {
   generateNodeId, serializeNode, saveNode, loadNode,
-  listNodes, appendEdge, parseNodeFrontmatter,
+  listNodes, appendEdge, parseNodeFrontmatter, resolveKnowledgePaths,
 } from '../lib/engine/graph.js';
 import { DiscoveryEngine } from '../lib/discovery-engine.js';
 import { ProjectInitializer } from '../lib/project-initializer.js';
@@ -35,6 +35,17 @@ function parseFlag(args, flag) {
   if (long !== undefined) return long;
   const idx = args.indexOf(`--${flag}`);
   return idx !== -1 ? args[idx + 1] : null;
+}
+
+/** Auto-index a freshly saved node so it's immediately searchable. Silently skips on error. */
+async function autoIndexNode(filePath) {
+  const { nodesDir } = resolveKnowledgePaths();
+  try {
+    const indexer = new BookLibIndexer();
+    await indexer.indexNodeFile(filePath, nodesDir);
+  } catch {
+    // Index may not exist yet — user can run `booklib index` to build it
+  }
 }
 
 async function main() {
@@ -733,6 +744,7 @@ async function main() {
       const id = generateNodeId('node');
       const content = serializeNode({ id, type: 'note', title, content: '' });
       const filePath = saveNode(content, id);
+      await autoIndexNode(filePath);
       console.log(`✅ Note created: ${filePath}`);
       console.log(`   ID: ${id}`);
       break;
@@ -843,6 +855,7 @@ async function main() {
       }
 
       const filePath = saveNode(nodeContent, id);
+      await autoIndexNode(filePath);
       console.log(`✅ Note saved: ${filePath}`);
       console.log(`   ID: ${id}`);
       break;
@@ -894,6 +907,7 @@ async function main() {
       }
 
       const filePath = saveNode(nodeContent, id);
+      await autoIndexNode(filePath);
       console.log(`✅ Conversation saved: ${filePath}`);
       console.log(`   ID: ${id}`);
       break;
@@ -912,9 +926,10 @@ async function main() {
         confidence: 'low',
       });
       const filePath = saveNode(nodeContent, id);
+      await autoIndexNode(filePath);
       console.log(`✅ Research template created: ${filePath}`);
       console.log(`   ID: ${id}`);
-      console.log(`   Fill in the findings, then run: booklib index`);
+      console.log(`   Fill in the findings and run booklib index to update the search index.`);
       break;
     }
 
