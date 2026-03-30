@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync, existsSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import path, { join } from 'node:path';
 import {
   resolveKnowledgePaths,
   generateNodeId,
@@ -153,4 +153,36 @@ test('serializeNode preserves body content passed via stdin path', async (t) => 
   const result = serializeNode({ id: 'node_test01', type: 'note', title: 'My note', content: 'body text here' });
   assert.ok(result.includes('body text here'), 'body text is in the serialized node');
   assert.ok(result.includes('title: My note'), 'title is in frontmatter');
+});
+
+test('resolveNodeRef logic — exact ID found in listNodes', async (t) => {
+  const tmpDir = mkdtempSync(path.join(tmpdir(), 'ref-test-'));
+  const opts = { nodesDir: tmpDir };
+  const id = 'node_aaaabbbb';
+  saveNode(serializeNode({ id, type: 'note', title: 'Auth decisions' }), id, opts);
+  const ids = listNodes(opts);
+  assert.ok(ids.includes(id), 'exact ID is found in listNodes');
+  rmSync(tmpDir, { recursive: true });
+});
+
+test('resolveNodeRef logic — finds node by partial title', async (t) => {
+  const tmpDir = mkdtempSync(path.join(tmpdir(), 'ref-test2-'));
+  const opts = { nodesDir: tmpDir };
+  const id = 'node_ccccdddd';
+  saveNode(serializeNode({ id, type: 'note', title: 'JWT refresh patterns' }), id, opts);
+
+  const allIds = listNodes(opts);
+  const query = 'jwt refresh';
+  const matches = allIds
+    .map(nid => {
+      const raw = loadNode(nid, opts);
+      if (!raw) return null;
+      const parsed = parseNodeFrontmatter(raw);
+      return { id: nid, title: parsed.title ?? '' };
+    })
+    .filter(n => n && n.title.toLowerCase().includes(query.toLowerCase()));
+
+  assert.strictEqual(matches.length, 1);
+  assert.strictEqual(matches[0].id, id);
+  rmSync(tmpDir, { recursive: true });
 });

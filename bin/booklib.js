@@ -48,6 +48,36 @@ async function autoIndexNode(filePath) {
   }
 }
 
+/** Resolves a node reference (exact ID or partial title) to a node ID. Exits on ambiguity. */
+function resolveNodeRef(ref) {
+  const { nodesDir } = resolveKnowledgePaths();
+  const allIds = listNodes({ nodesDir });
+
+  // Exact ID match
+  if (allIds.includes(ref)) return ref;
+
+  // Title match (case-insensitive, partial)
+  const matches = allIds
+    .map(id => {
+      const raw = loadNode(id, { nodesDir });
+      if (!raw) return null;
+      const parsed = parseNodeFrontmatter(raw);
+      return { id, title: parsed.title ?? '', type: parsed.type ?? '' };
+    })
+    .filter(n => n && n.title.toLowerCase().includes(ref.toLowerCase()));
+
+  if (matches.length === 1) return matches[0].id;
+
+  if (matches.length === 0) {
+    console.error(`No node found matching "${ref}". Run: booklib nodes list`);
+    process.exit(1);
+  }
+
+  console.error(`Multiple nodes match "${ref}" — use the exact ID:`);
+  matches.forEach(m => console.error(`  ${m.id}  [${m.type}]  ${m.title}`));
+  process.exit(1);
+}
+
 async function main() {
   switch (command) {
     case 'index': {
@@ -776,11 +806,11 @@ async function main() {
     }
 
     case 'link': {
-      const [, from, to] = args;
+      const [, fromRef, toRef] = args;
       const typeArg = parseFlag(args, 'type');
       const weightArg = parseFlag(args, 'weight');
-      if (!from || !to || !typeArg) {
-        console.error('Usage: booklib link <node1> <node2> --type <edge-type> [--weight 0.9]');
+      if (!fromRef || !toRef || !typeArg) {
+        console.error('Usage: booklib link "<title-or-id>" "<title-or-id>" --type <edge-type> [--weight 0.9]');
         process.exit(1);
       }
       const VALID_TYPES = ['implements','contradicts','extends','applies-to','see-also','inspired-by','supersedes','depends-on'];
@@ -788,6 +818,8 @@ async function main() {
         console.error(`Invalid edge type "${typeArg}". Valid: ${VALID_TYPES.join(', ')}`);
         process.exit(1);
       }
+      const from = resolveNodeRef(fromRef);
+      const to = resolveNodeRef(toRef);
       const edge = {
         from,
         to,
