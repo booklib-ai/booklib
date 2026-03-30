@@ -49,13 +49,16 @@ process.stdin.on('end', () => {
     process.exit(0);
   }
 
+  // Strip shell metacharacters so the displayed command is always safe to copy-paste
+  const safeTitle = suggestedTitle.replace(/["$`\\]/g, '');
+
   const hint = [
     '',
     `[booklib] Knowledge capture — ${sourceDesc}`,
     `  Save what you found:`,
-    `    echo "paste key findings here" | booklib note "${suggestedTitle}"`,
+    `    echo "paste key findings here" | booklib note "${safeTitle}"`,
     `  Or create a research template:`,
-    `    booklib research "${suggestedTitle}"`,
+    `    booklib research "${safeTitle}"`,
     '',
   ].join('\n');
 

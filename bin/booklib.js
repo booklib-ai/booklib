@@ -790,8 +790,14 @@ async function main() {
         console.error(`Invalid edge type "${typeArg}". Valid: ${VALID_TYPES.join(', ')}`);
         process.exit(1);
       }
-      const from = resolveNodeRef(fromRef);
-      const to = resolveNodeRef(toRef);
+      let from, to;
+      try {
+        from = resolveNodeRef(fromRef);
+        to = resolveNodeRef(toRef);
+      } catch (err) {
+        console.error(err.message);
+        process.exit(1);
+      }
       const edge = {
         from,
         to,

@@ -175,3 +175,26 @@ test('resolveNodeRef — finds node by partial title', (t) => {
   assert.strictEqual(result, id);
   rmSync(tmpNodeDir, { recursive: true });
 });
+
+test('resolveNodeRef — throws when no match found', async (t) => {
+  const { resolveNodeRef } = await import('../../lib/engine/graph.js');
+  const tmpNodeDir = mkdtempSync(path.join(tmpdir(), 'ref-err-test-'));
+  assert.throws(
+    () => resolveNodeRef('nonexistent query', { nodesDir: tmpNodeDir }),
+    /No node found/
+  );
+  rmSync(tmpNodeDir, { recursive: true });
+});
+
+test('resolveNodeRef — throws with match list when ambiguous', async (t) => {
+  const { resolveNodeRef, saveNode, serializeNode } = await import('../../lib/engine/graph.js');
+  const tmpNodeDir = mkdtempSync(path.join(tmpdir(), 'ref-ambig-test-'));
+  const opts = { nodesDir: tmpNodeDir };
+  saveNode(serializeNode({ id: 'node_auth01', type: 'note', title: 'Auth session handling' }), 'node_auth01', opts);
+  saveNode(serializeNode({ id: 'node_auth02', type: 'note', title: 'Auth token refresh' }), 'node_auth02', opts);
+  assert.throws(
+    () => resolveNodeRef('auth', opts),
+    /Multiple nodes match/
+  );
+  rmSync(tmpNodeDir, { recursive: true });
+});
