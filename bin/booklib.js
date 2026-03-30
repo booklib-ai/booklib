@@ -234,10 +234,6 @@ async function main() {
         });
         if (!autoFetch) console.log('\nTip: run with --auto-fetch to install and search in one step');
       }
-      if ((conflicts ?? []).length > 0) {
-        console.log('\n⚠️  Conflicts — your input needed:');
-        conflicts.forEach(c => console.log(`  ? ${c.message}`));
-      }
       if (local.length === 0 && suggested.length === 0) {
         console.log('No results found.');
       }
