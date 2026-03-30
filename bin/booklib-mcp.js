@@ -56,6 +56,29 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         },
       },
       {
+        name: "search_knowledge",
+        description: "Semantic search across book skills and personal knowledge graph nodes. Returns ranked results with a 'source' field: 'skill' or 'knowledge'.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            query: {
+              type: "string",
+              description: "The search query (e.g. 'handling concurrency in Python')",
+            },
+            limit: {
+              type: "number",
+              description: "Maximum number of results (default: 8)",
+            },
+            source: {
+              type: "string",
+              enum: ["all", "skills", "knowledge"],
+              description: "Filter by source: 'all' (default), 'skills', or 'knowledge'",
+            },
+          },
+          required: ["query"],
+        },
+      },
+      {
         name: "audit_content",
         description: "Performs a systematic expert audit of a file or text against a specific BookLib skill.",
         inputSchema: {
@@ -136,6 +159,24 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case "search_skills":
         const searchResults = await searcher.search(args.query, args.limit);
         return { content: [{ type: "text", text: JSON.stringify(searchResults, null, 2) }] };
+
+      case "search_knowledge": {
+        const raw = await searcher.search(args.query, args.limit ?? 8);
+        const sourceFilter = args.source ?? 'all';
+        const results = raw
+          .filter(r => {
+            if (sourceFilter === 'skills') return r.metadata?.nodeKind !== 'knowledge';
+            if (sourceFilter === 'knowledge') return r.metadata?.nodeKind === 'knowledge';
+            return true;
+          })
+          .map(r => ({
+            source: r.metadata?.nodeKind === 'knowledge' ? 'knowledge' : 'skill',
+            title: r.metadata?.title ?? r.metadata?.skill ?? 'unknown',
+            text: r.text,
+            score: r.score,
+          }));
+        return { content: [{ type: "text", text: JSON.stringify(results, null, 2) }] };
+      }
 
       case "audit_content":
         const skillPath = path.join(skillsPath, args.skill_name);

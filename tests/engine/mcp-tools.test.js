@@ -35,3 +35,17 @@ test('serializeNode + saveNode creates a readable note node', async (t) => {
   assert.strictEqual(parsed.title, 'MCP test note');
   assert.ok(parsed.body.includes('body text'));
 });
+
+// ── search_knowledge ─────────────────────────────────────────────────────────
+
+test('BookLibSearcher.search returns an array (empty or populated)', async (t) => {
+  const { BookLibSearcher } = await import('../../lib/engine/searcher.js');
+  const searcher = new BookLibSearcher();
+  try {
+    const results = await searcher.search('null safety', 3);
+    assert.ok(Array.isArray(results), 'results is an array');
+  } catch (err) {
+    // Index not built in test env — acceptable
+    assert.ok(err.message.includes('booklib index'), 'informative error message');
+  }
+});
