@@ -12,6 +12,7 @@ import { BookLibAuditor } from "../lib/engine/auditor.js";
 import { BookLibHandoff } from "../lib/engine/handoff.js";
 import { BookLibScanner } from "../lib/engine/scanner.js";
 import { resolveBookLibPaths } from "../lib/paths.js";
+import { ContextBuilder } from "../lib/context-builder.js";
 
 const { skillsPath } = resolveBookLibPaths();
 const searcher = new BookLibSearcher();
@@ -85,6 +86,24 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           required: ["goal", "next"],
         },
       },
+      {
+        name: "get_context",
+        description: "Builds a compiled context prompt combining relevant book wisdom and personal knowledge graph nodes for a given task. Optionally provide a file path to also inject graph context for the owning component.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            task: {
+              type: "string",
+              description: "The task description (e.g. 'implement JWT refresh token rotation')",
+            },
+            file: {
+              type: "string",
+              description: "Optional: path to the file being edited — enables graph context injection for the owning component",
+            },
+          },
+          required: ["task"],
+        },
+      },
     ],
   };
 });
@@ -110,6 +129,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case "scan_project":
         const scanResults = await scanner.scan(args.directory || process.cwd());
         return { content: [{ type: "text", text: scanResults }] };
+
+      case "get_context": {
+        const builder = new ContextBuilder();
+        const result = args.file
+          ? await builder.buildWithGraph(args.task, args.file)
+          : await builder.build(args.task);
+        return { content: [{ type: "text", text: result }] };
+      }
 
       default:
         throw new Error(`Tool not found: ${name}`);
