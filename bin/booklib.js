@@ -157,12 +157,16 @@ async function main() {
       const promptOnly = args.includes('--prompt-only');
       const task = args.slice(1).filter(a => !a.startsWith('--')).join(' ');
       if (!task) {
-        console.error('Usage: booklib context "<task description>" [--prompt-only]');
+        console.error('Usage: booklib context "<task description>" [--prompt-only] [--file=<path>] [--no-graph]');
         console.error('Example: booklib context "implement a payment service in Kotlin with async error handling"');
         process.exit(1);
       }
       const builder = new ContextBuilder();
-      const result = await builder.build(task, { promptOnly });
+      const useGraph = !args.includes('--no-graph') && !promptOnly;
+      const fileArg = parseFlag(args, 'file');
+      const result = useGraph
+        ? await builder.buildWithGraph(task, fileArg)
+        : await builder.build(task, { promptOnly });
       console.log(result);
       break;
     }
