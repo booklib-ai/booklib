@@ -13,7 +13,11 @@ import { BookLibHandoff } from "../lib/engine/handoff.js";
 import { BookLibScanner } from "../lib/engine/scanner.js";
 import { resolveBookLibPaths } from "../lib/paths.js";
 import { ContextBuilder } from "../lib/context-builder.js";
-import { serializeNode, saveNode, generateNodeId } from "../lib/engine/graph.js";
+import {
+  serializeNode, saveNode, generateNodeId,
+  listNodes, loadNode, parseNodeFrontmatter,
+  resolveNodeRef, appendEdge,
+} from "../lib/engine/graph.js";
 import { BookLibIndexer } from "../lib/engine/indexer.js";
 
 const { skillsPath } = resolveBookLibPaths();
@@ -147,6 +151,42 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           required: ["title"],
         },
       },
+      {
+        name: "list_nodes",
+        description: "Lists all knowledge graph nodes with their id, title, and type.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            type_filter: {
+              type: "string",
+              description: "Optional: filter by node type ('note', 'research', 'component', 'decision', 'feature')",
+            },
+          },
+        },
+      },
+      {
+        name: "link_nodes",
+        description: "Creates a typed edge between two knowledge graph nodes. Accepts node IDs or partial title strings.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            from: {
+              type: "string",
+              description: "Source node — exact ID or partial title (e.g. 'JWT strategy')",
+            },
+            to: {
+              type: "string",
+              description: "Target node — exact ID or partial title (e.g. 'auth')",
+            },
+            type: {
+              type: "string",
+              enum: ["implements","contradicts","extends","applies-to","see-also","inspired-by","supersedes","depends-on"],
+              description: "Edge type",
+            },
+          },
+          required: ["from", "to", "type"],
+        },
+      },
     ],
   };
 });
@@ -216,6 +256,42 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           // Index may not exist yet — node is saved, will appear after booklib index
         }
         return { content: [{ type: "text", text: `Created note: ${id}\nTitle: ${args.title}\nFile: ${filePath}` }] };
+      }
+
+      case "list_nodes": {
+        const { nodesDir } = resolveBookLibPaths();
+        const allIds = listNodes({ nodesDir });
+        const nodes = allIds
+          .map(id => {
+            const raw = loadNode(id, { nodesDir });
+            if (!raw) return null;
+            const parsed = parseNodeFrontmatter(raw);
+            return { id, title: parsed.title ?? '', type: parsed.type ?? '' };
+          })
+          .filter(n => {
+            if (!n) return false;
+            if (args.type_filter) return n.type === args.type_filter;
+            return true;
+          });
+        return { content: [{ type: "text", text: JSON.stringify(nodes, null, 2) }] };
+      }
+
+      case "link_nodes": {
+        const fromId = resolveNodeRef(args.from);
+        const toId = resolveNodeRef(args.to);
+        const VALID_TYPES = ['implements','contradicts','extends','applies-to','see-also','inspired-by','supersedes','depends-on'];
+        if (!VALID_TYPES.includes(args.type)) {
+          throw new Error(`Invalid edge type "${args.type}". Valid: ${VALID_TYPES.join(', ')}`);
+        }
+        const edge = {
+          from: fromId,
+          to: toId,
+          type: args.type,
+          weight: 1.0,
+          created: new Date().toISOString().split('T')[0],
+        };
+        appendEdge(edge);
+        return { content: [{ type: "text", text: `Edge created: ${fromId} --[${args.type}]--> ${toId}` }] };
       }
 
       default:

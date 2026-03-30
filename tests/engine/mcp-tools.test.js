@@ -49,3 +49,25 @@ test('BookLibSearcher.search returns an array (empty or populated)', async (t) =
     assert.ok(err.message.includes('booklib index'), 'informative error message');
   }
 });
+
+// ── list_nodes + link_nodes ───────────────────────────────────────────────────
+
+test('listNodes returns array of IDs from a temp dir', async (t) => {
+  const { listNodes, saveNode, serializeNode, generateNodeId } = await import('../../lib/engine/graph.js');
+  const tmpDir = mkdtempSync(path.join(tmpdir(), 'mcp-list-'));
+  const id = generateNodeId('node');
+  saveNode(serializeNode({ id, type: 'note', title: 'List test' }), id, { nodesDir: tmpDir });
+  const ids = listNodes({ nodesDir: tmpDir });
+  assert.ok(ids.includes(id), 'saved node appears in list');
+});
+
+test('resolveNodeRef resolves partial title to node ID in temp dir', async (t) => {
+  const { saveNode, serializeNode, generateNodeId, resolveNodeRef } = await import('../../lib/engine/graph.js');
+  const tmpDir = mkdtempSync(path.join(tmpdir(), 'mcp-link-'));
+  const idA = generateNodeId('node');
+  const idB = generateNodeId('node');
+  saveNode(serializeNode({ id: idA, type: 'note', title: 'Source note' }), idA, { nodesDir: tmpDir });
+  saveNode(serializeNode({ id: idB, type: 'note', title: 'Auth component' }), idB, { nodesDir: tmpDir });
+  const resolvedA = resolveNodeRef('Source note', { nodesDir: tmpDir });
+  assert.strictEqual(resolvedA, idA);
+});
