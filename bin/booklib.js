@@ -154,13 +154,15 @@ async function main() {
       const { skillsPath, cachePath } = resolveBookLibPaths();
       const explicitDir = args[1] && !args[1].startsWith('--') ? args[1] : null;
       const indexer = new BookLibIndexer();
+      const verboseIndex = args.includes('--verbose');
 
+      process.stdout.write('► Building index...\n');
       if (explicitDir) {
         // Explicit directory: just index that one
-        await indexer.indexDirectory(explicitDir, true);
+        await indexer.indexDirectory(explicitDir, true, { quiet: !verboseIndex });
       } else {
         // Always index bundled skills first (clear on first pass)
-        await indexer.indexDirectory(BUNDLED_SKILLS_DIR, true);
+        await indexer.indexDirectory(BUNDLED_SKILLS_DIR, true, { quiet: !verboseIndex });
         // Add community/user skills — deduplicate to avoid double-indexing same dir
         const communitySkillsDir = path.join(cachePath, 'skills');
         const dirsToAdd = new Set();
@@ -170,7 +172,7 @@ async function main() {
           if (fs.existsSync(dir) && fs.readdirSync(dir).length > 0) {
             const count = fs.readdirSync(dir).length;
             console.log(`Indexing ${count} community skill(s) from ${dir}...`);
-            await indexer.indexDirectory(dir, false);
+            await indexer.indexDirectory(dir, false, { quiet: !verboseIndex });
           }
         }
       }
@@ -179,6 +181,7 @@ async function main() {
       const { nodesDir } = resolveKnowledgePaths();
       await indexer.indexKnowledgeNodes(nodesDir);
       console.log('✅ Index built');
+      console.log(`\n  → Now try: booklib search "your query"\n`);
       break;
     }
 
@@ -261,6 +264,14 @@ async function main() {
         path.join(BUNDLED_SKILLS_DIR, skillName),
       ];
       const skillPath = candidates.find(p => fs.existsSync(p)) ?? candidates[0];
+      if (!fs.existsSync(skillPath)) {
+        const available = fs.readdirSync(BUNDLED_SKILLS_DIR)
+          .filter(d => fs.statSync(path.join(BUNDLED_SKILLS_DIR, d)).isDirectory())
+          .sort();
+        console.error(`  Unknown skill: '${skillName}'`);
+        console.error(`  Available:     ${available.join(', ')}`);
+        process.exit(1);
+      }
       const report = await auditor.audit(skillPath, filePath);
       const divider = '─'.repeat(60);
       console.log(`\n► Audit prompt — paste into Claude, ChatGPT, or your AI assistant:\n${divider}\n`);
