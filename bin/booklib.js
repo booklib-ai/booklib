@@ -50,6 +50,13 @@ import { listAvailable as listAvailableRules, installRule as installRuleFn, stat
 const args = process.argv.slice(2);
 const command = args[0];
 
+// Handle --version / -v before anything else
+if (command === '--version' || command === '-v' || args.includes('--version')) {
+  const pkg = JSON.parse(fs.readFileSync(path.join(PACKAGE_ROOT, 'package.json'), 'utf8'));
+  console.log(`booklib v${pkg.version}`);
+  process.exit(0);
+}
+
 function parseFlag(args, flag) {
   const long = args.find(a => a.startsWith(`--${flag}=`))?.replace(`--${flag}=`, '');
   if (long !== undefined) return long;
@@ -155,6 +162,7 @@ async function main() {
       const explicitDir = args[1] && !args[1].startsWith('--') ? args[1] : null;
       const indexer = new BookLibIndexer();
       const verboseIndex = args.includes('--verbose');
+      const indexStart = Date.now();
 
       process.stdout.write('► Building index...\n');
       if (explicitDir) {
@@ -180,7 +188,8 @@ async function main() {
       const { resolveKnowledgePaths } = await import('../lib/engine/graph.js');
       const { nodesDir } = resolveKnowledgePaths();
       await indexer.indexKnowledgeNodes(nodesDir);
-      console.log('✅ Index built');
+      const elapsed = ((Date.now() - indexStart) / 1000).toFixed(0);
+      console.log(`✅ Index built in ${elapsed}s`);
       console.log(`\n  → Now try: booklib search "your query"\n`);
       break;
     }
