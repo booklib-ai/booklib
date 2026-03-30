@@ -1187,10 +1187,16 @@ case 'rules': {
       const isGlobal = args.includes('--global');
       try {
         const written = installRuleFn(lang, { global: isGlobal });
+        if (written.length === 0) {
+          console.log(`\n  No rule files found for '${lang}'.\n`);
+          break;
+        }
         if (isGlobal) {
-          const sizeBytes = fs.statSync(written[0]).size;
+          const st = rulesStatus();
+          const entry = st.global.find(g => g.lang === lang);
+          const sizeLabel = entry ? formatBytes(entry.sizeBytes) : '';
           console.log(`\n✓ Installed ${lang} rules globally`);
-          console.log(`  ~/.claude/CLAUDE.md  → added ${lang} section (${formatBytes(sizeBytes)})\n`);
+          console.log(`  ~/.claude/CLAUDE.md  → added ${lang} section (${sizeLabel})\n`);
         } else {
           console.log(`\n✓ Installed ${lang} rules`);
           for (const p of written) {
