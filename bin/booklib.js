@@ -15,6 +15,10 @@ import { BookLibSessionManager } from '../lib/engine/session-manager.js';
 import { BookLibAIFeatures } from '../lib/engine/ai-features.js';
 import { resolveBookLibPaths } from '../lib/paths.js';
 import { SkillFetcher, RequiresConfirmationError } from '../lib/skill-fetcher.js';
+import {
+  generateNodeId, serializeNode, saveNode, loadNode,
+  listNodes, appendEdge, parseNodeFrontmatter,
+} from '../lib/engine/graph.js';
 import { DiscoveryEngine } from '../lib/discovery-engine.js';
 import { ProjectInitializer } from '../lib/project-initializer.js';
 import { ContextBuilder } from '../lib/context-builder.js';
@@ -706,6 +710,89 @@ async function main() {
         console.log();
       }
       break;
+    }
+
+    case 'note': {
+      const title = args.slice(1).join(' ');
+      if (!title) { console.error('Usage: booklib note "<title>"'); process.exit(1); }
+      const id = generateNodeId('node');
+      const content = serializeNode({ id, type: 'note', title, content: '' });
+      const filePath = saveNode(content, id);
+      console.log(`✅ Note created: ${filePath}`);
+      console.log(`   ID: ${id}`);
+      break;
+    }
+
+    case 'component': {
+      const sub = args[1];
+      if (sub !== 'add') { console.error('Usage: booklib component add <name> "<glob>"'); process.exit(1); }
+      const name = args[2];
+      const glob = args[3];
+      if (!name || !glob) { console.error('Usage: booklib component add <name> "<glob>"'); process.exit(1); }
+      const id = `comp_${name.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
+      const content = serializeNode({
+        id,
+        type: 'component',
+        title: name,
+        nodePaths: [glob],
+        content: '',
+      });
+      const filePath = saveNode(content, id);
+      console.log(`✅ Component created: ${filePath}`);
+      console.log(`   ID: ${id}  paths: ${glob}`);
+      break;
+    }
+
+    case 'link': {
+      const [, from, to] = args;
+      const typeArg = args.find(a => a.startsWith('--type='))?.replace('--type=', '')
+        ?? (args.includes('--type') ? args[args.indexOf('--type') + 1] : null);
+      const weightArg = args.find(a => a.startsWith('--weight='))?.replace('--weight=', '');
+      if (!from || !to || !typeArg) {
+        console.error('Usage: booklib link <node1> <node2> --type <edge-type> [--weight 0.9]');
+        process.exit(1);
+      }
+      const VALID_TYPES = ['implements','contradicts','extends','applies-to','see-also','inspired-by','supersedes','depends-on'];
+      if (!VALID_TYPES.includes(typeArg)) {
+        console.error(`Invalid edge type "${typeArg}". Valid: ${VALID_TYPES.join(', ')}`);
+        process.exit(1);
+      }
+      const edge = {
+        from,
+        to,
+        type: typeArg,
+        weight: weightArg ? parseFloat(weightArg) : 1.0,
+        created: new Date().toISOString().split('T')[0],
+      };
+      appendEdge(edge);
+      console.log(`✅ Edge added: ${from} --[${typeArg}]--> ${to} (weight: ${edge.weight})`);
+      break;
+    }
+
+    case 'nodes': {
+      const sub = args[1];
+      if (!sub || sub === 'list') {
+        const ids = listNodes();
+        if (ids.length === 0) { console.log('No knowledge nodes yet. Try: booklib note "title"'); break; }
+        console.log(`\n📝 Knowledge nodes (${ids.length}):\n`);
+        for (const id of ids) {
+          const raw = loadNode(id);
+          const parsed = raw ? parseNodeFrontmatter(raw) : {};
+          const tags = Array.isArray(parsed.tags) ? parsed.tags.join(', ') : '';
+          console.log(`  ${id}  [${parsed.type ?? '?'}]  ${parsed.title ?? '?'}${tags ? `  (${tags})` : ''}`);
+        }
+        break;
+      }
+      if (sub === 'show') {
+        const id = args[2];
+        if (!id) { console.error('Usage: booklib nodes show <id>'); process.exit(1); }
+        const raw = loadNode(id);
+        if (!raw) { console.error(`Node "${id}" not found.`); process.exit(1); }
+        console.log(raw);
+        break;
+      }
+      console.error('Usage: booklib nodes list | booklib nodes show <id>');
+      process.exit(1);
     }
 
     default:
