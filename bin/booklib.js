@@ -2,6 +2,7 @@
 
 import path from 'path';
 import fs from 'fs';
+import os from 'os';
 import { createInterface } from 'node:readline';
 import { BookLibIndexer } from '../lib/engine/indexer.js';
 import { BookLibSearcher } from '../lib/engine/searcher.js';
@@ -61,6 +62,16 @@ const TOOL_MENU = [
   { num: 7, name: 'All',         target: 'all',      file: null },
 ];
 
+const MCP_TOOL_MENU = [
+  { num: 1, name: 'Claude Code', target: 'claude',   file: '.claude/settings.json' },
+  { num: 2, name: 'Cursor',      target: 'cursor',   file: '.cursor/mcp.json' },
+  { num: 3, name: 'Gemini CLI',  target: 'gemini',   file: '.gemini/settings.json' },
+  { num: 4, name: 'Codex',       target: 'codex',    file: '.codex/config.toml' },
+  { num: 5, name: 'Zed',         target: 'zed',      file: '.zed/settings.json' },
+  { num: 6, name: 'Continue',    target: 'continue', file: '.continue/mcpServers/booklib.yaml' },
+  { num: 7, name: 'All of the above', target: 'all', file: null },
+];
+
 async function promptToolSelection() {
   process.stdout.write('\nWhich AI tool do you use?\n\n');
   for (const t of TOOL_MENU) {
@@ -78,6 +89,39 @@ async function promptToolSelection() {
   const nums = answer.split(',').map(n => parseInt(n.trim(), 10)).filter(n => !isNaN(n));
   if (nums.length === 0 || nums.includes(7)) return 'all';
   const selected = nums.map(n => TOOL_MENU.find(t => t.num === n)?.target).filter(Boolean);
+  return selected.length > 0 ? selected.join(',') : 'all';
+}
+
+async function promptMcpToolSelection() {
+  const SEP = '━'.repeat(51);
+  process.stdout.write(`\n${SEP}\n  MCP Server Setup\n${SEP}\n\n`);
+  process.stdout.write('  BookLib has an MCP server — your AI tools can call it\n');
+  process.stdout.write('  directly to search knowledge, fetch context, and create\n');
+  process.stdout.write('  notes without leaving the conversation.\n\n');
+  process.stdout.write('  Wire up the MCP server? (Y/n): ');
+
+  const rl = createInterface({ input: process.stdin, output: process.stdout });
+  const yn = await new Promise(resolve => {
+    rl.once('line', line => { rl.close(); resolve(line.trim().toLowerCase()); });
+  });
+  if (yn === 'n' || yn === 'no') return null;
+
+  process.stdout.write('\n  Which tools should I configure? (select all that apply)\n\n');
+  for (const t of MCP_TOOL_MENU) {
+    const fileInfo = t.file ? `  → ${t.file}` : '';
+    process.stdout.write(`  ${t.num}. ${t.name.padEnd(18)}${fileInfo}\n`);
+  }
+  process.stdout.write('\n  Enter numbers separated by commas (1,2,5) or 7 for all: ');
+
+  const rl2 = createInterface({ input: process.stdin, output: process.stdout });
+  const answer = await new Promise(resolve => {
+    rl2.once('line', line => { rl2.close(); resolve(line.trim()); });
+  });
+
+  if (!answer) return 'all';
+  const nums = answer.split(',').map(n => parseInt(n.trim(), 10)).filter(n => !isNaN(n));
+  if (nums.length === 0 || nums.includes(7)) return 'all';
+  const selected = nums.map(n => MCP_TOOL_MENU.find(t => t.num === n)?.target).filter(Boolean);
   return selected.length > 0 ? selected.join(',') : 'all';
 }
 
@@ -560,6 +604,54 @@ async function main() {
           console.log(`\n🐝 Orchestrator: ${orch.label}`);
           console.log(`   Install : ${orch.install}`);
           console.log(`   Note    : ${orch.note}`);
+        }
+      }
+
+      // ── Phase 2: MCP server setup ─────────────────────────────────────────
+      if (!dryRun) {
+        const { configPath: cfgPath } = resolveBookLibPaths();
+        let mcpSavedConfig = {};
+        try { mcpSavedConfig = JSON.parse(fs.readFileSync(cfgPath, 'utf8')); } catch { /* no config yet */ }
+
+        const hasMcpToolFlag = args.some(a => a.startsWith('--mcp-tool='));
+        let mcpTargets;
+
+        if (hasMcpToolFlag) {
+          const mcpToolArg = args.find(a => a.startsWith('--mcp-tool='))?.split('=')[1];
+          mcpTargets = mcpToolArg === 'all'
+            ? ['claude', 'cursor', 'gemini', 'codex', 'zed', 'continue']
+            : mcpToolArg.split(',').map(t => t.trim());
+        } else if (mcpSavedConfig.mcpTools?.length) {
+          mcpTargets = mcpSavedConfig.mcpTools;
+          console.log(`Using saved MCP tool selection: ${mcpTargets.join(', ')} (pass --mcp-tool=X to override)\n`);
+        } else {
+          const selection = await promptMcpToolSelection();
+          if (selection === null) {
+            mcpTargets = null;
+          } else {
+            mcpTargets = selection === 'all'
+              ? ['claude', 'cursor', 'gemini', 'codex', 'zed', 'continue']
+              : selection.split(',');
+          }
+        }
+
+        // Persist selection (whether from prompt or --mcp-tool flag)
+        if (mcpTargets) {
+          try {
+            fs.writeFileSync(cfgPath, JSON.stringify({ ...mcpSavedConfig, mcpTools: mcpTargets }, null, 2));
+          } catch { /* best-effort */ }
+
+          console.log(`\nConfiguring MCP server for: ${mcpTargets.join(', ')}\n`);
+          await initializer.generateMcpConfigs({ tools: mcpTargets });
+          console.log('');
+        }
+
+        // Note for Windsurf users: MCP config is global-only
+        const phase1ToolList = targetArg === 'all'
+          ? ['claude', 'cursor', 'copilot', 'gemini', 'codex', 'windsurf']
+          : (targetArg?.split(',') ?? []);
+        if (phase1ToolList.includes('windsurf')) {
+          console.log('  ℹ️  Windsurf: MCP config is global-only. Set it up at ~/.codeium/windsurf/mcp_config.json manually.');
         }
       }
 
