@@ -451,9 +451,29 @@ async function main() {
       const orchestratorArg = args.find(a => a.startsWith('--orchestrator='))?.split('=')[1] ?? null;
       const dryRun        = args.includes('--dry-run');
       const hasToolFlag   = args.some(a => a.startsWith('--tool='));
-      const targetArg     = hasToolFlag
-        ? args.find(a => a.startsWith('--tool='))?.split('=')[1]
-        : dryRun ? 'all' : await promptToolSelection();
+
+      // Resolve which tools to write — priority: --tool flag > saved config > interactive prompt
+      let targetArg;
+      if (hasToolFlag) {
+        targetArg = args.find(a => a.startsWith('--tool='))?.split('=')[1];
+      } else if (!dryRun) {
+        const { configPath } = resolveBookLibPaths();
+        let savedConfig = {};
+        try { savedConfig = JSON.parse(fs.readFileSync(configPath, 'utf8')); } catch { /* no config yet */ }
+        if (savedConfig.tools?.length) {
+          targetArg = savedConfig.tools.join(',');
+          console.log(`Using saved tool selection: ${targetArg} (pass --tool=X to override)\n`);
+        } else {
+          targetArg = await promptToolSelection();
+          // Persist the choice so future re-runs skip the prompt
+          const updatedConfig = { ...savedConfig, tools: targetArg === 'all'
+            ? ['claude', 'cursor', 'copilot', 'gemini', 'codex', 'windsurf']
+            : targetArg.split(',') };
+          try { fs.writeFileSync(configPath, JSON.stringify(updatedConfig, null, 2)); } catch { /* best-effort */ }
+        }
+      } else {
+        targetArg = 'all';
+      }
       const skillsArg = args.find(a => a.startsWith('--skills='))?.split('=')[1];
       const rulesArg  = args.find(a => a.startsWith('--rules='))?.split('=')[1];
       const pullEcc       = args.includes('--ecc');
@@ -474,6 +494,17 @@ async function main() {
           process.exit(1);
         }
         if (detected.length > 0) console.log(`Auto-detected skills: ${detected.join(', ')}\n`);
+      }
+
+      // If --tool was passed explicitly, persist the new selection
+      if (hasToolFlag && !dryRun) {
+        const { configPath } = resolveBookLibPaths();
+        let savedConfig = {};
+        try { savedConfig = JSON.parse(fs.readFileSync(configPath, 'utf8')); } catch { /* no config yet */ }
+        const toolList = targetArg === 'all'
+          ? ['claude', 'cursor', 'copilot', 'gemini', 'codex', 'windsurf']
+          : targetArg.split(',');
+        try { fs.writeFileSync(configPath, JSON.stringify({ ...savedConfig, tools: toolList }, null, 2)); } catch { /* best-effort */ }
       }
 
       // Generate AI tool context files from skills
