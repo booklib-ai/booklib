@@ -101,3 +101,29 @@ test('summarize healthy skill has suggestion null', () => {
   const result = summarize(entries, ['effective-python']);
   assert.equal(result[0].suggestion, null);
 });
+
+test('appendUsage creates nested directories if absent', () => {
+  const dir = tmp();
+  const file = join(dir, 'deep', 'nested', 'usage.json');
+  appendUsage('effective-python', file);
+  const entries = readUsage(file);
+  assert.equal(entries.length, 1);
+  rmSync(dir, { recursive: true });
+});
+
+test('summarize sorts healthy skills before suggestions', () => {
+  const now = new Date().toISOString();
+  const oldDate = new Date(Date.now() - 62 * 24 * 60 * 60 * 1000).toISOString();
+  const entries = [
+    { skill: 'effective-python', timestamp: now },
+    { skill: 'effective-python', timestamp: now },
+    { skill: 'effective-python', timestamp: now },
+    { skill: 'effective-java', timestamp: oldDate },
+  ];
+  const result = summarize(entries, ['effective-python', 'effective-java', 'design-patterns']);
+  // healthy first
+  assert.equal(result[0].suggestion, null);
+  assert.equal(result[0].name, 'effective-python');
+  // suggestions after
+  assert.ok(result.slice(1).every(r => r.suggestion !== null));
+});
