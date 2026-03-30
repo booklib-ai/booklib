@@ -62,3 +62,11 @@ test('installTrackingHook returns scriptPath and settingsPath', () => {
   assert.ok(result.settingsPath.endsWith('settings.json'));
   rmSync(home, { recursive: true });
 });
+
+test('installTrackingHook throws on corrupted settings.json', () => {
+  const home = tmp();
+  mkdirSync(join(home, '.claude'), { recursive: true });
+  writeFileSync(join(home, '.claude', 'settings.json'), 'not valid json');
+  assert.throws(() => installTrackingHook(home), SyntaxError);
+  rmSync(home, { recursive: true });
+});
