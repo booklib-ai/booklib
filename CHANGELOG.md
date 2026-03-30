@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.12.0] - 2026-03-30
 
 ### Added
+- **`booklib init` Phase 2: MCP server setup** — after writing standards docs, `booklib init` now offers an interactive prompt to wire up the BookLib MCP server for Claude Code, Cursor, Gemini CLI, Codex, Zed, and Continue.dev
+- **MCP config generation** — writes project-level config files: `.claude/settings.json`, `.cursor/mcp.json`, `.gemini/settings.json`, `.codex/config.toml`, `.zed/settings.json`, `.continue/mcpServers/booklib.yaml`; merges safely into existing configs without overwriting other MCP servers
+- **`booklib-mcp` named bin** — `booklib-mcp` is now a first-class binary entry in `package.json`; MCP configs reference it directly by name
+- **`--mcp-tool=X` flag** — skip the interactive prompt and specify tools directly (e.g. `booklib init --mcp-tool=claude,cursor`); selection persisted to `booklib.config.json`
 - **Knowledge Graph** — unified node+edge model where any piece of knowledge (research, notes, decisions) and any part of your project (components, features) is a node; relationships are typed edges stored in `.booklib/knowledge/graph.jsonl`
 - **`booklib note "<title>"`** — create a note node from `$EDITOR`, stdin pipe, or interactive input
 - **`booklib dictate`** — type or dictate a note; AI structures the text, fixes grammar, extracts title and tags; `--raw` flag saves verbatim with no AI processing

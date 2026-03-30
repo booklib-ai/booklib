@@ -83,7 +83,7 @@ booklib hooks install
 booklib search "how to handle null values in Kotlin"
 ```
 
-**Using Cursor, Copilot, or Gemini?** `booklib init` writes the right context file for each tool automatically. For MCP-compatible editors, see [MCP Server](#mcp-server) below.
+**Using Cursor, Copilot, Gemini, Zed, or Continue?** `booklib init` writes the right context file for each tool automatically — and offers to wire up the MCP server so your AI tool can call booklib search and context directly mid-conversation.
 
 ---
 
@@ -215,12 +215,14 @@ booklib swarm-config            # list all configured triggers
 Scaffold context files for every AI tool in the project from a single command:
 
 ```bash
-booklib init                         # .cursor/rules, CLAUDE.md, copilot-instructions, .gemini/context.md
+booklib init                         # Phase 1: .cursor/rules, CLAUDE.md, copilot-instructions, .gemini/context.md
+                                     # Phase 2: MCP server config for Claude Code, Cursor, Gemini, Codex, Zed, Continue
 booklib init --orchestrator=obra     # also shows superpowers install instructions
 booklib init --orchestrator=ruflo    # also shows ruflo install instructions
+booklib init --mcp-tool=claude,zed   # non-interactive MCP setup for specific tools
 ```
 
-Re-run after adding new skills — it updates all files in place.
+`booklib init` runs in two phases: first it writes AI tool standards files, then it interactively offers to wire up the MCP server so your tools can call booklib search and context directly. Re-run after adding new skills — it updates all files in place without overwriting your existing configs.
 
 ---
 
@@ -381,11 +383,14 @@ All session data lives in `.booklib/` (gitignored). Nothing sent to any server.
 BookLib ships a local MCP server that gives any MCP-compatible AI agent access to both the skill library and the knowledge graph.
 
 ```bash
-# Claude Code
-claude mcp add booklib -- npx @booklib/skills mcp
+# Automatic setup (recommended) — run once, picks up all your tools:
+booklib init
 
-# Cursor / Windsurf / Zed — add to your mcp_servers config
-{ "mcpServers": { "booklib": { "command": "npx", "args": ["@booklib/skills", "mcp"] } } }
+# Manual setup if needed:
+# Claude Code
+claude mcp add booklib -- booklib-mcp
+
+# Cursor / Gemini / Codex / Zed / Continue — booklib init writes the right file for each
 ```
 
 **Available tools:**
