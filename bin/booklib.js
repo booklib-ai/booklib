@@ -3,7 +3,11 @@
 import path from 'path';
 import fs from 'fs';
 import os from 'os';
+import { fileURLToPath } from 'node:url';
 import { createInterface } from 'node:readline';
+
+const PACKAGE_ROOT = path.resolve(fileURLToPath(import.meta.url), '..', '..');
+const BUNDLED_SKILLS_DIR = path.join(PACKAGE_ROOT, 'skills');
 import { BookLibIndexer } from '../lib/engine/indexer.js';
 import { BookLibSearcher } from '../lib/engine/searcher.js';
 import { BookLibHandoff } from '../lib/engine/handoff.js';
@@ -140,17 +144,26 @@ async function main() {
   switch (command) {
     case 'index': {
       const { skillsPath, cachePath } = resolveBookLibPaths();
-      const targetDir = args[1] && !args[1].startsWith('--') ? args[1] : skillsPath;
+      const explicitDir = args[1] && !args[1].startsWith('--') ? args[1] : null;
       const indexer = new BookLibIndexer();
-      // Always clear first so stale chunks don't accumulate on rebuild
-      await indexer.indexDirectory(targetDir, true);
-      // Also include fetched community skills when present
-      const communitySkillsDir = path.join(cachePath, 'skills');
-      if (fs.existsSync(communitySkillsDir)) {
-        const communityCount = fs.readdirSync(communitySkillsDir).length;
-        if (communityCount > 0) {
-          console.log(`Indexing ${communityCount} community skill(s) from ${communitySkillsDir}...`);
-          await indexer.indexDirectory(communitySkillsDir, false);
+
+      if (explicitDir) {
+        // Explicit directory: just index that one
+        await indexer.indexDirectory(explicitDir, true);
+      } else {
+        // Always index bundled skills first (clear on first pass)
+        await indexer.indexDirectory(BUNDLED_SKILLS_DIR, true);
+        // Add community/user skills — deduplicate to avoid double-indexing same dir
+        const communitySkillsDir = path.join(cachePath, 'skills');
+        const dirsToAdd = new Set();
+        if (skillsPath !== BUNDLED_SKILLS_DIR) dirsToAdd.add(skillsPath);
+        if (communitySkillsDir !== skillsPath) dirsToAdd.add(communitySkillsDir);
+        for (const dir of dirsToAdd) {
+          if (fs.existsSync(dir) && fs.readdirSync(dir).length > 0) {
+            const count = fs.readdirSync(dir).length;
+            console.log(`Indexing ${count} community skill(s) from ${dir}...`);
+            await indexer.indexDirectory(dir, false);
+          }
         }
       }
       // Index knowledge nodes from .booklib/knowledge/nodes/
@@ -237,7 +250,11 @@ async function main() {
       const filePath = args[2];
       if (!skillName || !filePath) { console.error('Usage: booklib audit <skill-name> <file-path>'); process.exit(1); }
       const { skillsPath } = resolveBookLibPaths();
-      const skillPath = path.join(skillsPath, skillName);
+      const candidates = [
+        path.join(skillsPath, skillName),
+        path.join(BUNDLED_SKILLS_DIR, skillName),
+      ];
+      const skillPath = candidates.find(p => fs.existsSync(p)) ?? candidates[0];
       const report = await auditor.audit(skillPath, filePath);
       console.log(report);
       break;
