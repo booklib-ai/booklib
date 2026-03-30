@@ -181,6 +181,14 @@ async function main() {
         ? await builder.buildWithGraph(task, fileArg)
         : await builder.build(task, { promptOnly });
       console.log(result);
+
+      if (fileArg && useGraph && !result.includes('## Knowledge Graph Context')) {
+        process.stderr.write(
+          `\nTip: no component is mapped to "${fileArg}".\n` +
+          `  To enable graph context injection: booklib component add <name> "<glob>"\n` +
+          `  Example: booklib component add auth "src/auth/**"\n`
+        );
+      }
       break;
     }
 

@@ -205,3 +205,12 @@ test('research success message does not tell user to manually re-run index', asy
   const staleMessage = 'run booklib index to update the search index';
   assert.ok(!src.includes(staleMessage), 'stale re-index message removed from research case');
 });
+
+test('bin/booklib.js contains component hint for --file with no graph context', async (t) => {
+  const { readFileSync } = await import('node:fs');
+  const src = readFileSync(new URL('../../bin/booklib.js', import.meta.url), 'utf8');
+  assert.ok(
+    src.includes('booklib component add'),
+    'bin/booklib.js contains component hint for --file with no graph context'
+  );
+});
