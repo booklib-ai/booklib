@@ -2,6 +2,7 @@
 
 import path from 'path';
 import fs from 'fs';
+import { createInterface } from 'node:readline';
 import { BookLibIndexer } from '../lib/engine/indexer.js';
 import { BookLibSearcher } from '../lib/engine/searcher.js';
 import { BookLibHandoff } from '../lib/engine/handoff.js';
@@ -49,6 +50,36 @@ async function autoIndexNode(filePath) {
   }
 }
 
+
+const TOOL_MENU = [
+  { num: 1, name: 'Claude Code', target: 'claude',   file: 'CLAUDE.md' },
+  { num: 2, name: 'Cursor',      target: 'cursor',   file: '.cursor/rules/' },
+  { num: 3, name: 'Copilot',     target: 'copilot',  file: '.github/copilot-instructions.md' },
+  { num: 4, name: 'Gemini CLI',  target: 'gemini',   file: '.gemini/context.md' },
+  { num: 5, name: 'Codex',       target: 'codex',    file: 'AGENTS.md' },
+  { num: 6, name: 'Windsurf',    target: 'windsurf', file: '.windsurfrules' },
+  { num: 7, name: 'All',         target: 'all',      file: null },
+];
+
+async function promptToolSelection() {
+  process.stdout.write('\nWhich AI tool do you use?\n\n');
+  for (const t of TOOL_MENU) {
+    const fileInfo = t.file ? `  → ${t.file}` : '';
+    process.stdout.write(`  ${t.num}) ${t.name.padEnd(12)}${fileInfo}\n`);
+  }
+  process.stdout.write('\nSelect [1-7, or comma-separated for multiple]: ');
+
+  const rl = createInterface({ input: process.stdin, output: process.stdout });
+  const answer = await new Promise(resolve => {
+    rl.once('line', line => { rl.close(); resolve(line.trim()); });
+  });
+
+  if (!answer) return 'all';
+  const nums = answer.split(',').map(n => parseInt(n.trim(), 10)).filter(n => !isNaN(n));
+  if (nums.length === 0 || nums.includes(7)) return 'all';
+  const selected = nums.map(n => TOOL_MENU.find(t => t.num === n)?.target).filter(Boolean);
+  return selected.length > 0 ? selected.join(',') : 'all';
+}
 
 async function main() {
   switch (command) {
@@ -418,10 +449,13 @@ async function main() {
 
     case 'init': {
       const orchestratorArg = args.find(a => a.startsWith('--orchestrator='))?.split('=')[1] ?? null;
-      const targetArg = args.find(a => a.startsWith('--tool='))?.split('=')[1] ?? 'all';
+      const dryRun        = args.includes('--dry-run');
+      const hasToolFlag   = args.some(a => a.startsWith('--tool='));
+      const targetArg     = hasToolFlag
+        ? args.find(a => a.startsWith('--tool='))?.split('=')[1]
+        : dryRun ? 'all' : await promptToolSelection();
       const skillsArg = args.find(a => a.startsWith('--skills='))?.split('=')[1];
       const rulesArg  = args.find(a => a.startsWith('--rules='))?.split('=')[1];
-      const dryRun        = args.includes('--dry-run');
       const pullEcc       = args.includes('--ecc');
       const includeAgents   = pullEcc || args.includes('--agents');
       const includeCommands = pullEcc || args.includes('--commands');
@@ -444,7 +478,7 @@ async function main() {
 
       // Generate AI tool context files from skills
       if (skillList || initializer.detectRelevantSkills().length > 0) {
-        console.log(`Generating context files for: ${targetArg === 'all' ? 'cursor, claude, copilot, gemini' : targetArg}\n`);
+        console.log(`Generating context files for: ${targetArg === 'all' ? 'claude, cursor, copilot, gemini, codex, windsurf' : targetArg}\n`);
         const written = await initializer.init({ skills: skillList, target: targetArg, dryRun });
         if (!dryRun && written.length > 0) {
           console.log('');
@@ -979,7 +1013,7 @@ KNOWLEDGE GRAPH:
   note vs dictate: use note when you have content ready; use dictate to speak/type rough thoughts
 
 SKILLS:
-  booklib init [--tool=cursor|claude|copilot|gemini|all] [--skills=s1,s2]
+  booklib init [--tool=claude|cursor|copilot|gemini|codex|windsurf|all] [--skills=s1,s2]
                [--ecc] [--agents] [--commands] [--rules[=kotlin,python]]
                [--orchestrator=obra|ruflo] [--dry-run]
   booklib setup                                  Fetch & index all trusted community skills
