@@ -42,8 +42,8 @@ const PROFILES = {
     agents: ['ts-reviewer'],
   },
   architecture: {
-    description: 'DDD, microservices, system design, and data-intensive patterns',
-    skills: ['domain-driven-design', 'microservices-patterns', 'system-design-interview', 'data-intensive-patterns'],
+    description: 'DDD, microservices, system design, data-intensive patterns, and GoF design patterns',
+    skills: ['domain-driven-design', 'microservices-patterns', 'system-design-interview', 'data-intensive-patterns', 'design-patterns'],
     agents: ['architecture-reviewer'],
   },
   data: {
