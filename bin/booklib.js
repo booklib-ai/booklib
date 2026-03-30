@@ -1138,19 +1138,37 @@ async function main() {
 
   console.log('\n► Skill health check\n');
 
-  for (const item of summary) {
-    const icon     = item.suggestion ? '⚠' : '✓';
-    const useLabel = item.uses === 1 ? '1 use ' : `${item.uses} uses`;
-    let whenLabel;
-    if (item.lastUsed === null) {
-      const days = installDates[item.name]
-        ? Math.floor((Date.now() - installDates[item.name].getTime()) / MS_PER_DAY)
-        : null;
-      whenLabel = days !== null ? `never — installed ${days} days ago` : 'never';
-    } else {
-      whenLabel = `${item.daysSinceLastUse} day${item.daysSinceLastUse === 1 ? '' : 's'} ago`;
+  // Split summary into: active (has uses or has suggestion) vs silent (0 uses, no suggestion)
+  const active = summary.filter(s => s.uses > 0 || s.suggestion !== null);
+  const silentCount = summary.length - active.length;
+
+  const noUsageFile = !fs.existsSync(usagePath);
+  if (active.length === 0 && noUsageFile) {
+    // No hook, no data
+    console.log(`  ${installedNames.length} skill${installedNames.length === 1 ? '' : 's'} installed. No usage data yet.\n`);
+    console.log('  Tip: run `booklib doctor --install-hook` to start tracking usage automatically.');
+  } else if (active.length === 0) {
+    // Hook installed, no usage yet
+    console.log(`  ${installedNames.length} skill${installedNames.length === 1 ? '' : 's'} installed. No usage data yet.\n`);
+  } else {
+    // Show active skills
+    for (const item of active) {
+      const icon     = item.suggestion ? '⚠' : '✓';
+      const useLabel = item.uses === 1 ? '1 use ' : `${item.uses} uses`;
+      let whenLabel;
+      if (item.lastUsed === null) {
+        const days = installDates[item.name]
+          ? Math.floor((Date.now() - installDates[item.name].getTime()) / MS_PER_DAY)
+          : null;
+        whenLabel = days !== null ? `never — installed ${days} days ago` : 'never';
+      } else {
+        whenLabel = `${item.daysSinceLastUse} day${item.daysSinceLastUse === 1 ? '' : 's'} ago`;
+      }
+      console.log(`  ${icon} ${item.name.padEnd(SKILL_NAME_PAD)} ${useLabel.padEnd(USE_LABEL_PAD)} (${whenLabel})`);
     }
-    console.log(`  ${icon} ${item.name.padEnd(SKILL_NAME_PAD)} ${useLabel.padEnd(USE_LABEL_PAD)} (${whenLabel})`);
+    if (silentCount > 0) {
+      console.log(`\n  ${silentCount} other skill${silentCount === 1 ? '' : 's'} — no usage recorded`);
+    }
   }
 
   if (suggestions.length > 0) {
@@ -1166,7 +1184,7 @@ async function main() {
     console.log('\n  Run `booklib uninstall <skill>` to free up slots.');
   }
 
-  if (!fs.existsSync(usagePath)) {
+  if (noUsageFile && active.length > 0) {
     console.log('\n  Tip: run `booklib doctor --install-hook` to start tracking usage.');
   }
 
