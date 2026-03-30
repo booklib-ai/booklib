@@ -1,4 +1,12 @@
 #!/usr/bin/env node
+// Suppress noisy ML model initialisation warnings from @huggingface/transformers
+// The library uses console.warn for dtype/device messages — filter them here.
+const _origWarn = console.warn.bind(console);
+console.warn = (...args) => {
+  const msg = typeof args[0] === 'string' ? args[0] : '';
+  if (msg.includes('dtype not specified') || msg.includes('Using the default dtype')) return;
+  _origWarn(...args);
+};
 
 import path from 'path';
 import fs from 'fs';
@@ -221,7 +229,9 @@ async function main() {
           const label = isNode
             ? `📝 ${r.metadata?.title ?? r.metadata?.filePath ?? '?'} [${r.metadata?.type ?? 'note'}]`
             : `📚 ${r.metadata?.name ?? r.metadata?.filePath ?? '?'} (${r.metadata?.type ?? 'chunk'})`;
-          console.log(`  [${r.score?.toFixed(2)}] ${label}`);
+          const s = r.score ?? 0;
+          const bar = s >= 0.7 ? '████' : s >= 0.5 ? '███░' : s >= 0.35 ? '██░░' : '█░░░';
+          console.log(`  ${bar} ${label}`);
           if (rationale) console.log(rationale);
         });
       }
@@ -252,7 +262,12 @@ async function main() {
       ];
       const skillPath = candidates.find(p => fs.existsSync(p)) ?? candidates[0];
       const report = await auditor.audit(skillPath, filePath);
+      const divider = '─'.repeat(60);
+      console.log(`\n► Audit prompt — paste into Claude, ChatGPT, or your AI assistant:\n${divider}\n`);
       console.log(report);
+      console.log(`\n${divider}`);
+      console.log(`Tip: pipe to clipboard → booklib audit ${skillName} ${filePath} | pbcopy  (mac)`);
+      console.log(`                       → booklib audit ${skillName} ${filePath} | xclip   (linux)\n`);
       break;
     }
 
@@ -1149,11 +1164,11 @@ async function main() {
   const noUsageFile = !fs.existsSync(usagePath);
   if (active.length === 0 && noUsageFile) {
     // No hook, no data
-    console.log(`  ${installedNames.length} skill${installedNames.length === 1 ? '' : 's'} installed. No usage data yet.\n`);
+    console.log(`  ${installedNames.length} community skill${installedNames.length === 1 ? '' : 's'} in ~/.booklib/skills/. No usage data yet.\n`);
     console.log('  Tip: run `booklib doctor --install-hook` to start tracking usage automatically.');
   } else if (active.length === 0) {
     // Hook installed, no usage yet
-    console.log(`  ${installedNames.length} skill${installedNames.length === 1 ? '' : 's'} installed. No usage data yet.\n`);
+    console.log(`  ${installedNames.length} community skill${installedNames.length === 1 ? '' : 's'} in ~/.booklib/skills/. No usage data yet.\n`);
   } else {
     // Show active skills
     for (const item of active) {
@@ -1298,9 +1313,11 @@ case 'rules': {
   break;
 }
 
-    default:
-      console.log(`
-BookLib — AI Agent Skill Library
+    default: {
+      const showAll = args.includes('--all');
+      if (showAll) {
+        console.log(`
+BookLib — AI Agent Skill Library  (full reference)
 
 CORE:
   booklib index [dir] [--clear]                  Build semantic index (skills + knowledge nodes)
@@ -1321,7 +1338,6 @@ KNOWLEDGE GRAPH:
   booklib nodes show <id>                        View a specific node
 
   Edge types: implements · contradicts · extends · applies-to · see-also · inspired-by · supersedes · depends-on
-  note vs dictate: use note when you have content ready; use dictate to speak/type rough thoughts
 
 SKILLS:
   booklib init [--tool=claude|cursor|copilot|gemini|codex|windsurf|all] [--skills=s1,s2]
@@ -1331,6 +1347,7 @@ SKILLS:
   booklib discover [--refresh]                   List available community skills
   booklib fetch <skill-name>                     Fetch + index a specific skill
   booklib add <skill-id-or-url>                  Add skill via registry ID or URL
+  booklib rules list|install <lang>|status       Manage always-on language rules
 
 SESSION HANDOFF:
   booklib save-state --goal=".." --next=".."     Save agent context
@@ -1351,19 +1368,47 @@ SESSION MANAGEMENT:
 ORCHESTRATOR COMPATIBILITY:
   booklib sync                                   Sync all fetched skills → ~/.claude/skills/
 
-SWARM INTEGRATION:
-  booklib profile <role>                         Skill bundle for an agent role
-  booklib profile --list                         List all available roles
+SWARM / MULTI-AGENT:
+  booklib profile <role>|--list                  Skill bundle for an agent role
   booklib swarm-config [trigger]                 Trigger → roles → skills pipeline
-  booklib search "<q>" --role=<role>             Search within a role domain
-
-MULTI-AGENT:
-  booklib sessions-list                          List all agent sessions
-  booklib sessions-merge <id1,id2> <output>      Merge session insights
-  booklib sessions-lineage [parent] [child]      Track session lineage
-  booklib sessions-compare <ids> <file> <out>    Compare multi-agent audits
+  booklib sessions-list|merge|lineage|compare    Multi-agent session coordination
 
 `);
+      } else {
+        console.log(`
+BookLib — AI Agent Skill Library
+
+QUICK START (new project):
+  1. booklib init              → guided setup for this project
+  2. booklib index             → build the search index
+  3. booklib search "<query>"  → find relevant skills and patterns
+
+EVERYDAY USE:
+  booklib search "<query>"               Find skills matching your task
+  booklib context "<task>"               Cross-skill context for your AI
+  booklib audit <skill> <file>           Get a review prompt for a file
+  booklib scan                           Project-wide code quality heatmap
+  booklib doctor                         Check skill health & usage
+
+SKILLS:
+  booklib init                           Set up BookLib for this project
+  booklib rules list                     See available language rule sets
+  booklib rules install <lang>           Add rules to .cursor/rules/
+  booklib rules install <lang> --global  Add rules to ~/.claude/CLAUDE.md
+  booklib fetch <skill-name>             Install a specific skill
+  booklib discover                       Browse the community skill catalog
+
+KNOWLEDGE GRAPH:
+  booklib note "<title>"                 Save a note (pipe or type content)
+  booklib dictate                        Speak/type rough thoughts → structured note
+  booklib context "<task>" --file <f>   Include file-component context
+
+  booklib --help --all                   Show all commands including advanced
+
+`);
+      }
+      break;
+    }
   }
 }
 
