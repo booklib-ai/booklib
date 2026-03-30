@@ -945,11 +945,25 @@ async function main() {
 BookLib — AI Agent Skill Library
 
 CORE:
-  booklib index [dir] [--clear]                  Build semantic index
-  booklib search "<query>"                       Hybrid search (local + registry)
-  booklib audit <skill> <file>                   Deep-audit a file
-  booklib scan [dir] [--docs]                    Project-wide heatmap (--docs: scan markdown/text files)
-  booklib context "<task>" [--prompt-only]       Cross-skill context + conflict resolution for a task
+  booklib index [dir] [--clear]                  Build semantic index (skills + knowledge nodes)
+  booklib search "<query>"                       Search skills and your knowledge nodes
+  booklib audit <skill> <file>                   Deep-audit a file against a skill
+  booklib scan [dir] [--docs]                    Project-wide heatmap
+  booklib context "<task>" [--prompt-only]       Cross-skill context + conflict resolution
+  booklib context "<task>" --file <path>         Also injects graph context for the file's component
+
+KNOWLEDGE GRAPH:
+  booklib note "<title>"                         Create a note (pipe content via stdin, or opens editor)
+  booklib dictate [--raw] [--title "<t>"]        Type/speak rough thoughts → AI structures → note
+  booklib research "<topic>"                     Create a research template node to fill in later
+  booklib save-chat [--summarize] [--title "<t>"] Save current conversation as a knowledge node
+  booklib component add <name> "<glob>"          Define a project component (e.g. "auth" "src/auth/**")
+  booklib link "<title-or-id>" "<title-or-id>" --type <edge-type>  Connect two nodes
+  booklib nodes list                             List all knowledge nodes
+  booklib nodes show <id>                        View a specific node
+
+  Edge types: implements · contradicts · extends · applies-to · see-also · inspired-by · supersedes · depends-on
+  note vs dictate: use note when you have content ready; use dictate to speak/type rough thoughts
 
 SKILLS:
   booklib init [--tool=cursor|claude|copilot|gemini|all] [--skills=s1,s2]
@@ -957,7 +971,7 @@ SKILLS:
                [--orchestrator=obra|ruflo] [--dry-run]
   booklib setup                                  Fetch & index all trusted community skills
   booklib discover [--refresh]                   List available community skills
-  booklib fetch <skill-name>                     Fetch + index a specific skill (prompts if untrusted)
+  booklib fetch <skill-name>                     Fetch + index a specific skill
   booklib add <skill-id-or-url>                  Add skill via registry ID or URL
 
 SESSION HANDOFF:
