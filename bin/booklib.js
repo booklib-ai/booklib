@@ -1190,16 +1190,23 @@ case 'rules': {
         if (isGlobal) {
           const sizeBytes = fs.statSync(written[0]).size;
           console.log(`\n✓ Installed ${lang} rules globally`);
-          console.log(`  ${written[0]}  (${formatBytes(sizeBytes)})\n`);
+          console.log(`  ~/.claude/CLAUDE.md  → added ${lang} section (${formatBytes(sizeBytes)})\n`);
         } else {
           console.log(`\n✓ Installed ${lang} rules`);
           for (const p of written) {
-            console.log(`  ${p}  (${formatBytes(fs.statSync(p).size)})`);
+            console.log(`  ${path.relative(process.cwd(), p)}  (${formatBytes(fs.statSync(p).size)})`);
           }
           console.log('');
         }
       } catch (err) {
-        console.error(`  ${err.message}`);
+        const msg = err.message;
+        const availIdx = msg.indexOf('. Available:');
+        if (availIdx !== -1) {
+          console.error(`  ${msg.slice(0, availIdx)}`);
+          console.error(`  ${msg.slice(availIdx + 2)}`);
+        } else {
+          console.error(`  ${msg}`);
+        }
         process.exit(1);
       }
       break;
