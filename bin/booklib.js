@@ -942,7 +942,7 @@ async function main() {
       await autoIndexNode(filePath);
       console.log(`✅ Research template created: ${filePath}`);
       console.log(`   ID: ${id}`);
-      console.log(`   Fill in the findings and run booklib index to update the search index.`);
+      console.log(`   Fill in the findings — this node is already indexed and searchable.`);
       break;
     }
 
