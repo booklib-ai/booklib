@@ -378,15 +378,36 @@ All session data lives in `.booklib/` (gitignored). Nothing sent to any server.
 
 ## MCP Server
 
+BookLib ships a local MCP server that gives any MCP-compatible AI agent access to both the skill library and the knowledge graph.
+
 ```bash
 # Claude Code
-claude mcp add booklib -- node /path/to/bin/booklib-mcp.js
+claude mcp add booklib -- npx @booklib/skills mcp
 
-# Cursor / Windsurf
-{ "mcpServers": { "booklib": { "command": "node", "args": ["/path/to/bin/booklib-mcp.js"] } } }
+# Cursor / Windsurf / Zed — add to your mcp_servers config
+{ "mcpServers": { "booklib": { "command": "npx", "args": ["@booklib/skills", "mcp"] } } }
 ```
 
-MCP tools: `search_skills` · `audit_content` · `save_session_state` · `scan_project`
+**Available tools:**
+
+| Tool | What it does |
+|---|---|
+| `get_context` | Full context builder — returns compiled book wisdom + knowledge graph for a task |
+| `get_context` (with `file`) | Graph-aware context: also injects knowledge linked to the file's component |
+| `create_note` | Create a knowledge node and index it immediately |
+| `search_knowledge` | Semantic search across skills + knowledge nodes (filterable by source) |
+| `list_nodes` | List all knowledge graph nodes with id, title, type |
+| `link_nodes` | Create a typed edge between two nodes (by title or ID) |
+| `audit_content` | Systematic file audit against a specific skill |
+| `save_session_state` | Save agent progress for handoff to another agent |
+
+**Agent compatibility:**
+
+| | Claude Code | Cursor | Windsurf | Zed | Continue.dev | Copilot |
+|---|---|---|---|---|---|---|
+| Skills (auto-inject) | ✅ hook | via MCP | via MCP | via MCP | via MCP | ❌ |
+| Context builder | ✅ | ✅ MCP | ✅ MCP | ✅ MCP | ✅ MCP | ❌ |
+| Knowledge graph | ✅ | ✅ MCP | ✅ MCP | ✅ MCP | ✅ MCP | ❌ |
 
 ---
 

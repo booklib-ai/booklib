@@ -20,6 +20,11 @@ import {
 } from "../lib/engine/graph.js";
 import { BookLibIndexer } from "../lib/engine/indexer.js";
 
+const EDGE_TYPES = Object.freeze([
+  'implements', 'contradicts', 'extends', 'applies-to',
+  'see-also', 'inspired-by', 'supersedes', 'depends-on',
+]);
+
 const { skillsPath } = resolveBookLibPaths();
 const searcher = new BookLibSearcher();
 const auditor = new BookLibAuditor();
@@ -29,7 +34,7 @@ const scanner = new BookLibScanner();
 const server = new Server(
   {
     name: "booklib-engine",
-    version: "1.1.0",
+    version: "1.2.0",
   },
   {
     capabilities: {
@@ -180,7 +185,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             },
             type: {
               type: "string",
-              enum: ["implements","contradicts","extends","applies-to","see-also","inspired-by","supersedes","depends-on"],
+              enum: EDGE_TYPES,
               description: "Edge type",
             },
           },
@@ -279,9 +284,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case "link_nodes": {
         const fromId = resolveNodeRef(args.from);
         const toId = resolveNodeRef(args.to);
-        const VALID_TYPES = ['implements','contradicts','extends','applies-to','see-also','inspired-by','supersedes','depends-on'];
-        if (!VALID_TYPES.includes(args.type)) {
-          throw new Error(`Invalid edge type "${args.type}". Valid: ${VALID_TYPES.join(', ')}`);
+        if (!EDGE_TYPES.includes(args.type)) {
+          throw new Error(`Invalid edge type "${args.type}". Valid: ${EDGE_TYPES.join(', ')}`);
         }
         const edge = {
           from: fromId,
