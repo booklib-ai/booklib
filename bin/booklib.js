@@ -656,6 +656,15 @@ async function main() {
         }
         throw err;
       }
+      // Slot limit warning
+      const slotCount = countInstalledSlots();
+      if (slotCount >= 32) {
+        console.log(`\n  ⚠  You now have ${slotCount}/32 skill slots used.`);
+        console.log('     Claude may truncate skill descriptions. Run "booklib doctor" to clean up.');
+      } else if (slotCount >= 28) {
+        console.log(`\n  ⚠  ${slotCount}/32 slots used — approaching limit.`);
+        console.log('     Run "booklib doctor" to review installed skills.');
+      }
       break;
     }
 
