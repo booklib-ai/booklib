@@ -4,7 +4,8 @@
   "description": "Book knowledge distilled into structured AI skills for Claude Code and other AI assistants",
   "bin": {
     "skills": "bin/skills.js",
-    "booklib": "bin/booklib.js"
+    "booklib": "bin/booklib.js",
+    "booklib-mcp": "bin/booklib-mcp.js"
   },
   "type": "module",
   "keywords": [
