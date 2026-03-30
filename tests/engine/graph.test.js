@@ -148,3 +148,9 @@ test('traverseEdges follows edges in both directions', () => {
   const ids = result.map(r => r.id);
   assert.ok(ids.includes('x'));
 });
+
+test('serializeNode preserves body content passed via stdin path', async (t) => {
+  const result = serializeNode({ id: 'node_test01', type: 'note', title: 'My note', content: 'body text here' });
+  assert.ok(result.includes('body text here'), 'body text is in the serialized node');
+  assert.ok(result.includes('title: My note'), 'title is in frontmatter');
+});

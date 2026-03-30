@@ -742,7 +742,9 @@ async function main() {
       const title = args.slice(1).join(' ');
       if (!title) { console.error('Usage: booklib note "<title>"'); process.exit(1); }
       const id = generateNodeId('node');
-      const body = await readStdin();
+      let body = await readStdin();
+      if (!body) body = openEditor('') ?? '';
+      if (!body) body = await readInteractive('Enter note content (Ctrl+D to finish):\n');
       const noteContent = serializeNode({ id, type: 'note', title, content: body ?? '' });
       const filePath = saveNode(noteContent, id);
       await autoIndexNode(filePath);
