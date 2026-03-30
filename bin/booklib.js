@@ -31,6 +31,8 @@ import {
   buildDictatePrompt, buildSummarizePrompt, callAnthropicAPI,
   openEditor, readStdin, readInteractive,
 } from '../lib/engine/capture.js';
+import { readUsage, summarize } from '../lib/doctor/usage-tracker.js';
+import { installTrackingHook } from '../lib/doctor/hook-installer.js';
 
 const args = process.argv.slice(2);
 const command = args[0];
@@ -1062,6 +1064,88 @@ async function main() {
       if (slots > SKILL_LIMIT - 4) console.log('  ⚠  Approaching slot limit. Run "booklib doctor" to review.');
       break;
     }
+
+    case 'doctor': {
+  const installHook = args.includes('--install-hook');
+
+  if (installHook) {
+    try {
+      const result = installTrackingHook();
+      if (result.alreadyInstalled) {
+        console.log('  Hook already installed — nothing changed.');
+      } else {
+        console.log('✓ Tracking hook installed');
+        console.log(`  Script:  ${result.scriptPath}`);
+        console.log(`  Hook:    ${result.settingsPath} → PreToolUse[Skill]`);
+        console.log('');
+        console.log('  Skill usage will be tracked from now on.');
+        console.log('  Run `booklib doctor` after a few sessions to see your report.');
+      }
+    } catch (err) {
+      console.error(`Failed to install hook: ${err.message}`);
+      process.exit(1);
+    }
+    break;
+  }
+
+  const claudeSkillsDir = path.join(os.homedir(), '.claude', 'skills');
+  const usagePath       = path.join(os.homedir(), '.booklib', 'usage.json');
+  const installedNames  = listInstalledSkillNames();
+  const usageData       = readUsage(usagePath);
+
+  if (installedNames.length === 0) {
+    console.log('\n  No BookLib-managed skills installed. Run "booklib init" to get started.\n');
+    break;
+  }
+
+  const installDates = {};
+  for (const name of installedNames) {
+    try {
+      const stat = fs.statSync(path.join(claudeSkillsDir, name, '.booklib'));
+      installDates[name] = stat.mtime;
+    } catch { /* unknown install date */ }
+  }
+
+  const summary     = summarize(usageData, installedNames, installDates);
+  const suggestions = summary.filter(s => s.suggestion !== null);
+
+  console.log('\n► Skill health check\n');
+
+  for (const item of summary) {
+    const icon     = item.suggestion ? '⚠' : '✓';
+    const useLabel = item.uses === 1 ? '1 use ' : `${item.uses} uses`;
+    let whenLabel;
+    if (item.lastUsed === null) {
+      const days = installDates[item.name]
+        ? Math.floor((Date.now() - installDates[item.name].getTime()) / 86400000)
+        : null;
+      whenLabel = days !== null ? `never — installed ${days} days ago` : 'never';
+    } else {
+      whenLabel = `${item.daysSinceLastUse} day${item.daysSinceLastUse === 1 ? '' : 's'} ago`;
+    }
+    console.log(`  ${icon} ${item.name.padEnd(24)} ${useLabel.padEnd(9)} (${whenLabel})`);
+  }
+
+  if (suggestions.length > 0) {
+    console.log('\n  Suggestions:');
+    for (const item of suggestions) {
+      if (item.suggestion === 'remove') {
+        console.log(`  · ${item.name}: never used — consider removing (booklib uninstall ${item.name})`);
+      } else {
+        const days = item.daysSinceLastUse ?? 60;
+        console.log(`  · ${item.name}: ${item.uses} use${item.uses === 1 ? '' : 's'} in ${days} days — low activity`);
+      }
+    }
+    console.log('\n  Run `booklib uninstall <skill>` to free up slots.');
+  }
+
+  if (!fs.existsSync(usagePath)) {
+    console.log('\n  Tip: run `booklib doctor --install-hook` to start tracking usage.');
+  }
+
+  console.log('');
+  break;
+}
 
     default:
       console.log(`
