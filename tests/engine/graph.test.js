@@ -11,6 +11,9 @@ import {
   loadNode,
   parseNodeFrontmatter,
   listNodes,
+  appendEdge,
+  loadEdges,
+  traverseEdges,
 } from '../../lib/engine/graph.js';
 
 function tmpDir() {
@@ -82,4 +85,66 @@ test('listNodes returns all node IDs', () => {
   assert.ok(ids.includes('node_a1b2c3d4'));
   assert.ok(ids.includes('node_b2c3d4e5'));
   rmSync(dir, { recursive: true });
+});
+
+test('appendEdge writes edge to graph.jsonl', () => {
+  const dir = tmpDir();
+  const graphFile = join(dir, 'graph.jsonl');
+  const edge = { from: 'node_a', to: 'node_b', type: 'implements', weight: 1.0 };
+  appendEdge(edge, { graphFile });
+  const lines = readFileSync(graphFile, 'utf8').trim().split('\n');
+  assert.equal(lines.length, 1);
+  assert.deepEqual(JSON.parse(lines[0]), edge);
+  rmSync(dir, { recursive: true });
+});
+
+test('loadEdges returns all edges from graph.jsonl', () => {
+  const dir = tmpDir();
+  const graphFile = join(dir, 'graph.jsonl');
+  appendEdge({ from: 'a', to: 'b', type: 'see-also', weight: 1.0 }, { graphFile });
+  appendEdge({ from: 'b', to: 'c', type: 'extends', weight: 0.8 }, { graphFile });
+  const edges = loadEdges({ graphFile });
+  assert.equal(edges.length, 2);
+  assert.equal(edges[0].from, 'a');
+  assert.equal(edges[1].from, 'b');
+  rmSync(dir, { recursive: true });
+});
+
+test('loadEdges returns empty array when file missing', () => {
+  const dir = tmpDir();
+  const edges = loadEdges({ graphFile: join(dir, 'missing.jsonl') });
+  assert.deepEqual(edges, []);
+  rmSync(dir, { recursive: true });
+});
+
+test('traverseEdges finds 1-hop neighbours', () => {
+  const edges = [
+    { from: 'a', to: 'b', type: 'implements', weight: 1.0 },
+    { from: 'a', to: 'c', type: 'see-also', weight: 0.9 },
+    { from: 'd', to: 'e', type: 'extends', weight: 0.8 },
+  ];
+  const result = traverseEdges('a', edges, 1);
+  const ids = result.map(r => r.id);
+  assert.ok(ids.includes('b'));
+  assert.ok(ids.includes('c'));
+  assert.ok(!ids.includes('d'));
+});
+
+test('traverseEdges does not revisit nodes (no infinite cycles)', () => {
+  const edges = [
+    { from: 'a', to: 'b', type: 'see-also', weight: 1.0 },
+    { from: 'b', to: 'a', type: 'see-also', weight: 1.0 },
+  ];
+  const result = traverseEdges('a', edges, 3);
+  const ids = result.map(r => r.id);
+  assert.ok(!ids.includes('a'));
+});
+
+test('traverseEdges follows edges in both directions', () => {
+  const edges = [
+    { from: 'x', to: 'target', type: 'applies-to', weight: 1.0 },
+  ];
+  const result = traverseEdges('target', edges, 1);
+  const ids = result.map(r => r.id);
+  assert.ok(ids.includes('x'));
 });
