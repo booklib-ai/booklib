@@ -33,6 +33,7 @@ import {
 } from '../lib/engine/capture.js';
 import { readUsage, summarize } from '../lib/doctor/usage-tracker.js';
 import { installTrackingHook } from '../lib/doctor/hook-installer.js';
+import { listAvailable as listAvailableRules, installRule as installRuleFn, status as rulesStatus } from '../lib/rules/rules-manager.js';
 
 const args = process.argv.slice(2);
 const command = args[0];
@@ -42,6 +43,12 @@ function parseFlag(args, flag) {
   if (long !== undefined) return long;
   const idx = args.indexOf(`--${flag}`);
   return idx !== -1 ? args[idx + 1] : null;
+}
+
+function formatBytes(bytes) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 /** Auto-index a freshly saved node so it's immediately searchable. Silently skips on error. */
@@ -1147,6 +1154,95 @@ async function main() {
   }
 
   console.log('');
+  break;
+}
+
+case 'rules': {
+  const subcommand = args[1];
+
+  switch (subcommand) {
+    case 'list': {
+      const available = listAvailableRules();
+      console.log('\n► Available rule sets\n');
+      console.log(`  ${'Bundled:'.padEnd(22)} ${'project'.padEnd(12)} global`);
+      for (const item of available) {
+        const icon = (item.installedProject || item.installedGlobal) ? '✓' : '·';
+        const proj = item.installedProject ? 'installed' : '—';
+        const glob = item.installedGlobal  ? 'installed' : '—';
+        console.log(`  ${icon} ${item.lang.padEnd(22)} ${proj.padEnd(12)} ${glob}`);
+      }
+      console.log('');
+      console.log('  booklib rules install <lang>           → add to .cursor/rules/');
+      console.log('  booklib rules install <lang> --global  → add to ~/.claude/CLAUDE.md');
+      console.log('');
+      break;
+    }
+
+    case 'install': {
+      const lang = args[2];
+      if (!lang || lang.startsWith('--')) {
+        console.error('  Usage: booklib rules install <lang> [--global]');
+        process.exit(1);
+      }
+      const isGlobal = args.includes('--global');
+      try {
+        const written = installRuleFn(lang, { global: isGlobal });
+        if (isGlobal) {
+          const sizeBytes = fs.statSync(written[0]).size;
+          console.log(`\n✓ Installed ${lang} rules globally`);
+          console.log(`  ${written[0]}  (${formatBytes(sizeBytes)})\n`);
+        } else {
+          console.log(`\n✓ Installed ${lang} rules`);
+          for (const p of written) {
+            console.log(`  ${p}  (${formatBytes(fs.statSync(p).size)})`);
+          }
+          console.log('');
+        }
+      } catch (err) {
+        console.error(`  ${err.message}`);
+        process.exit(1);
+      }
+      break;
+    }
+
+    case 'status': {
+      const st = rulesStatus();
+      console.log('\n► Rules status\n');
+
+      if (st.cursor.length === 0 && st.global.length === 0) {
+        console.log('  No rules installed in current project.\n');
+        console.log('  Tip: booklib rules install <lang> to add standards.\n');
+        break;
+      }
+
+      if (st.cursor.length > 0) {
+        console.log('  .cursor/rules/ (project)');
+        for (const item of st.cursor) {
+          console.log(`    ${path.basename(item.path).padEnd(42)} ${formatBytes(item.sizeBytes)}`);
+        }
+        console.log('');
+      }
+
+      if (st.global.length > 0) {
+        console.log('  ~/.claude/CLAUDE.md (global)');
+        for (const item of st.global) {
+          console.log(`    ${item.lang.padEnd(42)} ${formatBytes(item.sizeBytes)}`);
+        }
+        console.log('');
+      }
+
+      const projCount = st.cursor.length;
+      const globCount = st.global.length;
+      console.log(`  Total: ${formatBytes(st.totalBytes)} across ${projCount} project + ${globCount} global rule(s)\n`);
+      break;
+    }
+
+    default:
+      console.log('\n  booklib rules list                          — show available rule sets');
+      console.log('  booklib rules install <lang>                — install to .cursor/rules/');
+      console.log('  booklib rules install <lang> --global       — install to ~/.claude/CLAUDE.md');
+      console.log('  booklib rules status                        — show installed rules + sizes\n');
+  }
   break;
 }
 
