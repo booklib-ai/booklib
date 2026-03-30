@@ -477,6 +477,14 @@ Full commit history at [github.com/booklib-ai/skills](https://github.com/booklib
 
 ---
 
+## Supporters
+
+Thanks to everyone who supports BookLib on [Ko-fi](https://ko-fi.com/booklib) ☕
+
+*Be the first — your name here.*
+
+---
+
 ## License
 
 MIT
