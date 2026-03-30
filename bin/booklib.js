@@ -1087,12 +1087,27 @@ MULTI-AGENT:
   }
 }
 
-main()
-  .then(() => {
-    if (Math.random() < 0.1) {
+function maybeNudgeStar() {
+  const NUDGE_EVERY = 50;
+  const NO_NUDGE_COMMANDS = new Set(['help', 'search', 'context', 'audit', 'scan', 'nodes', 'sessions', 'sessions-list']);
+  if (!command || NO_NUDGE_COMMANDS.has(command) || args.includes('--help')) return;
+
+  const counterFile = path.join(os.homedir(), '.booklib', 'nudge-count');
+  try {
+    const count = fs.existsSync(counterFile) ? parseInt(fs.readFileSync(counterFile, 'utf8'), 10) || 0 : 0;
+    const next = count + 1;
+    fs.mkdirSync(path.dirname(counterFile), { recursive: true });
+    fs.writeFileSync(counterFile, String(next));
+    if (next % NUDGE_EVERY === 0) {
       console.error('\n  ⭐  If BookLib is useful, a star helps: https://github.com/booklib-ai/skills\n');
     }
-  })
+  } catch {
+    // never block the CLI for a nudge
+  }
+}
+
+main()
+  .then(() => maybeNudgeStar())
   .catch(err => {
     console.error(err.message);
     process.exit(1);
