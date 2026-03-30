@@ -13,6 +13,8 @@ import { BookLibHandoff } from "../lib/engine/handoff.js";
 import { BookLibScanner } from "../lib/engine/scanner.js";
 import { resolveBookLibPaths } from "../lib/paths.js";
 import { ContextBuilder } from "../lib/context-builder.js";
+import { serializeNode, saveNode, generateNodeId } from "../lib/engine/graph.js";
+import { BookLibIndexer } from "../lib/engine/indexer.js";
 
 const { skillsPath } = resolveBookLibPaths();
 const searcher = new BookLibSearcher();
@@ -104,6 +106,24 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           required: ["task"],
         },
       },
+      {
+        name: "create_note",
+        description: "Creates a knowledge node of type 'note' in the local knowledge graph and immediately indexes it for search.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            title: {
+              type: "string",
+              description: "The note title (e.g. 'JWT refresh token strategy')",
+            },
+            content: {
+              type: "string",
+              description: "The note body (markdown supported). Leave empty to create a stub.",
+            },
+          },
+          required: ["title"],
+        },
+      },
     ],
   };
 });
@@ -136,6 +156,25 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           ? await builder.buildWithGraph(args.task, args.file)
           : await builder.build(args.task);
         return { content: [{ type: "text", text: result }] };
+      }
+
+      case "create_note": {
+        const { nodesDir, indexPath } = resolveBookLibPaths();
+        const id = generateNodeId('node');
+        const nodeContent = serializeNode({
+          id,
+          type: 'note',
+          title: args.title,
+          content: args.content ?? '',
+        });
+        const filePath = saveNode(nodeContent, id, { nodesDir });
+        try {
+          const indexer = new BookLibIndexer(indexPath);
+          await indexer.indexNodeFile(filePath, nodesDir);
+        } catch {
+          // Index may not exist yet — node is saved, will appear after booklib index
+        }
+        return { content: [{ type: "text", text: `Created note: ${id}\nTitle: ${args.title}\nFile: ${filePath}` }] };
       }
 
       default:

@@ -21,3 +21,17 @@ test('ContextBuilder.buildWithGraph returns skill context even with no file', as
   assert.ok(typeof result === 'string', 'result is a string');
   assert.ok(result.length > 50, 'result has meaningful content');
 });
+
+// ── create_note ───────────────────────────────────────────────────────────────
+
+test('serializeNode + saveNode creates a readable note node', async (t) => {
+  const { serializeNode, saveNode, loadNode, parseNodeFrontmatter, generateNodeId } = await import('../../lib/engine/graph.js');
+  const tmpDir = mkdtempSync(path.join(tmpdir(), 'mcp-note-'));
+  const id = generateNodeId('node');
+  const content = serializeNode({ id, type: 'note', title: 'MCP test note', content: 'body text' });
+  const filePath = saveNode(content, id, { nodesDir: tmpDir });
+  const raw = loadNode(id, { nodesDir: tmpDir });
+  const parsed = parseNodeFrontmatter(raw);
+  assert.strictEqual(parsed.title, 'MCP test note');
+  assert.ok(parsed.body.includes('body text'));
+});
