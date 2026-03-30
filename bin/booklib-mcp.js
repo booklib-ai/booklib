@@ -10,26 +10,19 @@ import {
 import { BookLibSearcher } from "../lib/engine/searcher.js";
 import { BookLibAuditor } from "../lib/engine/auditor.js";
 import { BookLibHandoff } from "../lib/engine/handoff.js";
-import { BookLibScanner } from "../lib/engine/scanner.js";
 import { resolveBookLibPaths } from "../lib/paths.js";
 import { ContextBuilder } from "../lib/context-builder.js";
 import {
   serializeNode, saveNode, generateNodeId,
   listNodes, loadNode, parseNodeFrontmatter,
-  resolveNodeRef, appendEdge,
+  resolveNodeRef, appendEdge, EDGE_TYPES,
 } from "../lib/engine/graph.js";
 import { BookLibIndexer } from "../lib/engine/indexer.js";
-
-const EDGE_TYPES = Object.freeze([
-  'implements', 'contradicts', 'extends', 'applies-to',
-  'see-also', 'inspired-by', 'supersedes', 'depends-on',
-]);
 
 const { skillsPath } = resolveBookLibPaths();
 const searcher = new BookLibSearcher();
 const auditor = new BookLibAuditor();
 const handoff = new BookLibHandoff();
-const scanner = new BookLibScanner();
 
 const server = new Server(
   {
@@ -231,10 +224,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case "save_session_state":
         handoff.saveState(args);
         return { content: [{ type: "text", text: `Session state saved successfully for ${args.name || 'current branch'}.` }] };
-
-      case "scan_project":
-        const scanResults = await scanner.scan(args.directory || process.cwd());
-        return { content: [{ type: "text", text: scanResults }] };
 
       case "get_context": {
         const builder = new ContextBuilder();

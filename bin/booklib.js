@@ -18,7 +18,7 @@ import { SkillFetcher, RequiresConfirmationError } from '../lib/skill-fetcher.js
 import {
   generateNodeId, serializeNode, saveNode, loadNode,
   listNodes, appendEdge, parseNodeFrontmatter, resolveKnowledgePaths,
-  resolveNodeRef,
+  resolveNodeRef, EDGE_TYPES,
 } from '../lib/engine/graph.js';
 import { DiscoveryEngine } from '../lib/discovery-engine.js';
 import { ProjectInitializer } from '../lib/project-initializer.js';
@@ -793,9 +793,8 @@ async function main() {
         console.error('Usage: booklib link "<title-or-id>" "<title-or-id>" --type <edge-type> [--weight 0.9]');
         process.exit(1);
       }
-      const VALID_TYPES = ['implements','contradicts','extends','applies-to','see-also','inspired-by','supersedes','depends-on'];
-      if (!VALID_TYPES.includes(typeArg)) {
-        console.error(`Invalid edge type "${typeArg}". Valid: ${VALID_TYPES.join(', ')}`);
+      if (!EDGE_TYPES.includes(typeArg)) {
+        console.error(`Invalid edge type "${typeArg}". Valid: ${EDGE_TYPES.join(', ')}`);
         process.exit(1);
       }
       let from, to;
