@@ -11,3 +11,4 @@ __pycache__/
 .env*
 .booklib/
 .worktrees/
+docs/superpowers/
