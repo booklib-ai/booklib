@@ -1067,6 +1067,9 @@ async function main() {
 
     case 'doctor': {
   const installHook = args.includes('--install-hook');
+  const MS_PER_DAY = 24 * 60 * 60 * 1000;
+  const SKILL_NAME_PAD = 24;
+  const USE_LABEL_PAD  = 9;
 
   if (installHook) {
     try {
@@ -1117,13 +1120,13 @@ async function main() {
     let whenLabel;
     if (item.lastUsed === null) {
       const days = installDates[item.name]
-        ? Math.floor((Date.now() - installDates[item.name].getTime()) / 86400000)
+        ? Math.floor((Date.now() - installDates[item.name].getTime()) / MS_PER_DAY)
         : null;
       whenLabel = days !== null ? `never — installed ${days} days ago` : 'never';
     } else {
       whenLabel = `${item.daysSinceLastUse} day${item.daysSinceLastUse === 1 ? '' : 's'} ago`;
     }
-    console.log(`  ${icon} ${item.name.padEnd(24)} ${useLabel.padEnd(9)} (${whenLabel})`);
+    console.log(`  ${icon} ${item.name.padEnd(SKILL_NAME_PAD)} ${useLabel.padEnd(USE_LABEL_PAD)} (${whenLabel})`);
   }
 
   if (suggestions.length > 0) {
