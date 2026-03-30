@@ -25,10 +25,20 @@ const command = args[0];
 async function main() {
   switch (command) {
     case 'index': {
-      const { skillsPath } = resolveBookLibPaths();
+      const { skillsPath, cachePath } = resolveBookLibPaths();
       const targetDir = args[1] && !args[1].startsWith('--') ? args[1] : skillsPath;
       const indexer = new BookLibIndexer();
-      await indexer.indexDirectory(targetDir, args.includes('--clear'));
+      // Always clear first so stale chunks don't accumulate on rebuild
+      await indexer.indexDirectory(targetDir, true);
+      // Also include fetched community skills when present
+      const communitySkillsDir = path.join(cachePath, 'skills');
+      if (fs.existsSync(communitySkillsDir)) {
+        const communityCount = fs.readdirSync(communitySkillsDir).length;
+        if (communityCount > 0) {
+          console.log(`Indexing ${communityCount} community skill(s) from ${communitySkillsDir}...`);
+          await indexer.indexDirectory(communitySkillsDir, false);
+        }
+      }
       console.log('✅ Index built');
       break;
     }
@@ -113,7 +123,9 @@ async function main() {
 
     case 'scan': {
       const scanner = new BookLibScanner();
-      const report = await scanner.scan(args[1] || process.cwd());
+      const docsMode = args.includes('--docs');
+      const scanDir = args.filter(a => !a.startsWith('--'))[1] || process.cwd();
+      const report = await scanner.scan(scanDir, { mode: docsMode ? 'docs' : 'code' });
       console.log(report);
       break;
     }
@@ -580,7 +592,7 @@ async function main() {
 
     case 'profile': {
       const role = args[1];
-      const ALL_ROLES = ['architect', 'coder', 'reviewer', 'tester', 'security', 'frontend', 'optimizer', 'devops', 'ai-engineer', 'manager'];
+      const ALL_ROLES = ['architect', 'coder', 'reviewer', 'tester', 'security', 'frontend', 'optimizer', 'devops', 'ai-engineer', 'manager', 'product', 'legal', 'writer', 'strategist', 'designer'];
       if (!role || role === '--list') {
         console.log('\nAvailable agent roles:\n');
         ALL_ROLES.forEach(r => console.log(`  • ${r}`));
@@ -635,6 +647,11 @@ async function main() {
         release:    { roles: ['devops', 'security'],       phases: ['docker', 'secrets', 'headers', 'changelog'] },
         research:   { roles: ['ai-engineer', 'architect'], phases: ['prompt-design', 'rag', 'reliability'] },
         manage:     { roles: ['manager'],                  phases: ['leadership', 'retro', 'process'] },
+        product:    { roles: ['product', 'writer'],        phases: ['requirements', 'user-stories', 'prioritization'] },
+        legal:      { roles: ['legal'],                    phases: ['contract-review', 'risk-assessment', 'compliance'] },
+        write:      { roles: ['writer'],                   phases: ['outline', 'draft', 'edit', 'review'] },
+        strategy:   { roles: ['strategist', 'product'],   phases: ['discovery', 'positioning', 'roadmap'] },
+        design:     { roles: ['designer', 'frontend'],    phases: ['visual-hierarchy', 'typography', 'brand'] },
       };
 
       if (!trigger || trigger === '--list') {
@@ -691,7 +708,7 @@ CORE:
   booklib index [dir] [--clear]                  Build semantic index
   booklib search "<query>"                       Hybrid search (local + registry)
   booklib audit <skill> <file>                   Deep-audit a file
-  booklib scan [dir]                             Project-wide compliance heatmap
+  booklib scan [dir] [--docs]                    Project-wide heatmap (--docs: scan markdown/text files)
   booklib context "<task>" [--prompt-only]       Cross-skill context + conflict resolution for a task
 
 SKILLS:

@@ -5,6 +5,22 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.11.0] - 2026-03-30
+
+### Added
+- **Non-code domain support** — `booklib context` now works for product, writing, strategy, design, and legal domains using the same semantic extraction as code skills
+- **6 new community skills in registry** — `article-writing`, `product-lens`, `market-research`, `investor-materials`, `brand-guidelines`, `web-design-guidelines` with accurate source URLs
+- **`booklib scan --docs` mode** — prose quality checks (passive voice, unresolved placeholders, hedge words, user story completeness) for `.md`/`.txt` files
+- **`writing-plans/audit.json`** — bundled static rules for markdown document scanning
+- **New profiles** — `product`, `writer`, `strategist`, `designer`, `legal` roles added to `booklib profile` and `booklib swarm-config`
+- **`skill-router` extended** — now routes non-code tasks to PM, legal, writing, strategy, brand, and web design skills; added 5 new routing rules and 3 conflict resolution entries
+- **Prose sentence extraction** — `extractItems()` now splits long prose blocks by sentence boundary so non-code skill content surfaces as individual, rankable principles
+
+### Fixed
+- **Self-conflict bug** — `booklib context` no longer shows `skill vs skill` conflict warnings when the same skill name appears in both bundled and community index; deduplication by skill name now runs before conflict resolution
+- **Community skills indexed** — `booklib index` now indexes `~/.booklib/skills/` after rebuilding the bundled index, so community skills appear in `booklib search` and `booklib context` results
+- **YAML parse errors** — `booklib index` now skips malformed skill files with a warning instead of aborting the entire index rebuild
+
 ## [1.10.0] - 2026-03-28
 
 ### Added

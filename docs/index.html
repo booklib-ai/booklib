@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>BookLib Skills — Open knowledge ecosystem for AI coding agents</title>
-  <meta name="description" content="22 curated book skills + 258 community skills for AI coding agents. Automatic context injection, semantic search, and compatibility with obra/superpowers and ruflo."/>
+  <title>BookLib Skills — Open knowledge ecosystem for AI agents</title>
+  <meta name="description" content="22 curated book skills + 258 community skills for AI agents. Works for code, product, writing, strategy, and design. Automatic context injection, semantic search, and compatibility with obra/superpowers and ruflo."/>
   <meta property="og:title" content="booklib-ai/skills"/>
-  <meta property="og:description" content="An open knowledge ecosystem for AI coding agents. Book-grounded skills with discovery, semantic search, and orchestrator compatibility."/>
+  <meta property="og:description" content="An open knowledge ecosystem for AI agents. Book-grounded skills for code, product, writing, strategy, and design — with discovery, semantic search, and orchestrator compatibility."/>
   <meta property="og:image" content="https://booklib-ai.github.io/skills/og.png"/>
   <meta property="og:image:width" content="1200"/>
   <meta property="og:image:height" content="630"/>
@@ -419,7 +419,7 @@
     <div class="hero-glow"></div>
     <img class="logo" src="https://raw.githubusercontent.com/booklib-ai/skills/main/assets/logo.svg" alt="Logo"/>
     <h1>Skills</h1>
-    <p>An open knowledge ecosystem for AI coding agents. 22 book-grounded skills + 258 community skills, with automatic context injection and obra/superpowers &amp; ruflo compatibility.</p>
+    <p>An open knowledge ecosystem for AI agents — code and beyond. 22 book-grounded skills + 258 community skills covering programming, product, writing, strategy, and design. Automatic context injection and obra/superpowers &amp; ruflo compatibility.</p>
 
     <div class="install-container">
       <div class="install-code" id="main-cmd">npm install -g @booklib/skills</div>
@@ -491,6 +491,7 @@
           <li style="display: flex; gap: var(--space-3);"><span style="color: var(--primary); font-weight: 800;">✔</span> Semantic search across all skill content</li>
           <li style="display: flex; gap: var(--space-3);"><span style="color: var(--primary); font-weight: 800;">✔</span> obra/superpowers &amp; ruflo compatible</li>
           <li style="display: flex; gap: var(--space-3);"><span style="color: var(--primary); font-weight: 800;">✔</span> 258+ community skills discoverable</li>
+          <li style="display: flex; gap: var(--space-3);"><span style="color: var(--primary); font-weight: 800;">✔</span> Works beyond code — product, writing, strategy, design</li>
         </ul>
       </div>
       <div class="terminal">
@@ -604,7 +605,7 @@
     { id: "architecture", name: "Architecture" },
     { id: "data", name: "Data" },
     { id: "ui", name: "UI/UX" },
-    { id: "lean", name: "Lean Startup" },
+    { id: "lean", name: "Lean/Strategy" },
   ];
 
   const state = { filter: 'all', search: '' };
@@ -762,16 +763,17 @@
 
   // Demo Animation
   const demoLines = [
-    { type: 'cmd', text: 'booklib hooks install' },
-    { type: 'output', text: '✓ PreToolUse hook registered' },
-    { type: 'output', text: '✓ Hook watching: Read · Edit · Write · Bash' },
-    { type: 'system', text: '# Now editing order_service.py...' },
-    { type: 'cmd', text: '# [Edit] order_service.py' },
-    { type: 'output', text: '→ Hook: matched <span class="highlight">effective-python</span>' },
-    { type: 'output', text: '→ Hook: matched <span class="highlight">domain-driven-design</span>' },
-    { type: 'output', text: 'Injecting 2 skill chunks into context...' },
-    { type: 'output', text: '✓ Agent now has book-grounded expertise' },
-    { type: 'system', text: '--- AUTO-INJECTION COMPLETE ---' }
+    { type: 'cmd', text: 'booklib context "write a compelling investor update"' },
+    { type: 'output', text: '🔎 Searching 22 bundled + 258 community skills...' },
+    { type: 'output', text: '→ Matched: <span class="highlight">investor-materials</span> · <span class="highlight">article-writing</span>' },
+    { type: 'system', text: '# From Investor Materials:' },
+    { type: 'output', text: '  Lead with traction, not vision. Open with your top metric.' },
+    { type: 'system', text: '# From Article Writing:' },
+    { type: 'output', text: '  Write to one reader. Specificity builds trust at scale.' },
+    { type: 'output', text: '' },
+    { type: 'cmd', text: 'booklib scan --docs docs/' },
+    { type: 'output', text: '✓ 14 .md files · 2 violations · 86% healthy' },
+    { type: 'system', text: '--- WISDOM HEATMAP COMPLETE ---' }
   ];
 
   function runDemo() {

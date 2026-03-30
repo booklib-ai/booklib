@@ -1,0 +1,34 @@
+{
+  "skill": "writing-plans",
+  "description": "Static prose quality checks for markdown documents — specs, PRDs, user stories, plans.",
+  "rules": [
+    {
+      "id": "wp-001",
+      "name": "Passive voice",
+      "pattern": "\\b(was|were)\\s+[a-z]+ed\\b",
+      "message": "Passive voice detected — prefer active voice for clarity",
+      "severity": "LOW"
+    },
+    {
+      "id": "wp-002",
+      "name": "Unresolved placeholder",
+      "pattern": "\\b(TBD|TBC|TODO|FIXME|lorem ipsum)\\b",
+      "message": "Unresolved placeholder — fill in before publishing",
+      "severity": "HIGH"
+    },
+    {
+      "id": "wp-003",
+      "name": "Hedge words",
+      "pattern": "\\b(should probably|might want to|could potentially|sort of|kind of|basically|essentially)\\b",
+      "message": "Hedge word weakens intent — use precise language",
+      "severity": "LOW"
+    },
+    {
+      "id": "wp-004",
+      "name": "User story without acceptance criteria",
+      "pattern": "[Aa]s a (?:user|customer|admin|developer).{0,80}(?:[Ii] want|[Ii] need|[Ii] can)",
+      "message": "User story found — ensure acceptance criteria (Given/When/Then) are defined nearby",
+      "severity": "MEDIUM"
+    }
+  ]
+}

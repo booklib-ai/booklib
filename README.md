@@ -9,8 +9,9 @@
 <h1 align="center">booklib-ai/skills</h1>
 
 <p align="center">
-  An open knowledge ecosystem for AI coding agents.<br/>
-  Curated skills from canonical books — plus community discovery, semantic search, and orchestrator compatibility.
+  An open knowledge ecosystem for AI agents — code and beyond.<br/>
+  Curated skills from canonical books — plus community discovery, semantic search, and orchestrator compatibility.<br/>
+  Works for programming, product, writing, strategy, design, and more.
 </p>
 
 <p align="center">
@@ -40,6 +41,8 @@ BookLib packages expert knowledge from canonical programming books into skills t
 | **Discovery ecosystem** | Finds and fetches skills from GitHub repos, community registries, and npm packages |
 
 BookLib is not a static install. It's a local knowledge engine: semantic search over skill content, automatic context injection via hooks, role-based profiles for swarm agents, and a sync bridge that makes every fetched skill available to any Claude Code-compatible orchestrator.
+
+**Not just for code.** BookLib works for any domain where expert knowledge matters. The community registry includes skills for product management, technical writing, brand design, market research, and business strategy — `booklib context` extracts relevant principles from all of them the same way it does for code.
 
 ---
 
@@ -171,7 +174,7 @@ booklib profile security     # skills for a security auditor
 booklib profile architect    # skills for a system design agent
 ```
 
-Roles: `architect` · `coder` · `reviewer` · `tester` · `security` · `frontend` · `optimizer` · `devops` · `ai-engineer` · `manager`
+Roles: `architect` · `coder` · `reviewer` · `tester` · `security` · `frontend` · `optimizer` · `devops` · `ai-engineer` · `manager` · `product` · `writer` · `strategist` · `designer` · `legal`
 
 Get a full skill map for a swarm trigger pipeline:
 
@@ -226,10 +229,15 @@ Output:
 - **Genuine conflicts** (two books equally applicable): interactive `[a/b]` prompt with passage previews so you can make an informed choice
 - A final **sharp system-prompt block** with all resolved knowledge stitched together, every piece cited with its source
 
+Works for any domain, not just code:
+
 ```bash
 booklib context "design a rate limiter for a distributed API"
 booklib context "refactor a God class in Python" --prompt-only   # just the prompt, no report
 booklib context "add streaming to a Next.js chat UI" --prompt-only | pbcopy
+booklib context "write a compelling investor update email"
+booklib context "design a landing page for a SaaS product"
+booklib context "structure a product requirements document for checkout"
 ```
 
 ---
@@ -240,7 +248,8 @@ booklib context "add streaming to a Next.js chat UI" --prompt-only | pbcopy
 booklib search "how to handle null values in Kotlin"
 booklib search "event sourcing vs CQRS" --role=architect   # filter to skills tagged for that role
 booklib audit effective-kotlin src/PaymentService.kt        # systematic review of a file
-booklib scan    # wisdom heatmap — violations per skill across the whole project
+booklib scan            # wisdom heatmap — violations per skill across the whole project (code)
+booklib scan --docs     # prose quality scan — passive voice, placeholders, hedge words in .md/.txt files
 ```
 
 ---
@@ -384,6 +393,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for the full guide.
 | v1.10.0 — 22 skills, 8 agents, profiles, rules | Mar 28, 2026 |
 | BookLib Engine — semantic search, session handoff, multi-agent coordination | Mar 29, 2026 |
 | Discovery engine — GitHub, npm, community registry, obra/superpowers, ruflo compatibility | Mar 29, 2026 |
+| v1.11.0 — Non-code domain support (product, writing, strategy, design), `scan --docs` mode | Mar 30, 2026 |
 
 Full commit history at [github.com/booklib-ai/skills](https://github.com/booklib-ai/skills).
 

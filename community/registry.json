@@ -1503,6 +1503,114 @@
       "roles": [
         "manager"
       ]
+    },
+    {
+      "name": "article-writing",
+      "description": "Write articles, guides, blog posts, tutorials, newsletter issues, and other long-form content in a distinctive voice.",
+      "stars": 0,
+      "specificity": 5,
+      "topic": "writing",
+      "languages": ["none"],
+      "triggers": {
+        "extensions": [".md", ".txt"],
+        "keywords": ["article", "blog post", "guide", "tutorial", "newsletter", "long-form", "editorial", "draft"]
+      },
+      "source": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/affaan-m/everything-claude-code/main/skills/article-writing/SKILL.md"
+      },
+      "trusted": true,
+      "roles": ["writer"]
+    },
+    {
+      "name": "product-lens",
+      "description": "Validate the 'why' before building, run product diagnostics, convert vague ideas into specs.",
+      "stars": 0,
+      "specificity": 5,
+      "topic": "product-management",
+      "languages": ["none"],
+      "triggers": {
+        "extensions": [".md", ".txt"],
+        "keywords": ["product", "spec", "user research", "discovery", "prioritization", "jobs to be done", "JTBD", "why"]
+      },
+      "source": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/affaan-m/everything-claude-code/main/skills/product-lens/SKILL.md"
+      },
+      "trusted": true,
+      "roles": ["product"]
+    },
+    {
+      "name": "market-research",
+      "description": "Market research, competitive analysis, investor due diligence, and industry intelligence.",
+      "stars": 0,
+      "specificity": 5,
+      "topic": "market-research",
+      "languages": ["none"],
+      "triggers": {
+        "extensions": [".md", ".txt"],
+        "keywords": ["market research", "competitive analysis", "TAM", "market sizing", "competitors", "positioning", "diligence"]
+      },
+      "source": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/affaan-m/everything-claude-code/main/skills/market-research/SKILL.md"
+      },
+      "trusted": true,
+      "roles": ["strategist", "product"]
+    },
+    {
+      "name": "investor-materials",
+      "description": "Pitch decks, one-pagers, investor memos, financial models, and fundraising materials.",
+      "stars": 0,
+      "specificity": 5,
+      "topic": "fundraising",
+      "languages": ["none"],
+      "triggers": {
+        "extensions": [".md", ".txt"],
+        "keywords": ["pitch deck", "investor", "fundraising", "one-pager", "financial model", "accelerator"]
+      },
+      "source": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/affaan-m/everything-claude-code/main/skills/investor-materials/SKILL.md"
+      },
+      "trusted": true,
+      "roles": ["strategist", "product"]
+    },
+    {
+      "name": "brand-guidelines",
+      "description": "Apply brand colors, typography, and visual style to any artifact. Use when brand consistency matters.",
+      "stars": 0,
+      "specificity": 5,
+      "topic": "brand-design",
+      "languages": ["none"],
+      "triggers": {
+        "extensions": [".md", ".txt", ".css"],
+        "keywords": ["brand", "logo", "typography", "color palette", "style guide", "visual identity"]
+      },
+      "source": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/anthropics/skills/main/skills/brand-guidelines/SKILL.md"
+      },
+      "trusted": true,
+      "roles": ["designer"]
+    },
+    {
+      "name": "web-design-guidelines",
+      "description": "Web platform design and accessibility — responsive layouts, a11y, interaction patterns.",
+      "stars": 0,
+      "specificity": 4,
+      "topic": "web-design",
+      "languages": ["none"],
+      "triggers": {
+        "extensions": [".md", ".css", ".html"],
+        "keywords": ["web design", "layout", "typography", "accessibility", "a11y", "responsive", "UX"]
+      },
+      "source": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/ehmo/platform-design-skills/main/skills/web/SKILL.md"
+      },
+      "trusted": true,
+      "roles": ["designer", "frontend"]
     }
   ]
 }

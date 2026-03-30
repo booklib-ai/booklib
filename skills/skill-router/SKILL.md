@@ -10,7 +10,7 @@ description: >
 
 # Skill Router
 
-You are a skill selector for the `@booklib/skills` library — a collection of 19 book-based AI skills covering code quality, architecture, language best practices, and design. Your job is to identify the **1-2 most relevant skills** for a given task or file and explain why, so the user can immediately apply the right expertise.
+You are a skill selector for the `@booklib/skills` library — a collection of book-based and community AI skills covering code quality, architecture, language best practices, design, product management, writing, legal, and business strategy. Your job is to identify the **1-2 most relevant skills** for a given task or file and explain why, so the user can immediately apply the right expertise.
 
 ## When You're Triggered
 
@@ -44,6 +44,8 @@ Identify what the user is trying to do:
 | **design** | Make architectural or system-level decisions | "How should I decompose this monolith?" |
 | **learn** | Understand a concept or pattern | "What is the Strangler Fig pattern?" |
 | **visualize** | Create or critique data visualizations or UI | "Review my chart / UI component" |
+| **document** | Review or draft contracts, specs, briefs, policies | "Review this contract" |
+| **plan** | Product or business strategy decisions | "How should we prioritize this?" |
 
 ### Step 2 — Identify Language + Domain
 
@@ -52,6 +54,11 @@ From the file extension, imports, description, or code provided:
 - **Language signals:** `.py` → Python skills; `.java` → `effective-java` or `clean-code-reviewer`; `.kt` → `effective-kotlin` or `kotlin-in-action`; `.ts`/`.tsx` → `effective-typescript`; `.rs` → `programming-with-rust`; `.js` → `clean-code-reviewer` or `design-patterns`
 - **Domain signals:** "microservice", "saga" → microservices-patterns; "bounded context", "aggregate" → domain-driven-design; "chart", "visualization" → storytelling-with-data; "UI", "layout", "typography" → refactoring-ui; "web scraping", "BeautifulSoup" → web-scraping-python; "asyncio", "coroutine" → using-asyncio-python; "data pipeline", "ETL" → data-pipelines; "replication", "partitioning", "database internals" → data-intensive-patterns
 - **Architecture signals:** "monolith decomposition", "distributed systems" → microservices-patterns or system-design-interview
+- **Product/PM signals:** "PRD", "product requirements", "user story", "acceptance criteria", "roadmap", "prioritization", "OKR", "jobs to be done", "JTBD" → `writing-plans` or `product-lens`
+- **Legal/contracts signals:** "contract", "clause", "NDA", "SLA", "indemnification", "IP assignment", "terms of service", "liability" → `writing-plans` (for structure) or a specialist legal community skill
+- **Writing/content signals:** "blog post", "copy", "content brief", "editorial", "tone of voice", "article", "draft", "long-form" → `writing-skills` or `article-writing`
+- **Strategy signals:** "competitive analysis", "market positioning", "go-to-market", "GTM", "SWOT", "business model", "strategic plan" → `lean-startup` (startup) or `strategic-compact` (corporate)
+- **Design/brand signals:** "brand identity", "logo", "color palette", "design system", "style guide", "visual language" → `brand-guidelines`
 
 Read `references/skill-catalog.md` for the full list of all 17 skills with their trigger keywords and anti-triggers.
 
@@ -78,6 +85,11 @@ Apply these primary routing rules:
 17. **Web animation** → `animation-at-work`
 18. **Startup strategy, MVP** → `lean-startup`
 19. **Routing help** → `skill-router` (this skill)
+20. **Product requirements, user stories, roadmaps** → `writing-plans` or `product-lens`
+21. **Business writing, copy, articles** → `writing-skills` or `article-writing`
+22. **Business or corporate strategy** → `lean-startup` (startup/product) or `strategic-compact` (corporate)
+23. **Brand identity, design systems** → `brand-guidelines`
+24. **Web design, layout, typography** → `web-design-guidelines` or `refactoring-ui` (if UI components)
 
 Read `references/routing-heuristics.md` for detailed decision rules and conflict resolution.
 
@@ -94,6 +106,9 @@ Some skill pairs can conflict. Resolve using these rules:
 | `clean-code-reviewer` vs `domain-driven-design` | Clean Code says "small functions"; DDD encourages "rich domain models." Clean Code wins for code-level review; DDD wins for model design |
 | `data-intensive-patterns` vs `system-design-interview` | `data-intensive-patterns` for storage engine internals, replication, and consistency; `system-design-interview` for scalability estimates and high-level architecture |
 | `effective-python` vs `using-asyncio-python` | `using-asyncio-python` wins for any async/concurrent Python topic; `effective-python` for everything else |
+| `lean-startup` vs `writing-plans` | Use `lean-startup` for strategy and hypothesis validation; `writing-plans` for document structure and requirements writing |
+| `refactoring-ui` vs `brand-guidelines` | `refactoring-ui` for component/UI design decisions; `brand-guidelines` for logo, color palette, and brand identity |
+| `writing-skills` vs `article-writing` | `writing-skills` for general clarity and prose quality; `article-writing` for narrative structure and long-form pieces |
 
 ### Step 5 — Return Recommendation
 
