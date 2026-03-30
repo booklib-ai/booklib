@@ -1087,17 +1087,50 @@ MULTI-AGENT:
   }
 }
 
-function maybeNudgeStar() {
-  const NUDGE_EVERY = 50;
-  const NO_NUDGE_COMMANDS = new Set(['help', 'search', 'context', 'audit', 'scan', 'nodes', 'sessions', 'sessions-list']);
-  if (!command || NO_NUDGE_COMMANDS.has(command) || args.includes('--help')) return;
+const NO_NUDGE_COMMANDS = new Set(['help', 'search', 'context', 'audit', 'scan', 'nodes', 'sessions', 'sessions-list']);
+const BOOKLIB_DIR = path.join(os.homedir(), '.booklib');
 
-  const counterFile = path.join(os.homedir(), '.booklib', 'nudge-count');
+function readCounter(file) {
+  try { return parseInt(fs.readFileSync(file, 'utf8'), 10) || 0; } catch { return 0; }
+}
+function writeCounter(file, value) {
+  fs.mkdirSync(BOOKLIB_DIR, { recursive: true });
+  fs.writeFileSync(file, String(value));
+}
+
+async function maybeAskFeedback() {
+  // Only in interactive terminals, only on action commands
+  if (!process.stderr.isTTY || !command || NO_NUDGE_COMMANDS.has(command) || args.includes('--help')) return;
+
+  const FEEDBACK_EVERY = 25;
+  const counterFile = path.join(BOOKLIB_DIR, 'feedback-count');
+  const count = readCounter(counterFile);
+  const next = count + 1;
+  writeCounter(counterFile, next);
+  if (next % FEEDBACK_EVERY !== 0) return;
+
+  return new Promise(resolve => {
+    const rl = createInterface({ input: process.stdin, output: process.stderr });
+    rl.question('\n  Quick question: is BookLib useful to you? [y/n/skip] ', answer => {
+      rl.close();
+      const a = answer.trim().toLowerCase();
+      if (a === 'y' || a === 'yes') {
+        console.error('  Glad to hear it! A ⭐ helps others find it: https://github.com/booklib-ai/skills\n');
+      } else if (a === 'n' || a === 'no') {
+        console.error('  Thanks for the honesty. Tell us what\'s missing: https://github.com/booklib-ai/skills/issues\n');
+      }
+      resolve();
+    });
+  });
+}
+
+function maybeNudgeStar() {
+  if (!command || NO_NUDGE_COMMANDS.has(command) || args.includes('--help')) return;
+  const NUDGE_EVERY = 50;
+  const counterFile = path.join(BOOKLIB_DIR, 'nudge-count');
   try {
-    const count = fs.existsSync(counterFile) ? parseInt(fs.readFileSync(counterFile, 'utf8'), 10) || 0 : 0;
-    const next = count + 1;
-    fs.mkdirSync(path.dirname(counterFile), { recursive: true });
-    fs.writeFileSync(counterFile, String(next));
+    const next = readCounter(counterFile) + 1;
+    writeCounter(counterFile, next);
     if (next % NUDGE_EVERY === 0) {
       console.error('\n  ⭐  If BookLib is useful, a star helps: https://github.com/booklib-ai/skills\n');
     }
@@ -1107,6 +1140,7 @@ function maybeNudgeStar() {
 }
 
 main()
+  .then(() => maybeAskFeedback())
   .then(() => maybeNudgeStar())
   .catch(err => {
     console.error(err.message);
