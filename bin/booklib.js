@@ -22,6 +22,10 @@ import {
 import { DiscoveryEngine } from '../lib/discovery-engine.js';
 import { ProjectInitializer } from '../lib/project-initializer.js';
 import { ContextBuilder } from '../lib/context-builder.js';
+import {
+  buildDictatePrompt, buildSummarizePrompt, callAnthropicAPI,
+  openEditor, readStdin, readInteractive,
+} from '../lib/engine/capture.js';
 
 const args = process.argv.slice(2);
 const command = args[0];
@@ -801,6 +805,113 @@ async function main() {
       }
       console.error('Usage: booklib nodes list | booklib nodes show <id>');
       process.exit(1);
+    }
+
+    case 'dictate': {
+      const isRaw = args.includes('--raw');
+      const titleArg = parseFlag(args, 'title');
+
+      const stdinText = await readStdin();
+      const rawText = stdinText || await readInteractive();
+
+      if (!rawText) { console.error('No input provided.'); process.exit(1); }
+
+      const id = generateNodeId('node');
+      let nodeContent;
+
+      if (isRaw) {
+        const title = titleArg ?? rawText.split('\n')[0].slice(0, 60);
+        nodeContent = serializeNode({ id, type: 'note', title, content: rawText });
+      } else {
+        console.log('Structuring with AI...');
+        let structured;
+        try {
+          structured = await callAnthropicAPI(buildDictatePrompt(rawText));
+        } catch (err) {
+          console.error(`AI structuring failed: ${err.message}`);
+          console.error('Tip: use --raw to save without AI processing.');
+          const title = titleArg ?? rawText.split('\n')[0].slice(0, 60);
+          nodeContent = serializeNode({ id, type: 'note', title, content: rawText });
+        }
+        if (structured) {
+          nodeContent = `---\nid: "${id}"\n` + structured.replace(/^---\n?/, '');
+        }
+      }
+
+      const filePath = saveNode(nodeContent, id);
+      console.log(`✅ Note saved: ${filePath}`);
+      console.log(`   ID: ${id}`);
+      break;
+    }
+
+    case 'save-chat': {
+      const doSummarize = args.includes('--summarize');
+      const titleArg = parseFlag(args, 'title');
+      // Skip flag values consumed by --flag value pairs so they aren't mistaken for a file path
+      const titleIdx = args.indexOf('--title');
+      const consumedIndices = new Set(titleIdx !== -1 ? [titleIdx, titleIdx + 1] : []);
+      const fileArg = args.slice(1).find((a, i) => !a.startsWith('--') && !consumedIndices.has(i + 1));
+
+      let transcript;
+      if (fileArg) {
+        transcript = fs.readFileSync(fileArg, 'utf8').trim();
+      } else {
+        transcript = await readStdin();
+      }
+      if (!transcript) {
+        transcript = openEditor('# Paste or type the conversation here\n\n');
+      }
+      if (!transcript) { console.error('No conversation content provided.'); process.exit(1); }
+
+      const id = generateNodeId('node');
+      let nodeContent;
+
+      if (doSummarize) {
+        console.log('Summarizing conversation with AI...');
+        try {
+          const summary = await callAnthropicAPI(buildSummarizePrompt(transcript, titleArg ?? ''));
+          nodeContent = `---\nid: "${id}"\n` + summary.replace(/^---\n?/, '');
+        } catch (err) {
+          console.error(`AI summarization failed: ${err.message}`);
+          nodeContent = serializeNode({
+            id, type: 'note',
+            title: titleArg ?? 'Conversation transcript',
+            content: transcript,
+            sources: ['conversation'],
+          });
+        }
+      } else {
+        nodeContent = serializeNode({
+          id, type: 'note',
+          title: titleArg ?? 'Conversation transcript',
+          content: transcript,
+          sources: ['conversation'],
+        });
+      }
+
+      const filePath = saveNode(nodeContent, id);
+      console.log(`✅ Conversation saved: ${filePath}`);
+      console.log(`   ID: ${id}`);
+      break;
+    }
+
+    case 'research': {
+      const topic = args.slice(1).join(' ');
+      if (!topic) { console.error('Usage: booklib research "<topic>"'); process.exit(1); }
+      const id = generateNodeId('node');
+      const template = `## Sources\n\n<!-- Add URLs, papers, docs -->\n\n## Key Findings\n\n<!-- Fill in after researching -->\n\n## Summary\n\n<!-- 2-3 sentence summary -->\n`;
+      const nodeContent = serializeNode({
+        id,
+        type: 'research',
+        title: topic,
+        content: template,
+        confidence: 'low',
+      });
+      const filePath = saveNode(nodeContent, id);
+      console.log(`✅ Research template created: ${filePath}`);
+      console.log(`   ID: ${id}`);
+      console.log(`   Fill in the findings, then run: booklib index`);
+      break;
     }
 
     default:
