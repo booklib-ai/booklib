@@ -84,13 +84,19 @@ async function autoIndexNode(filePath) {
 
 
 const TOOL_MENU = [
-  { num: 1, name: 'Claude Code', target: 'claude',   file: 'CLAUDE.md' },
-  { num: 2, name: 'Cursor',      target: 'cursor',   file: '.cursor/rules/' },
-  { num: 3, name: 'Copilot',     target: 'copilot',  file: '.github/copilot-instructions.md' },
-  { num: 4, name: 'Gemini CLI',  target: 'gemini',   file: '.gemini/context.md' },
-  { num: 5, name: 'Codex',       target: 'codex',    file: 'AGENTS.md' },
-  { num: 6, name: 'Windsurf',    target: 'windsurf', file: '.windsurfrules' },
-  { num: 7, name: 'All',         target: 'all',      file: null },
+  { num: 1,  name: 'Claude Code', target: 'claude',    file: 'CLAUDE.md' },
+  { num: 2,  name: 'Cursor',      target: 'cursor',    file: '.cursor/rules/' },
+  { num: 3,  name: 'Copilot',     target: 'copilot',   file: '.github/copilot-instructions.md' },
+  { num: 4,  name: 'Gemini CLI',  target: 'gemini',    file: '.gemini/context.md' },
+  { num: 5,  name: 'Codex',       target: 'codex',     file: 'AGENTS.md' },
+  { num: 6,  name: 'Windsurf',    target: 'windsurf',  file: '.windsurfrules' },
+  { num: 7,  name: 'Roo Code',    target: 'roo-code',  file: '.roo/rules/' },
+  { num: 8,  name: 'OpenHands',   target: 'openhands', file: '.openhands/instructions.md' },
+  { num: 9,  name: 'Junie',       target: 'junie',     file: '.junie/guidelines.md' },
+  { num: 10, name: 'Goose',       target: 'goose',     file: '.goose/context.md' },
+  { num: 11, name: 'OpenCode',    target: 'opencode',  file: 'opencode.toml' },
+  { num: 12, name: 'Letta',       target: 'letta',     file: '.letta/instructions.md' },
+  { num: 13, name: 'All',         target: 'all',       file: null },
 ];
 
 const MCP_TOOL_MENU = [
@@ -579,7 +585,7 @@ async function main() {
           } else {
             targetArg = await promptToolSelection();
             const updatedConfig = { ...savedConfig, tools: targetArg === 'all'
-              ? ['claude', 'cursor', 'copilot', 'gemini', 'codex', 'windsurf']
+              ? ['claude', 'cursor', 'copilot', 'gemini', 'codex', 'windsurf', 'roo-code', 'openhands', 'junie', 'goose', 'opencode', 'letta']
               : targetArg.split(',') };
             try { fs.writeFileSync(configPath, JSON.stringify(updatedConfig, null, 2)); } catch { /* best-effort */ }
           }
