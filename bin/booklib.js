@@ -1411,6 +1411,12 @@ case 'rules': {
   break;
 }
 
+    case 'benchmark': {
+      const { run } = await import('../benchmark/run-eval.js');
+      await run();
+      break;
+    }
+
     case 'build-wellknown': {
       const builder = new WellKnownBuilder();
       const outPath = await builder.build();
@@ -1429,6 +1435,7 @@ CORE:
   booklib search "<query>"                       Search skills and your knowledge nodes
   booklib audit <skill> <file>                   Deep-audit a file against a skill
   booklib scan [dir] [--docs]                    Project-wide heatmap
+  booklib benchmark                              Run retrieval quality benchmark (MRR/Recall/NDCG)
   booklib context "<task>" [--prompt-only]       Cross-skill context + conflict resolution
   booklib context "<task>" --file <path>         Also injects graph context for the file's component
 
@@ -1493,6 +1500,7 @@ EVERYDAY USE:
   booklib context "<task>"               Cross-skill context for your AI
   booklib audit <skill> <file>           Get a review prompt for a file
   booklib scan                           Project-wide code quality heatmap
+  booklib benchmark                      Run retrieval quality benchmark (MRR/Recall/NDCG)
   booklib doctor                         Check skill health & usage
 
 SKILLS:
