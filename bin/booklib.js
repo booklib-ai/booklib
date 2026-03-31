@@ -563,9 +563,12 @@ async function main() {
         const orchestratorArg = args.find(a => a.startsWith('--orchestrator='))?.split('=')[1] ?? null;
         const dryRun          = args.includes('--dry-run');
         const hasToolFlag     = args.some(a => a.startsWith('--tool='));
+        const targetFlag      = args.find(a => a.startsWith('--target='))?.split('=')[1] ?? null;
         let targetArg;
         if (hasToolFlag) {
           targetArg = args.find(a => a.startsWith('--tool='))?.split('=')[1];
+        } else if (targetFlag) {
+          targetArg = targetFlag;
         } else if (!dryRun) {
           const { configPath } = resolveBookLibPaths();
           let savedConfig = {};
@@ -581,7 +584,7 @@ async function main() {
             try { fs.writeFileSync(configPath, JSON.stringify(updatedConfig, null, 2)); } catch { /* best-effort */ }
           }
         } else {
-          targetArg = 'all';
+          targetArg = 'auto';
         }
         const skillsArg = args.find(a => a.startsWith('--skills='))?.split('=')[1];
         const rulesArg  = args.find(a => a.startsWith('--rules='))?.split('=')[1];
