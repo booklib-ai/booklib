@@ -34,7 +34,7 @@ import { SKILL_LIMIT } from '../lib/wizard/skill-recommender.js';
 import {
   generateNodeId, serializeNode, saveNode, loadNode,
   listNodes, appendEdge, parseNodeFrontmatter, resolveKnowledgePaths,
-  resolveNodeRef, EDGE_TYPES,
+  resolveNodeRef, EDGE_TYPES, parseCaptureLinkArgs,
 } from '../lib/engine/graph.js';
 import { DiscoveryEngine } from '../lib/discovery-engine.js';
 import { ProjectInitializer } from '../lib/project-initializer.js';
@@ -1411,6 +1411,45 @@ case 'rules': {
   break;
 }
 
+    case 'capture': {
+      const title = parseFlag(args, 'title');
+      const type = parseFlag(args, 'type') ?? 'insight';
+      const tagsArg = parseFlag(args, 'tags') ?? '';
+      const linksArg = parseFlag(args, 'links') ?? '';
+
+      if (!title) {
+        console.error('Usage: booklib capture --title "<title>" [--type insight] [--tags tag1,tag2] [--links "skill:edge-type,...]"');
+        process.exit(1);
+      }
+
+      const tags = tagsArg ? tagsArg.split(',').map(t => t.trim()).filter(Boolean) : [];
+      const links = parseCaptureLinkArgs(linksArg);
+
+      for (const link of links) {
+        if (!EDGE_TYPES.includes(link.type)) {
+          console.error(`Invalid edge type "${link.type}". Valid: ${EDGE_TYPES.join(', ')}`);
+          process.exit(1);
+        }
+      }
+
+      const id = generateNodeId('insight');
+      const nodeContent = serializeNode({ id, type, title, tags });
+      const filePath = saveNode(nodeContent, id);
+      await autoIndexNode(filePath);
+
+      const today = new Date().toISOString().split('T')[0];
+      for (const link of links) {
+        appendEdge({ from: id, to: link.to, type: link.type, weight: 1.0, created: today });
+      }
+
+      console.log(`✅ Knowledge node created: ${filePath}`);
+      console.log(`   ID: ${id}`);
+      if (links.length > 0) {
+        console.log(`   Linked: ${links.map(l => `${l.to} (${l.type})`).join(', ')}`);
+      }
+      break;
+    }
+
     case 'benchmark': {
       const { run } = await import('../benchmark/run-eval.js');
       await run();
@@ -1435,6 +1474,7 @@ CORE:
   booklib search "<query>"                       Search skills and your knowledge nodes
   booklib audit <skill> <file>                   Deep-audit a file against a skill
   booklib scan [dir] [--docs]                    Project-wide heatmap
+  booklib capture --title "<title>" [--type insight] [--tags t1,t2] [--links "skill:edge-type,...]"
   booklib benchmark                              Run retrieval quality benchmark (MRR/Recall/NDCG)
   booklib context "<task>" [--prompt-only]       Cross-skill context + conflict resolution
   booklib context "<task>" --file <path>         Also injects graph context for the file's component
@@ -1500,6 +1540,7 @@ EVERYDAY USE:
   booklib context "<task>"               Cross-skill context for your AI
   booklib audit <skill> <file>           Get a review prompt for a file
   booklib scan                           Project-wide code quality heatmap
+  booklib capture --title "<title>" [--type insight] [--tags t1,t2] [--links "skill:edge-type,...]"
   booklib benchmark                      Run retrieval quality benchmark (MRR/Recall/NDCG)
   booklib doctor                         Check skill health & usage
 
