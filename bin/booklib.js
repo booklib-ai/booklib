@@ -630,7 +630,17 @@ async function main() {
         if (skillList || initializer.detectRelevantSkills().length > 0) {
           console.log(`Generating context files for: ${targetArg === 'all' ? 'claude, cursor, copilot, gemini, codex, windsurf, roo-code, openhands, junie, goose, opencode, letta' : targetArg}\n`);
           const effectiveSkills = skillList ?? initializer.detectRelevantSkills();
-          const written = await initializer.init({ skills: effectiveSkills, target: targetArg, dryRun });
+          // Load saved config for profile-based rendering (Spec ⑨)
+          const { configPath: legacyConfigPath } = resolveBookLibPaths();
+          let legacySavedConfig = {};
+          try { legacySavedConfig = JSON.parse(fs.readFileSync(legacyConfigPath, 'utf8')); } catch { /* no config yet */ }
+          const written = await initializer.init({
+            skills: effectiveSkills,
+            target: targetArg,
+            dryRun,
+            profile: legacySavedConfig.profile ?? 'software-development',
+            stack: legacySavedConfig.stack ?? effectiveSkills.join(', '),
+          });
           if (!dryRun && written.length > 0) console.log('');
 
           // Discovery hint: suggest related skills
