@@ -41,7 +41,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
     tools: [
       {
         name: "search_skills",
-        description: "Perform a semantic search across the BookLib expert library. Returns conceptual wisdom, frameworks, and pitfalls.",
+        description: "Use BEFORE reviewing code, answering best-practices questions, or suggesting patterns. Searches BookLib's expert library and returns relevant principles with citations.",
         inputSchema: {
           type: "object",
           properties: {
@@ -59,7 +59,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: "search_knowledge",
-        description: "Semantic search across book skills and personal knowledge graph nodes. Returns ranked results with a 'source' field: 'skill' or 'knowledge'.",
+        description: "Use for broader search that includes personal knowledge captured in this project. Returns results from both expert skills and saved insights/notes.",
         inputSchema: {
           type: "object",
           properties: {
@@ -82,7 +82,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: "audit_content",
-        description: "Performs a systematic expert audit of a file or text against a specific BookLib skill.",
+        description: "Use when the user asks for deep code review or quality analysis of a specific file. Audits against a named skill's principles and returns structured findings.",
         inputSchema: {
           type: "object",
           properties: {
@@ -100,7 +100,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: "save_session_state",
-        description: "Saves the current agent's progress, goal, and active skills to a handoff file for another agent to resume.",
+        description: "Use when handing off to another agent or ending a long session. Saves progress, goals, and next steps so another agent can resume.",
         inputSchema: {
           type: "object",
           properties: {
@@ -115,7 +115,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: "get_context",
-        description: "Builds a compiled context prompt combining relevant book wisdom and personal knowledge graph nodes for a given task. Optionally provide a file path to also inject graph context for the owning component.",
+        description: "Use at session start or when switching tasks to load relevant BookLib context for the current work. Returns combined wisdom from matched skills and knowledge graph.",
         inputSchema: {
           type: "object",
           properties: {
@@ -133,7 +133,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: "create_note",
-        description: "Creates a knowledge node of type 'note' in the local knowledge graph and immediately indexes it for search.",
+        description: "Use when the user discovers a useful pattern, says 'remember this', 'take a note', or 'capture this insight'. Creates a searchable knowledge node.",
         inputSchema: {
           type: "object",
           properties: {
@@ -151,7 +151,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: "list_nodes",
-        description: "Lists all knowledge graph nodes with their id, title, and type.",
+        description: "Use when the user asks 'what have I captured?' or wants to see saved knowledge. Lists all notes, insights, and research nodes.",
         inputSchema: {
           type: "object",
           properties: {
@@ -164,7 +164,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: "link_nodes",
-        description: "Creates a typed edge between two knowledge graph nodes. Accepts node IDs or partial title strings.",
+        description: "Use when the user says two concepts are related or wants to connect knowledge. Creates a typed relationship (see-also, applies-to, extends, etc.).",
         inputSchema: {
           type: "object",
           properties: {
