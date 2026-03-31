@@ -115,7 +115,7 @@ async function promptToolSelection() {
     const fileInfo = t.file ? `  → ${t.file}` : '';
     process.stdout.write(`  ${t.num}) ${t.name.padEnd(12)}${fileInfo}\n`);
   }
-  process.stdout.write('\nSelect [1-7, or comma-separated for multiple]: ');
+  process.stdout.write('\nSelect [1-13, or comma-separated for multiple]: ');
 
   const rl = createInterface({ input: process.stdin, output: process.stdout });
   const answer = await new Promise(resolve => {
@@ -124,7 +124,7 @@ async function promptToolSelection() {
 
   if (!answer) return 'all';
   const nums = answer.split(',').map(n => parseInt(n.trim(), 10)).filter(n => !isNaN(n));
-  if (nums.length === 0 || nums.includes(7)) return 'all';
+  if (nums.length === 0 || nums.includes(13)) return 'all';
   const selected = nums.map(n => TOOL_MENU.find(t => t.num === n)?.target).filter(Boolean);
   return selected.length > 0 ? selected.join(',') : 'all';
 }
@@ -616,13 +616,13 @@ async function main() {
           let savedConfig = {};
           try { savedConfig = JSON.parse(fs.readFileSync(configPath, 'utf8')); } catch { /* no config yet */ }
           const toolList = targetArg === 'all'
-            ? ['claude', 'cursor', 'copilot', 'gemini', 'codex', 'windsurf']
+            ? ['claude', 'cursor', 'copilot', 'gemini', 'codex', 'windsurf', 'roo-code', 'openhands', 'junie', 'goose', 'opencode', 'letta']
             : targetArg.split(',');
           try { fs.writeFileSync(configPath, JSON.stringify({ ...savedConfig, tools: toolList }, null, 2)); } catch { /* best-effort */ }
         }
 
         if (skillList || initializer.detectRelevantSkills().length > 0) {
-          console.log(`Generating context files for: ${targetArg === 'all' ? 'claude, cursor, copilot, gemini, codex, windsurf' : targetArg}\n`);
+          console.log(`Generating context files for: ${targetArg === 'all' ? 'claude, cursor, copilot, gemini, codex, windsurf, roo-code, openhands, junie, goose, opencode, letta' : targetArg}\n`);
           const effectiveSkills = skillList ?? initializer.detectRelevantSkills();
           const written = await initializer.init({ skills: effectiveSkills, target: targetArg, dryRun });
           if (!dryRun && written.length > 0) console.log('');
@@ -1377,7 +1377,7 @@ KNOWLEDGE GRAPH:
   Edge types: implements · contradicts · extends · applies-to · see-also · inspired-by · supersedes · depends-on
 
 SKILLS:
-  booklib init [--tool=claude|cursor|copilot|gemini|codex|windsurf|all] [--skills=s1,s2]
+  booklib init [--tool=claude|cursor|copilot|gemini|codex|windsurf|roo-code|openhands|junie|goose|opencode|letta|all|auto] [--skills=s1,s2]
                [--ecc] [--agents] [--commands] [--rules[=kotlin,python]]
                [--orchestrator=obra|ruflo] [--dry-run]
   booklib setup                                  Fetch & index all trusted community skills
