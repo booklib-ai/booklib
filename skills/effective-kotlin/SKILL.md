@@ -1,5 +1,8 @@
 ---
 name: effective-kotlin
+version: "1.0"
+license: MIT
+tags: [kotlin, jvm, oop]
 description: >
   Apply Effective Kotlin best practices (Marcin Moskała, 2nd Ed). Covers Safety
   (Items 1-10: mutability, scope, nulls, types, expectations, errors, resources,

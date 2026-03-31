@@ -1,5 +1,8 @@
 ---
 name: lean-startup
+version: "1.0"
+license: MIT
+tags: [product, strategy, entrepreneurship]
 description: >
   Apply The Lean Startup practices (Eric Ries). Covers Vision (Ch 1-4: Start,
   Define, Learn, Experiment — validated learning, Build-Measure-Learn loop),

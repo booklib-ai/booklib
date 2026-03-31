@@ -1,5 +1,8 @@
 ---
 name: microservices-patterns
+version: "1.0"
+license: MIT
+tags: [microservices, architecture, distributed-systems]
 description: >
   Generate and review microservices code using patterns from Chris Richardson's
   "Microservices Patterns." Use this skill whenever the user asks about microservices

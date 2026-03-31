@@ -1,5 +1,8 @@
 ---
 name: storytelling-with-data
+version: "1.0"
+license: MIT
+tags: [data-visualization, communication, design]
 description: >
   Apply data visualization and storytelling principles from Storytelling with Data
   by Cole Nussbaumer Knaflic. Covers choosing effective visuals (line, bar, table,

@@ -1,5 +1,8 @@
 ---
 name: kotlin-in-action
+version: "1.0"
+license: MIT
+tags: [kotlin, jvm]
 description: >
   Apply Kotlin In Action practices (Elizarov, Isakova, Aigner, Jemerov, 2nd Ed).
   Covers Basics (Ch 1-3: functions, extensions, default args), Classes (Ch 4: sealed,

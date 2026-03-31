@@ -47,6 +47,7 @@ import { readUsage, summarize } from '../lib/doctor/usage-tracker.js';
 import { installTrackingHook } from '../lib/doctor/hook-installer.js';
 import { listAvailable as listAvailableRules, installRule as installRuleFn, status as rulesStatus } from '../lib/rules/rules-manager.js';
 import { addCorrection, listCorrections, removeCorrection, levelFromMentions } from '../lib/engine/corrections.js';
+import { WellKnownBuilder } from '../lib/well-known-builder.js';
 
 const args = process.argv.slice(2);
 const command = args[0];
@@ -84,13 +85,19 @@ async function autoIndexNode(filePath) {
 
 
 const TOOL_MENU = [
-  { num: 1, name: 'Claude Code', target: 'claude',   file: 'CLAUDE.md' },
-  { num: 2, name: 'Cursor',      target: 'cursor',   file: '.cursor/rules/' },
-  { num: 3, name: 'Copilot',     target: 'copilot',  file: '.github/copilot-instructions.md' },
-  { num: 4, name: 'Gemini CLI',  target: 'gemini',   file: '.gemini/context.md' },
-  { num: 5, name: 'Codex',       target: 'codex',    file: 'AGENTS.md' },
-  { num: 6, name: 'Windsurf',    target: 'windsurf', file: '.windsurfrules' },
-  { num: 7, name: 'All',         target: 'all',      file: null },
+  { num: 1,  name: 'Claude Code', target: 'claude',    file: 'CLAUDE.md' },
+  { num: 2,  name: 'Cursor',      target: 'cursor',    file: '.cursor/rules/' },
+  { num: 3,  name: 'Copilot',     target: 'copilot',   file: '.github/copilot-instructions.md' },
+  { num: 4,  name: 'Gemini CLI',  target: 'gemini',    file: '.gemini/context.md' },
+  { num: 5,  name: 'Codex',       target: 'codex',     file: 'AGENTS.md' },
+  { num: 6,  name: 'Windsurf',    target: 'windsurf',  file: '.windsurfrules' },
+  { num: 7,  name: 'Roo Code',    target: 'roo-code',  file: '.roo/rules/' },
+  { num: 8,  name: 'OpenHands',   target: 'openhands', file: '.openhands/instructions.md' },
+  { num: 9,  name: 'Junie',       target: 'junie',     file: '.junie/guidelines.md' },
+  { num: 10, name: 'Goose',       target: 'goose',     file: '.goose/context.md' },
+  { num: 11, name: 'OpenCode',    target: 'opencode',  file: 'opencode.toml' },
+  { num: 12, name: 'Letta',       target: 'letta',     file: '.letta/instructions.md' },
+  { num: 13, name: 'All',         target: 'all',       file: null },
 ];
 
 const MCP_TOOL_MENU = [
@@ -109,7 +116,7 @@ async function promptToolSelection() {
     const fileInfo = t.file ? `  → ${t.file}` : '';
     process.stdout.write(`  ${t.num}) ${t.name.padEnd(12)}${fileInfo}\n`);
   }
-  process.stdout.write('\nSelect [1-7, or comma-separated for multiple]: ');
+  process.stdout.write('\nSelect [1-13, or comma-separated for multiple]: ');
 
   const rl = createInterface({ input: process.stdin, output: process.stdout });
   const answer = await new Promise(resolve => {
@@ -118,7 +125,7 @@ async function promptToolSelection() {
 
   if (!answer) return 'all';
   const nums = answer.split(',').map(n => parseInt(n.trim(), 10)).filter(n => !isNaN(n));
-  if (nums.length === 0 || nums.includes(7)) return 'all';
+  if (nums.length === 0 || nums.includes(13)) return 'all';
   const selected = nums.map(n => TOOL_MENU.find(t => t.num === n)?.target).filter(Boolean);
   return selected.length > 0 ? selected.join(',') : 'all';
 }
@@ -563,9 +570,12 @@ async function main() {
         const orchestratorArg = args.find(a => a.startsWith('--orchestrator='))?.split('=')[1] ?? null;
         const dryRun          = args.includes('--dry-run');
         const hasToolFlag     = args.some(a => a.startsWith('--tool='));
+        const targetFlag      = args.find(a => a.startsWith('--target='))?.split('=')[1] ?? null;
         let targetArg;
         if (hasToolFlag) {
           targetArg = args.find(a => a.startsWith('--tool='))?.split('=')[1];
+        } else if (targetFlag) {
+          targetArg = targetFlag;
         } else if (!dryRun) {
           const { configPath } = resolveBookLibPaths();
           let savedConfig = {};
@@ -576,12 +586,12 @@ async function main() {
           } else {
             targetArg = await promptToolSelection();
             const updatedConfig = { ...savedConfig, tools: targetArg === 'all'
-              ? ['claude', 'cursor', 'copilot', 'gemini', 'codex', 'windsurf']
+              ? ['claude', 'cursor', 'copilot', 'gemini', 'codex', 'windsurf', 'roo-code', 'openhands', 'junie', 'goose', 'opencode', 'letta']
               : targetArg.split(',') };
             try { fs.writeFileSync(configPath, JSON.stringify(updatedConfig, null, 2)); } catch { /* best-effort */ }
           }
         } else {
-          targetArg = 'all';
+          targetArg = 'auto';
         }
         const skillsArg = args.find(a => a.startsWith('--skills='))?.split('=')[1];
         const rulesArg  = args.find(a => a.startsWith('--rules='))?.split('=')[1];
@@ -607,13 +617,13 @@ async function main() {
           let savedConfig = {};
           try { savedConfig = JSON.parse(fs.readFileSync(configPath, 'utf8')); } catch { /* no config yet */ }
           const toolList = targetArg === 'all'
-            ? ['claude', 'cursor', 'copilot', 'gemini', 'codex', 'windsurf']
+            ? ['claude', 'cursor', 'copilot', 'gemini', 'codex', 'windsurf', 'roo-code', 'openhands', 'junie', 'goose', 'opencode', 'letta']
             : targetArg.split(',');
           try { fs.writeFileSync(configPath, JSON.stringify({ ...savedConfig, tools: toolList }, null, 2)); } catch { /* best-effort */ }
         }
 
         if (skillList || initializer.detectRelevantSkills().length > 0) {
-          console.log(`Generating context files for: ${targetArg === 'all' ? 'claude, cursor, copilot, gemini, codex, windsurf' : targetArg}\n`);
+          console.log(`Generating context files for: ${targetArg === 'all' ? 'claude, cursor, copilot, gemini, codex, windsurf, roo-code, openhands, junie, goose, opencode, letta' : targetArg}\n`);
           const effectiveSkills = skillList ?? initializer.detectRelevantSkills();
           const written = await initializer.init({ skills: effectiveSkills, target: targetArg, dryRun });
           if (!dryRun && written.length > 0) console.log('');
@@ -1401,6 +1411,13 @@ case 'rules': {
   break;
 }
 
+    case 'build-wellknown': {
+      const builder = new WellKnownBuilder();
+      const outPath = await builder.build();
+      console.log(`Generated: ${outPath}`);
+      process.exit(0);
+    }
+
     default: {
       const showAll = args.includes('--all');
       if (showAll) {
@@ -1428,7 +1445,7 @@ KNOWLEDGE GRAPH:
   Edge types: implements · contradicts · extends · applies-to · see-also · inspired-by · supersedes · depends-on
 
 SKILLS:
-  booklib init [--tool=claude|cursor|copilot|gemini|codex|windsurf|all] [--skills=s1,s2]
+  booklib init [--tool=claude|cursor|copilot|gemini|codex|windsurf|roo-code|openhands|junie|goose|opencode|letta|all|auto] [--skills=s1,s2]
                [--ecc] [--agents] [--commands] [--rules[=kotlin,python]]
                [--orchestrator=obra|ruflo] [--dry-run]
   booklib setup                                  Fetch & index all trusted community skills

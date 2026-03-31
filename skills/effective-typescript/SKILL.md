@@ -1,5 +1,8 @@
 ---
 name: effective-typescript
+version: "1.0"
+license: MIT
+tags: [typescript, javascript, types]
 description: >
   Review existing TypeScript code and write new TypeScript following the 62 items from
   "Effective TypeScript" by Dan Vanderkam. Use when writing TypeScript, reviewing TypeScript

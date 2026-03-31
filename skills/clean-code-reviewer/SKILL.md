@@ -1,5 +1,8 @@
 ---
 name: clean-code-reviewer
+version: "1.0"
+license: MIT
+tags: [all-languages, quality, naming, refactoring]
 description: Reviews code against Robert C. Martin's Clean Code principles. Use when users share code for review, ask for refactoring suggestions, or want to improve code quality. Produces actionable feedback organized by Clean Code principles with concrete before/after examples.
 ---
 

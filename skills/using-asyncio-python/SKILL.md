@@ -1,5 +1,8 @@
 ---
 name: using-asyncio-python
+version: "1.0"
+license: MIT
+tags: [python, async, concurrency]
 description: >
   Apply Using Asyncio in Python practices (Caleb Hattingh). Covers Introducing
   Asyncio (Ch 1: what it is, I/O-bound concurrency), Threads (Ch 2: drawbacks,

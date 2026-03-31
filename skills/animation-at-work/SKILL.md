@@ -1,5 +1,8 @@
 ---
 name: animation-at-work
+version: "1.0"
+license: MIT
+tags: [design, animation, ui]
 description: >
   Apply web animation principles from Animation at Work by Rachel Nabors.
   Covers human perception of motion, 12 principles of animation, animation

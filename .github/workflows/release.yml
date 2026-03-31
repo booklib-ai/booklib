@@ -21,7 +21,7 @@ jobs:
       - name: Set version from tag
         run: |
           TAG_VERSION=${GITHUB_REF_NAME#v}
-          PKG_VERSION=$(node -p "require('./package.json').version")
+          PKG_VERSION=$(node --input-type=module <<< "import p from './package.json' assert { type: 'json' }; process.stdout.write(p.version)")
           if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
             npm version $TAG_VERSION --no-git-tag-version
           fi
@@ -30,6 +30,20 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
+
+      - name: Regenerate .well-known/skills index
+        run: node bin/booklib.js build-wellknown
+
+      - name: Commit updated well-known index
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/.well-known/
+          git diff --staged --quiet || git commit -m "chore: regenerate .well-known/skills index [skip ci]"
+
+      - name: Push well-known index update
+        run: |
+          git push origin HEAD:refs/heads/main
 
       - name: Publish to npm
         run: npm publish --access public

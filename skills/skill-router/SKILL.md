@@ -1,5 +1,8 @@
 ---
 name: skill-router
+version: "1.0"
+license: MIT
+tags: [meta, routing, agent-skills]
 description: >
   Select the 1-2 most relevant @booklib/skills for a given file, PR, or task.
   Use before applying any skill when unsure which book's lens applies, or when
