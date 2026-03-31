@@ -60,3 +60,24 @@ test('detects opencode when opencode.toml exists', () => {
   assert.ok(detected.includes('opencode'));
   rmSync(cwd, { recursive: true });
 });
+
+test('detects copilot when VS Code extension directory exists', () => {
+  const cwd = tmpDir();
+  const home = tmpDir();
+  mkdirSync(path.join(home, '.vscode', 'extensions', 'github.copilot-1.234.0'), { recursive: true });
+  const detector = new AgentDetector({ cwd, checkPath: false, home });
+  const detected = detector.detect();
+  assert.ok(detected.includes('copilot'), 'copilot not detected from VS Code extension');
+  rmSync(cwd, { recursive: true });
+  rmSync(home, { recursive: true });
+});
+
+test('does not detect copilot when no VS Code extensions exist', () => {
+  const cwd = tmpDir();
+  const home = tmpDir();
+  const detector = new AgentDetector({ cwd, checkPath: false, home });
+  const detected = detector.detect();
+  assert.ok(!detected.includes('copilot'), 'copilot falsely detected');
+  rmSync(cwd, { recursive: true });
+  rmSync(home, { recursive: true });
+});
