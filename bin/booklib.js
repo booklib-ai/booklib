@@ -1432,14 +1432,19 @@ case 'rules': {
         }
       }
 
-      const id = generateNodeId('insight');
+      const id = generateNodeId(type);
       const nodeContent = serializeNode({ id, type, title, tags });
-      const filePath = saveNode(nodeContent, id);
+
+      const globalBookLibDir = path.join(os.homedir(), '.booklib');
+      const globalNodesDir = path.join(globalBookLibDir, 'knowledge', 'nodes');
+      const globalGraphFile = path.join(globalBookLibDir, 'knowledge', 'graph.jsonl');
+
+      const filePath = saveNode(nodeContent, id, { nodesDir: globalNodesDir });
       await autoIndexNode(filePath);
 
       const today = new Date().toISOString().split('T')[0];
       for (const link of links) {
-        appendEdge({ from: id, to: link.to, type: link.type, weight: 1.0, created: today });
+        appendEdge({ from: id, to: link.to, type: link.type, weight: 1.0, created: today }, { graphFile: globalGraphFile });
       }
 
       console.log(`✅ Knowledge node created: ${filePath}`);
