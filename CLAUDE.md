@@ -2,6 +2,12 @@
 
 You are operating within the BookLib repository, a curated library of software architecture and best-practice distillations. Your goal is to apply these high-level principles to the user's codebase using the built-in search engine.
 
+<corrections>
+When the user corrects your approach ("don't do that", "always use X", "stop doing Y"), run immediately:
+`node bin/booklib.js correction add "brief rule"`
+This records the correction. Repeated corrections are promoted automatically into your always-on context.
+</corrections>
+
 <workflow>
 When a user asks you to write, review, or refactor code, you MUST follow this sequence:
 
