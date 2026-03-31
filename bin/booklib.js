@@ -1255,7 +1255,7 @@ case 'correction': {
     const action = result.wasExisting ? 'Updated' : 'Recorded';
     const arrow = levelUp ? ' ↑' : '';
     console.log(`✓ ${action}: "${result.text}" (mentions: ${result.mentions}, level: ${result.level}${arrow})`);
-    if (result.level >= 3) {
+    if (levelUp && result.level >= 3) {
       console.log(`  → Added to ~/.claude/CLAUDE.md`);
     }
     break;
