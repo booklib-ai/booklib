@@ -1,5 +1,8 @@
 ---
 name: data-intensive-patterns
+version: "1.0"
+license: MIT
+tags: [architecture, databases, distributed-systems]
 description: >
   Generate and review data-intensive application code using patterns from Martin Kleppmann's
   "Designing Data-Intensive Applications." Use this skill whenever the user asks about data

@@ -1,5 +1,8 @@
 ---
 name: data-pipelines
+version: "1.0"
+license: MIT
+tags: [data, etl, pipelines, python]
 description: >
   Apply Data Pipelines Pocket Reference practices (James Densmore). Covers
   Infrastructure (Ch 1-2: warehouses, lakes, cloud), Patterns (Ch 3: ETL, ELT,

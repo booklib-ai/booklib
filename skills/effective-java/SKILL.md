@@ -1,5 +1,8 @@
 ---
 name: effective-java
+version: "1.0"
+license: MIT
+tags: [java, jvm, oop]
 description: >
   Generate and review Java code using patterns and best practices from Joshua Bloch's
   "Effective Java" (3rd Edition). Use this skill whenever the user asks about Java best

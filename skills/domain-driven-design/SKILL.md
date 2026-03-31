@@ -1,5 +1,8 @@
 ---
 name: domain-driven-design
+version: "1.0"
+license: MIT
+tags: [architecture, ddd, modeling]
 description: >
   Design and review software using patterns from Eric Evans' "Domain-Driven
   Design." Use for DDD tactical patterns (Entities, Value Objects, Aggregates,

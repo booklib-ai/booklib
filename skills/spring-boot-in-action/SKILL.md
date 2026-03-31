@@ -1,5 +1,8 @@
 ---
 name: spring-boot-in-action
+version: "1.0"
+license: MIT
+tags: [java, spring, backend]
 description: >
   Write and review Spring Boot applications using practices from "Spring Boot in Action"
   by Craig Walls. Covers auto-configuration, starter dependencies, externalizing

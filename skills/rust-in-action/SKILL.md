@@ -1,5 +1,8 @@
 ---
 name: rust-in-action
+version: "1.0"
+license: MIT
+tags: [rust, systems-programming]
 description: >
   Write and review Rust code using systems programming concepts from "Rust in Action"
   by Tim McNamara. Covers language foundations, ownership and borrowing, smart pointers,

@@ -1,5 +1,8 @@
 ---
 name: system-design-interview
+version: "1.0"
+license: MIT
+tags: [architecture, distributed-systems, scalability]
 description: >
   Apply system design principles from System Design Interview by Alex Xu.
   Covers scaling (load balancing, DB replication, sharding, caching, CDN),

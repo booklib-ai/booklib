@@ -1,5 +1,8 @@
 ---
 name: programming-with-rust
+version: "1.0"
+license: MIT
+tags: [rust, systems-programming]
 description: >
   Write and review Rust code using practices from "Programming with Rust" by Donis Marshall.
   Covers ownership, borrowing, lifetimes, error handling with Result/Option, traits, generics,

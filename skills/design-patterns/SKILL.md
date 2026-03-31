@@ -1,5 +1,8 @@
 ---
 name: design-patterns
+version: "1.0"
+license: MIT
+tags: [patterns, oop, architecture]
 description: >
   Apply and review GoF design patterns from Head First Design Patterns. Use for
   Creational patterns (Factory Method, Abstract Factory, Singleton, Builder,

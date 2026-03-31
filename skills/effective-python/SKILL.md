@@ -1,5 +1,8 @@
 ---
 name: effective-python
+version: "1.0"
+license: MIT
+tags: [python, oop, idioms]
 description: Review existing Python code and write new Python code following the 90 best practices from "Effective Python" by Brett Slatkin (2nd Edition). Use when writing Python, reviewing Python code, or wanting idiomatic, Pythonic solutions.
 ---
 

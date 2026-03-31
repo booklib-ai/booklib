@@ -1,5 +1,8 @@
 ---
 name: web-scraping-python
+version: "1.0"
+license: MIT
+tags: [python, web-scraping, data]
 description: >
   Apply Web Scraping with Python practices (Ryan Mitchell). Covers First
   Scrapers (Ch 1: urllib, BeautifulSoup), HTML Parsing (Ch 2: find, findAll,

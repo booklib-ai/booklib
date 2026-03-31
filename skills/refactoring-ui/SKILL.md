@@ -1,5 +1,8 @@
 ---
 name: refactoring-ui
+version: "1.0"
+license: MIT
+tags: [ui, design, css, frontend]
 description: >
   Apply UI design principles from Refactoring UI by Adam Wathan & Steve Schoger.
   Covers visual hierarchy (size, weight, color, spacing), layout systems (spacing
