@@ -1,6 +1,6 @@
 {
   "name": "@booklib/skills",
-  "version": "1.17.4",
+  "version": "1.17.5",
   "description": "Book knowledge distilled into structured AI skills for Claude Code and other AI assistants",
   "bin": {
     "skills": "bin/skills.cjs",
@@ -35,5 +35,10 @@
   },
   "devDependencies": {
     "puppeteer": "^24.39.1"
+  },
+  "overrides": {
+    "encoding-sniffer": "1.0.2",
+    "global-agent": "4.1.3",
+    "openai": "6.33.0"
   }
 }
