@@ -1143,9 +1143,8 @@ async function main() {
 
     case 'doctor': {
   const installHook = args.includes('--install-hook');
-  const MS_PER_DAY = 24 * 60 * 60 * 1000;
-  const SKILL_NAME_PAD = 24;
-  const USE_LABEL_PAD  = 9;
+  const showUsage   = args.includes('--usage');
+  const cure        = args.includes('--cure');
 
   if (installHook) {
     try {
@@ -1167,80 +1166,117 @@ async function main() {
     break;
   }
 
-  const claudeSkillsDir = path.join(os.homedir(), '.claude', 'skills');
-  const usagePath       = path.join(os.homedir(), '.booklib', 'usage.json');
-  const installedNames  = listInstalledSkillNames();
-  const usageData       = readUsage(usagePath);
+  if (showUsage) {
+    // Legacy usage report (moved behind --usage flag)
+    const MS_PER_DAY = 24 * 60 * 60 * 1000;
+    const SKILL_NAME_PAD = 24;
+    const USE_LABEL_PAD  = 9;
 
-  if (installedNames.length === 0) {
-    console.log('\n  No BookLib-managed skills installed. Run "booklib init" to get started.\n');
+    const claudeSkillsDir = path.join(os.homedir(), '.claude', 'skills');
+    const usagePath       = path.join(os.homedir(), '.booklib', 'usage.json');
+    const installedNames  = listInstalledSkillNames();
+    const usageData       = readUsage(usagePath);
+
+    if (installedNames.length === 0) {
+      console.log('\n  No BookLib-managed skills installed. Run "booklib init" to get started.\n');
+      break;
+    }
+
+    const installDates = {};
+    for (const name of installedNames) {
+      try {
+        const stat = fs.statSync(path.join(claudeSkillsDir, name, '.booklib'));
+        installDates[name] = stat.mtime;
+      } catch { /* unknown install date */ }
+    }
+
+    const summary     = summarize(usageData, installedNames, installDates);
+    const suggestions = summary.filter(s => s.suggestion !== null);
+
+    console.log('\n► Skill usage report\n');
+
+    const active = summary.filter(s => s.uses > 0 || s.suggestion !== null);
+    const silentCount = summary.length - active.length;
+
+    const noUsageFile = !fs.existsSync(usagePath);
+    if (active.length === 0 && noUsageFile) {
+      console.log(`  ${installedNames.length} community skill${installedNames.length === 1 ? '' : 's'} in ~/.booklib/skills/. No usage data yet.\n`);
+      console.log('  Tip: run `booklib doctor --install-hook` to start tracking usage automatically.');
+    } else if (active.length === 0) {
+      console.log(`  ${installedNames.length} community skill${installedNames.length === 1 ? '' : 's'} in ~/.booklib/skills/. No usage data yet.\n`);
+    } else {
+      for (const item of active) {
+        const icon     = item.suggestion ? '⚠' : '✓';
+        const useLabel = item.uses === 1 ? '1 use ' : `${item.uses} uses`;
+        let whenLabel;
+        if (item.lastUsed === null) {
+          const days = installDates[item.name]
+            ? Math.floor((Date.now() - installDates[item.name].getTime()) / MS_PER_DAY)
+            : null;
+          whenLabel = days !== null ? `never — installed ${days} days ago` : 'never';
+        } else {
+          whenLabel = `${item.daysSinceLastUse} day${item.daysSinceLastUse === 1 ? '' : 's'} ago`;
+        }
+        console.log(`  ${icon} ${item.name.padEnd(SKILL_NAME_PAD)} ${useLabel.padEnd(USE_LABEL_PAD)} (${whenLabel})`);
+      }
+      if (silentCount > 0) {
+        console.log(`\n  ${silentCount} other skill${silentCount === 1 ? '' : 's'} — no usage recorded`);
+      }
+    }
+
+    if (suggestions.length > 0) {
+      console.log('\n  Suggestions:');
+      for (const item of suggestions) {
+        if (item.suggestion === 'remove') {
+          console.log(`  · ${item.name}: never used — consider removing (booklib uninstall ${item.name})`);
+        } else {
+          const days = item.daysSinceLastUse ?? 60;
+          console.log(`  · ${item.name}: ${item.uses} use${item.uses === 1 ? '' : 's'} in ${days} days — low activity`);
+        }
+      }
+      console.log('\n  Run `booklib uninstall <skill>` to free up slots.');
+    }
+
+    if (noUsageFile && active.length > 0) {
+      console.log('\n  Tip: run `booklib doctor --install-hook` to start tracking usage.');
+    }
+
+    console.log('');
     break;
   }
 
-  const installDates = {};
-  for (const name of installedNames) {
-    try {
-      const stat = fs.statSync(path.join(claudeSkillsDir, name, '.booklib'));
-      installDates[name] = stat.mtime;
-    } catch { /* unknown install date */ }
-  }
+  // Default: run diagnostics
+  const { runDiagnostics, printDiagnostics } = await import('../lib/engine/doctor.js');
 
-  const summary     = summarize(usageData, installedNames, installDates);
-  const suggestions = summary.filter(s => s.suggestion !== null);
+  console.log('\n  BookLib Health Check\n');
+  const findings = runDiagnostics(process.cwd());
+  printDiagnostics(findings);
 
-  console.log('\n► Skill health check\n');
+  if (cure && findings.some(f => f.fixable)) {
+    console.log('  Applying fixes...\n');
 
-  // Split summary into: active (has uses or has suggestion) vs silent (0 uses, no suggestion)
-  const active = summary.filter(s => s.uses > 0 || s.suggestion !== null);
-  const silentCount = summary.length - active.length;
+    for (const f of findings) {
+      if (!f.fixable) continue;
 
-  const noUsageFile = !fs.existsSync(usagePath);
-  if (active.length === 0 && noUsageFile) {
-    // No hook, no data
-    console.log(`  ${installedNames.length} community skill${installedNames.length === 1 ? '' : 's'} in ~/.booklib/skills/. No usage data yet.\n`);
-    console.log('  Tip: run `booklib doctor --install-hook` to start tracking usage automatically.');
-  } else if (active.length === 0) {
-    // Hook installed, no usage yet
-    console.log(`  ${installedNames.length} community skill${installedNames.length === 1 ? '' : 's'} in ~/.booklib/skills/. No usage data yet.\n`);
-  } else {
-    // Show active skills
-    for (const item of active) {
-      const icon     = item.suggestion ? '⚠' : '✓';
-      const useLabel = item.uses === 1 ? '1 use ' : `${item.uses} uses`;
-      let whenLabel;
-      if (item.lastUsed === null) {
-        const days = installDates[item.name]
-          ? Math.floor((Date.now() - installDates[item.name].getTime()) / MS_PER_DAY)
-          : null;
-        whenLabel = days !== null ? `never — installed ${days} days ago` : 'never';
-      } else {
-        whenLabel = `${item.daysSinceLastUse} day${item.daysSinceLastUse === 1 ? '' : 's'} ago`;
-      }
-      console.log(`  ${icon} ${item.name.padEnd(SKILL_NAME_PAD)} ${useLabel.padEnd(USE_LABEL_PAD)} (${whenLabel})`);
-    }
-    if (silentCount > 0) {
-      console.log(`\n  ${silentCount} other skill${silentCount === 1 ? '' : 's'} — no usage recorded`);
-    }
-  }
-
-  if (suggestions.length > 0) {
-    console.log('\n  Suggestions:');
-    for (const item of suggestions) {
-      if (item.suggestion === 'remove') {
-        console.log(`  · ${item.name}: never used — consider removing (booklib uninstall ${item.name})`);
-      } else {
-        const days = item.daysSinceLastUse ?? 60;
-        console.log(`  · ${item.name}: ${item.uses} use${item.uses === 1 ? '' : 's'} in ${days} days — low activity`);
+      if (f.check === 'missing-index') {
+        console.log('  Building search index...');
+        const indexer = new BookLibIndexer();
+        const { skillsPath } = resolveBookLibPaths();
+        await indexer.indexDirectory(skillsPath, false, { quiet: true });
+        console.log('  Index built.\n');
       }
     }
-    console.log('\n  Run `booklib uninstall <skill>` to free up slots.');
+
+    // Re-run diagnostics to show updated state
+    const updated = runDiagnostics(process.cwd());
+    const remaining = updated.filter(f => f.fixable).length;
+    if (remaining === 0) {
+      console.log('  All fixable issues resolved.\n');
+    } else {
+      console.log(`  ${remaining} issue(s) remain that require manual intervention.\n`);
+    }
   }
 
-  if (noUsageFile && active.length > 0) {
-    console.log('\n  Tip: run `booklib doctor --install-hook` to start tracking usage.');
-  }
-
-  console.log('');
   break;
 }
 
