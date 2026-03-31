@@ -31,6 +31,16 @@ jobs:
         with:
           generate_release_notes: true
 
+      - name: Regenerate .well-known/skills index
+        run: node bin/booklib.js build-wellknown
+
+      - name: Commit updated well-known index
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/.well-known/
+          git diff --staged --quiet || git commit -m "chore: regenerate .well-known/skills index [skip ci]"
+
       - name: Publish to npm
         run: npm publish --access public
         env:
