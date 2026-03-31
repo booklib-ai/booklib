@@ -204,12 +204,13 @@ async function main() {
 
     case 'search': {
       const autoFetch = args.includes('--auto-fetch');
+      const useGraph = args.includes('--graph');
       const roleFilter = (args.find(a => a.startsWith('--role=')) ?? '').replace('--role=', '') || null;
       const query = args.slice(1).filter(a => !a.startsWith('--')).join(' ');
-      if (!query) { console.error('Usage: booklib search "<query>" [--auto-fetch] [--role=<role>]'); process.exit(1); }
+      if (!query) { console.error('Usage: booklib search "<query>" [--auto-fetch] [--role=<role>] [--graph]'); process.exit(1); }
 
       const regSearcher = new BookLibRegistrySearcher();
-      let { local, suggested, conflicts } = await regSearcher.searchHybrid(query);
+      let { local, suggested, conflicts } = await regSearcher.searchHybrid(query, { useGraph });
 
       // Role filter — narrow results to skills tagged for the requested agent role
       if (roleFilter) {
@@ -237,7 +238,7 @@ async function main() {
           const { cachePath } = resolveBookLibPaths();
           const indexer = new BookLibIndexer();
           await indexer.indexDirectory(path.join(cachePath, 'skills'));
-          ({ local, suggested, conflicts } = await regSearcher.searchHybrid(query));
+          ({ local, suggested, conflicts } = await regSearcher.searchHybrid(query, { useGraph }));
         }
       }
 
