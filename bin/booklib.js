@@ -697,13 +697,14 @@ async function main() {
       console.log('   Skills synced to ~/.claude/skills/ — pair with an orchestrator if needed:');
       console.log('   obra/superpowers: /plugin install superpowers   ruflo: npm install -g ruflo');
       if (untrusted.length > 0) {
-        console.log(`\nTo install remaining skills, run: booklib fetch <skill-name>`);
+        console.log(`\nTo install remaining skills, run: booklib install <skill-name>`);
         untrusted.forEach(s => console.log(`  • ${s.name}`));
       }
       break;
     }
 
     case 'add': {
+      console.error('⚠ "booklib add" is deprecated. Use: booklib install <name>');
       const installer = new BookLibInstaller();
       const skillId = args[1];
       if (!skillId) { console.error('Usage: booklib add <skill-id-or-url>'); process.exit(1); }
@@ -711,7 +712,24 @@ async function main() {
       break;
     }
 
+    case 'install': {
+      const names = args.slice(1).filter(a => !a.startsWith('--'));
+      if (names.length === 0) {
+        console.error('Usage: booklib install <skill-name> [skill-name...]');
+        process.exit(1);
+      }
+      const { installSkill } = await import('../lib/skill-fetcher.js');
+      for (const name of names) {
+        const result = installSkill(name);
+        if (result === 'installed') console.log(`  ✓ ${name}`);
+        else if (result === 'already-installed') console.log(`  · ${name} (already installed)`);
+        else console.log(`  ✗ ${name}: not found in any catalog`);
+      }
+      break;
+    }
+
     case 'fetch': {
+      console.error('⚠ "booklib fetch" is deprecated. Use: booklib install <name>');
       const { SKILL_REGISTRY } = await import('../lib/registry/skills.js');
       const skillName = args[1];
       if (!skillName) { console.error('Usage: booklib fetch <skill-name>'); process.exit(1); }
@@ -1540,8 +1558,9 @@ SKILLS:
                [--orchestrator=obra|ruflo] [--dry-run]
   booklib setup                                  Fetch & index all trusted community skills
   booklib discover [--refresh]                   List available community skills
-  booklib fetch <skill-name>                     Fetch + index a specific skill
-  booklib add <skill-id-or-url>                  Add skill via registry ID or URL
+  booklib install <skill-name>                    Install a skill
+  booklib fetch <skill-name>                     (deprecated) Use: booklib install
+  booklib add <skill-id-or-url>                  (deprecated) Use: booklib install
   booklib rules list|install <lang>|status       Manage always-on language rules
 
 SESSION HANDOFF:
@@ -1592,7 +1611,8 @@ SKILLS:
   booklib rules list                     See available language rule sets
   booklib rules install <lang>           Add rules to .cursor/rules/
   booklib rules install <lang> --global  Add rules to ~/.claude/CLAUDE.md
-  booklib fetch <skill-name>             Install a specific skill
+  booklib install <skill-name>            Install a skill
+  booklib fetch <skill-name>             (deprecated) Use: booklib install
   booklib discover                       Browse the community skill catalog
 
 KNOWLEDGE GRAPH:
