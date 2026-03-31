@@ -101,13 +101,17 @@ const TOOL_MENU = [
 ];
 
 const MCP_TOOL_MENU = [
-  { num: 1, name: 'Claude Code', target: 'claude',   file: '.claude/settings.json' },
-  { num: 2, name: 'Cursor',      target: 'cursor',   file: '.cursor/mcp.json' },
-  { num: 3, name: 'Gemini CLI',  target: 'gemini',   file: '.gemini/settings.json' },
-  { num: 4, name: 'Codex',       target: 'codex',    file: '.codex/config.toml' },
-  { num: 5, name: 'Zed',         target: 'zed',      file: '.zed/settings.json' },
-  { num: 6, name: 'Continue',    target: 'continue', file: '.continue/mcpServers/booklib.yaml' },
-  { num: 7, name: 'All of the above', target: 'all', file: null },
+  { num: 1,  name: 'Claude Code', target: 'claude',   file: '.claude/settings.json' },
+  { num: 2,  name: 'Cursor',      target: 'cursor',   file: '.cursor/mcp.json' },
+  { num: 3,  name: 'Copilot',     target: 'copilot',  file: '.vscode/mcp.json' },
+  { num: 4,  name: 'Gemini CLI',  target: 'gemini',   file: '.gemini/settings.json' },
+  { num: 5,  name: 'Codex',       target: 'codex',    file: '.codex/config.toml' },
+  { num: 6,  name: 'Roo Code',    target: 'roo-code', file: '.roo/mcp.json' },
+  { num: 7,  name: 'Windsurf',    target: 'windsurf', file: '~/.codeium/windsurf/mcp_config.json' },
+  { num: 8,  name: 'Goose',       target: 'goose',    file: '.goose/config.yaml' },
+  { num: 9,  name: 'Zed',         target: 'zed',      file: '.zed/settings.json' },
+  { num: 10, name: 'Continue',    target: 'continue', file: '.continue/mcpServers/booklib.yaml' },
+  { num: 11, name: 'All of the above', target: 'all', file: null },
 ];
 
 async function promptToolSelection() {
@@ -149,7 +153,7 @@ async function promptMcpToolSelection() {
     const fileInfo = t.file ? `  → ${t.file}` : '';
     process.stdout.write(`  ${t.num}. ${t.name.padEnd(18)}${fileInfo}\n`);
   }
-  process.stdout.write('\n  Enter numbers separated by commas (1,2,5) or 7 for all: ');
+  process.stdout.write('\n  Enter numbers separated by commas (1,2,5) or 11 for all: ');
 
   const rl2 = createInterface({ input: process.stdin, output: process.stdout });
   const answer = await new Promise(resolve => {
@@ -158,7 +162,7 @@ async function promptMcpToolSelection() {
 
   if (!answer) return 'all';
   const nums = answer.split(',').map(n => parseInt(n.trim(), 10)).filter(n => !isNaN(n));
-  if (nums.length === 0 || nums.includes(7)) return 'all';
+  if (nums.length === 0 || nums.includes(11)) return 'all';
   const selected = nums.map(n => MCP_TOOL_MENU.find(t => t.num === n)?.target).filter(Boolean);
   return selected.length > 0 ? selected.join(',') : 'all';
 }
