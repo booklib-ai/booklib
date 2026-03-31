@@ -218,3 +218,28 @@ test('addCorrection: does not expose embedding field in return value', async () 
   const result = await addCorrection('test rule', home, embedFn);
   assert.ok(!('embedding' in result));
 });
+
+test('addCorrection: backfilled embedding is persisted to disk', async (t) => {
+  const tmpHome = mkdtempSync(join(tmpdir(), 'bl-test-'));
+  const bookLibDir = join(tmpHome, '.booklib');
+  mkdirSync(bookLibDir, { recursive: true });
+
+  // Seed entry with NO embedding field
+  const entry = {
+    id: 'aabbcc01', text: 'use const', mentions: 1, level: 1,
+    sessions: ['s1'], firstSeen: '2024-01-01T00:00:00.000Z', lastSeen: '2024-01-01T00:00:00.000Z',
+  };
+  writeFileSync(join(bookLibDir, 'corrections.jsonl'), JSON.stringify(entry) + '\n');
+
+  const embedMap = { 'use const': [1, 0, 0], 'use const again': [1, 0, 0] };
+  const embedFn = makeEmbedFn(embedMap);
+
+  // Call add with text that deduplicates (same vector)
+  await addCorrection('use const again', tmpHome, embedFn);
+
+  // Reload from disk and verify embedding was persisted
+  const loaded = loadCorrections(tmpHome);
+  assert.equal(loaded.length, 1);
+  assert.ok(loaded[0].embedding, 'embedding should be persisted to disk after backfill');
+  assert.deepEqual(loaded[0].embedding, [1, 0, 0]);
+});
