@@ -12,7 +12,10 @@ for (const skill of fs.readdirSync(SKILLS_DIR)) {
   const file = path.join(SKILLS_DIR, skill, 'SKILL.md');
   if (!fs.existsSync(file)) continue;
   const { data } = matter(fs.readFileSync(file, 'utf8'));
-  const missing = REQUIRED.filter(f => !data[f]);
+  const missing = REQUIRED.filter(field => {
+    const v = data[field];
+    return v === undefined || v === null || v === '' || (Array.isArray(v) && v.length === 0);
+  });
   if (missing.length) {
     console.log(`MISSING in ${skill}: ${missing.join(', ')}`);
     failures++;
