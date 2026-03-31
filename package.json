@@ -1,6 +1,6 @@
 {
   "name": "@booklib/skills",
-  "version": "1.17.5",
+  "version": "1.18.0",
   "description": "Book knowledge distilled into structured AI skills for Claude Code and other AI assistants",
   "bin": {
     "skills": "bin/skills.cjs",
