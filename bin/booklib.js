@@ -46,6 +46,7 @@ import {
 import { readUsage, summarize } from '../lib/doctor/usage-tracker.js';
 import { installTrackingHook } from '../lib/doctor/hook-installer.js';
 import { listAvailable as listAvailableRules, installRule as installRuleFn, status as rulesStatus } from '../lib/rules/rules-manager.js';
+import { addCorrection, listCorrections, removeCorrection, levelFromMentions } from '../lib/engine/corrections.js';
 
 const args = process.argv.slice(2);
 const command = args[0];
@@ -1229,6 +1230,73 @@ async function main() {
 
   console.log('');
   break;
+}
+
+case 'correction': {
+  const sub = args[1];
+
+  if (!sub || sub === 'help') {
+    console.log('\nUsage:');
+    console.log('  booklib correction add "<text>"   — record a correction');
+    console.log('  booklib correction list           — show all corrections');
+    console.log('  booklib correction remove <id>    — delete a correction\n');
+    break;
+  }
+
+  if (sub === 'add') {
+    const text = args.slice(2).join(' ').replace(/^["']|["']$/g, '');
+    if (!text) {
+      console.error('  Usage: booklib correction add "text of the correction"');
+      process.exit(1);
+    }
+    process.stdout.write('  Recording correction (loading embedding model)...\n');
+    const result = await addCorrection(text);
+    const levelUp = result.wasExisting && result.level > levelFromMentions(result.mentions - 1);
+    const action = result.wasExisting ? 'Updated' : 'Recorded';
+    const arrow = levelUp ? ' ↑' : '';
+    console.log(`✓ ${action}: "${result.text}" (mentions: ${result.mentions}, level: ${result.level}${arrow})`);
+    if (levelUp && result.level >= 3) {
+      console.log(`  → ~/.claude/CLAUDE.md updated`);
+    }
+    break;
+  }
+
+  if (sub === 'list') {
+    const all = listCorrections();
+    if (all.length === 0) {
+      console.log('\n  No corrections recorded yet.\n');
+      break;
+    }
+    console.log(`\n► Learned corrections (${all.length} total)\n`);
+    console.log(`  ${'ID'.padEnd(8)} ${'Mentions'.padEnd(10)} ${'Level'.padEnd(7)} Text`);
+    for (const c of all) {
+      const marker = c.level >= 3 ? '●' : ' ';
+      const lvl    = `${c.level} ${marker}`;
+      console.log(`  ${c.id.padEnd(8)} ${String(c.mentions).padEnd(10)} ${lvl.padEnd(7)} ${c.text.slice(0, 60)}`);
+    }
+    console.log('\n  ● = injected into ~/.claude/CLAUDE.md\n');
+    break;
+  }
+
+  if (sub === 'remove') {
+    const id = args[2];
+    if (!id) {
+      console.error('  Usage: booklib correction remove <id>');
+      process.exit(1);
+    }
+    const removed = removeCorrection(id);
+    if (!removed) {
+      console.error(`  Not found: ${id}`);
+      process.exit(1);
+    }
+    console.log(`✓ Removed "${removed.text}"`);
+    console.log(`  → ~/.claude/CLAUDE.md updated`);
+    break;
+  }
+
+  console.error(`  Unknown subcommand: ${sub}`);
+  console.error('  Use: booklib correction add|list|remove');
+  process.exit(1);
 }
 
 case 'rules': {
