@@ -46,6 +46,7 @@ import {
 import { readUsage, summarize } from '../lib/doctor/usage-tracker.js';
 import { installTrackingHook } from '../lib/doctor/hook-installer.js';
 import { listAvailable as listAvailableRules, installRule as installRuleFn, status as rulesStatus } from '../lib/rules/rules-manager.js';
+import { WellKnownBuilder } from '../lib/well-known-builder.js';
 
 const args = process.argv.slice(2);
 const command = args[0];
@@ -1332,6 +1333,13 @@ case 'rules': {
   }
   break;
 }
+
+    case 'build-wellknown': {
+      const builder = new WellKnownBuilder();
+      const outPath = await builder.build();
+      console.log(`Generated: ${outPath}`);
+      process.exit(0);
+    }
 
     default: {
       const showAll = args.includes('--all');
