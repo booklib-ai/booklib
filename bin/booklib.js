@@ -654,7 +654,8 @@ async function main() {
       }
 
       // ── New guided wizard ─────────────────────────────────────────────────
-      await runWizard(process.cwd());
+      const reset = args.includes('--reset');
+      await runWizard(process.cwd(), { reset });
       break;
     }
 
@@ -1498,7 +1499,7 @@ KNOWLEDGE GRAPH:
   Edge types: implements · contradicts · extends · applies-to · see-also · inspired-by · supersedes · depends-on
 
 SKILLS:
-  booklib init [--tool=claude|cursor|copilot|gemini|codex|windsurf|roo-code|openhands|junie|goose|opencode|letta|all|auto] [--skills=s1,s2]
+  booklib init [--reset] [--tool=claude|cursor|copilot|gemini|codex|windsurf|roo-code|openhands|junie|goose|opencode|letta|all|auto] [--skills=s1,s2]
                [--ecc] [--agents] [--commands] [--rules[=kotlin,python]]
                [--orchestrator=obra|ruflo] [--dry-run]
   booklib setup                                  Fetch & index all trusted community skills
@@ -1551,7 +1552,7 @@ EVERYDAY USE:
   booklib doctor                         Check skill health & usage
 
 SKILLS:
-  booklib init                           Set up BookLib for this project
+  booklib init [--reset]                 Set up BookLib for this project (--reset to re-run from scratch)
   booklib rules list                     See available language rule sets
   booklib rules install <lang>           Add rules to .cursor/rules/
   booklib rules install <lang> --global  Add rules to ~/.claude/CLAUDE.md
