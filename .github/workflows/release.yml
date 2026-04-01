@@ -47,15 +47,28 @@ jobs:
       - name: Push well-known index update
         run: git push origin HEAD:refs/heads/main
 
-      - name: Publish booklib to npm
+      - name: Publish @booklib/core to npm
         run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Publish @booklib/skills to npm (legacy compatibility)
+      - name: Publish @booklib/skills to npm (skills content only)
         run: |
-          node -p "JSON.stringify({...JSON.parse(fs.readFileSync('package.json','utf8')), name:'@booklib/skills'}, null, 2)" > package.json.tmp
-          mv package.json.tmp package.json
+          # Build a minimal package.json for skills-only package
+          node -e "
+            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+            const skillsPkg = {
+              name: '@booklib/skills',
+              version: pkg.version,
+              description: '24 curated knowledge sets from canonical books — structured, tagged, ready for AI agents',
+              license: pkg.license,
+              repository: pkg.repository,
+              homepage: pkg.homepage,
+              keywords: ['ai', 'skills', 'agent-skills', 'knowledge', 'mcp'],
+              files: ['skills/**']
+            };
+            fs.writeFileSync('package.json', JSON.stringify(skillsPkg, null, 2));
+          "
           mv README.md README.core.md
           mv README.skills.md README.md
           npm publish --access public || echo "⚠ @booklib/skills publish skipped (may already exist at this version)"
