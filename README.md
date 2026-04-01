@@ -9,9 +9,9 @@
 <h1 align="center">booklib</h1>
 
 <p align="center">
-  Your AI agent knows how to code — but it doesn't know<br/>
-  <em>Effective Java</em>, <em>Clean Code</em>, or <em>Domain-Driven Design</em>.<br/>
-  BookLib gives it that knowledge.
+  A knowledge platform for AI agents.<br/>
+  Expert knowledge, personal insights, and project context —<br/>
+  searchable, structured, and delivered via MCP to any AI tool.
 </p>
 
 <p align="center">
@@ -24,30 +24,31 @@
 </p>
 
 <p align="center">
-  <b>24 bundled skills</b> &nbsp;·&nbsp; <b>258+ discoverable</b> &nbsp;·&nbsp; <b>13 agents</b> &nbsp;·&nbsp; <b>10 MCP-compatible</b> &nbsp;·&nbsp; <b>obra/superpowers &amp; ruflo compatible</b>
+  <b>13 AI tools supported</b> &nbsp;·&nbsp; <b>10 MCP-compatible</b> &nbsp;·&nbsp; <b>Hybrid search engine</b> &nbsp;·&nbsp; <b>Knowledge graph</b> &nbsp;·&nbsp; <b>Zero cloud dependencies</b>
 </p>
 
 ---
 
 ## Why
 
-Your AI agent generates code from its training data — generic patterns, popular conventions, whatever it saw the most of. It doesn't know that Joshua Bloch says "prefer method references to lambdas" (Effective Java, Item 44) or that Robert Martin says "a function should do one thing" (Clean Code, Ch. 3). It can't cite specific principles because it doesn't have them.
+AI agents are powerful — but they only know what's in their training data. They don't know your team's conventions, your architecture decisions, or the specific expert frameworks you follow. Every new session starts from zero.
 
-BookLib fixes this. It ships **24 skills distilled from canonical books** — each one a structured set of principles, anti-patterns, and examples that your AI agent applies directly to your code, with citations.
+BookLib is a **local knowledge platform** that gives your AI agent persistent, structured knowledge it can search and apply across every session.
 
 ## What you get
 
-| | What | Why it matters |
-|-|------|----------------|
-| **Skills from books** | 24 curated skills from Effective Java, Clean Code, DDD, Refactoring UI, Lean Startup, and more | Your agent applies specific, citable principles — not generic advice |
-| **Hybrid search** | BM25 + vector + cross-encoder reranking across all skills | Ask a question, get the most relevant principle from any book |
-| **MCP tools** | 8 tools your agent calls directly (search, audit, capture, context) | Works in Claude Code, Cursor, Copilot, Gemini, and 6 more — agent uses BookLib without you typing commands |
-| **Knowledge graph** | Capture your own insights, link them to skills and project components | Your architecture decisions become searchable alongside book knowledge |
-| **13 AI tools** | One `booklib init` configures Claude Code, Cursor, Copilot, Gemini CLI, Codex, Windsurf, Roo Code, Goose, and more | Switch tools, keep your knowledge |
+| | What it does |
+|-|-------------|
+| **Knowledge engine** | Index any structured knowledge — expert frameworks, team conventions, architecture decisions, research findings. Search it with natural language via a hybrid pipeline (BM25 + vector + cross-encoder reranking). |
+| **MCP integration** | 8 tools your agent calls directly: search, audit, capture, build context. Works in Claude Code, Cursor, Copilot, Gemini, Codex, Windsurf, Roo Code, Goose, Zed, and Continue. |
+| **Knowledge graph** | Capture insights as you work. Link them to each other and to your project components. Your agent finds related knowledge automatically through graph traversal. |
+| **Multi-tool support** | One `booklib init` detects and configures all your AI tools. MCP for 10 tools, config files for 3 more. Switch tools, keep your knowledge. |
+| **Health system** | `booklib doctor` diagnoses problems — too many skills, stale knowledge, oversized configs — and `--cure` fixes them. |
+| **Runs locally** | Everything on your machine. No cloud, no API keys, no data leaving your laptop. Embedding model (~25 MB) runs on CPU. |
 
-## Not just for code
+## Works for any domain
 
-BookLib works for any domain where expert knowledge matters: product management (Lean Startup), UI design (Refactoring UI), data visualization (Storytelling with Data), web animation, system design, and more. Same search engine, same agent integration.
+Programming, product management, UI design, data visualization, system architecture, technical writing, research — any field where structured expert knowledge improves your agent's output.
 
 ---
 
@@ -58,13 +59,20 @@ npm install -g booklib
 booklib init
 ```
 
-That's it. The wizard detects your project, recommends skills, configures your AI tools, sets up MCP, and builds the search index. Your agent can now search for principles, audit files, and capture knowledge — automatically.
+The wizard detects your project, configures your AI tools, sets up MCP, builds the search index, and recommends relevant knowledge. Your agent starts using BookLib automatically.
 
 ```bash
-# Try it manually
-booklib search "how to handle null values in Kotlin"
-booklib audit effective-java src/UserService.java
+# Search for knowledge
+booklib search "how to handle authentication"
+
+# Capture your own insights
 booklib capture --title "We use event sourcing for orders"
+
+# Deep-review a file against a knowledge domain
+booklib audit clean-code-reviewer src/UserService.java
+
+# Check system health
+booklib doctor
 ```
 
 ---
