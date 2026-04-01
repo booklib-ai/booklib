@@ -15,8 +15,8 @@
 </p>
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/booklib"><img src="https://img.shields.io/npm/v/booklib.svg" alt="npm version"/></a>
-  <a href="https://www.npmjs.com/package/booklib"><img src="https://img.shields.io/npm/dw/booklib.svg" alt="downloads"/></a>
+  <a href="https://www.npmjs.com/package/@booklib/core"><img src="https://img.shields.io/npm/v/@booklib/core.svg" alt="npm version"/></a>
+  <a href="https://www.npmjs.com/package/@booklib/core"><img src="https://img.shields.io/npm/dw/@booklib/core.svg" alt="downloads"/></a>
   <a href="https://github.com/booklib-ai/booklib/stargazers"><img src="https://img.shields.io/github/stars/booklib-ai/booklib?style=flat" alt="stars"/></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="license"/></a>
   <a href="https://github.com/booklib-ai/booklib/blob/main/CHANGELOG.md"><img src="https://img.shields.io/badge/Actively%20Maintained-✓-brightgreen" alt="actively maintained"/></a>
