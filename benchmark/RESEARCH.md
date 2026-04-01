@@ -21,22 +21,28 @@
 | Hybrid + cross-encoder reranking | — | — | — |
 | Graph-augmented (hybrid + reranking + `--graph`) | — | — | — |
 
-## Mapping to arxiv 2602.12430
+## Techniques Used and Their Evidence Base
 
-Claims under investigation:
+### Established techniques (standard IR practice, no specific citation needed)
+- **BM25 + vector hybrid retrieval** — widely adopted in production search systems
+- **Reciprocal Rank Fusion** — standard technique for combining ranked lists
+- **Cross-encoder reranking** — standard re-ranking approach, well-studied
 
-- **§3.2**: "Hybrid retrieval improves MRR@5 by 40–60% over dense-only baselines"
-  → Compare row 1 vs row 3 above.
+### Research-backed techniques (preprints, use with caveats)
+- **SRAG metadata prefixes** (arxiv:2603.26670) — prepending `[skill:X] [type:Y]` to chunks
+  before embedding. Claims 30% QA improvement. *Caveat: recent preprint, not yet peer-reviewed
+  or independently replicated. Implemented in BookLib based on the technique's intuitive merit.*
 
-- **§4.1**: "Cross-encoder reranking adds 10–15% on top of hybrid fusion"
-  → Compare row 2 vs row 3 above.
+- **ETH Zurich context study** (arxiv:2602.11988) — finding that unstructured context files
+  reduce agent performance. *Source quality: 4/5 — ETH Zurich SRI Lab, rigorous methodology.
+  Preprint, but institution reputation is strong. Informed BookLib's config assembler design
+  (30-60 line structured files instead of 10,000-line dumps).*
 
-- **§5.3**: "Query expansion with hypothetical document embeddings improves recall on long-tail queries"
-  → Examine Recall@5 on long-tail queries in `benchmark/ground-truth.json` (queries 18–23).
+### Claims to verify with BookLib's own benchmarks
 
-- **Graph augmentation** (BookLib-specific, not in arxiv): Does one-hop edge traversal via
-  `--graph` improve Recall@5 on multi-skill queries? Capture 10 cross-skill insight nodes
-  linking related skills, re-run benchmark, compare row 3 vs row 4.
+- Does hybrid retrieval improve MRR@5 over vector-only? → Compare row 1 vs row 3.
+- Does cross-encoder reranking add measurable improvement? → Compare row 2 vs row 3.
+- Does graph augmentation improve Recall@5 on multi-skill queries? → Compare row 3 vs row 4.
 
 ## Notes
 

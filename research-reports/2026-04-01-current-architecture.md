@@ -136,14 +136,25 @@ Agents save progress and hand off to other agents across sessions.
 
 ## Research Sources Referenced
 
-| Paper | What it validates | Status in BookLib |
-|-------|------------------|-------------------|
-| arxiv:2602.12430 — Hybrid retrieval | BM25 + vector + reranking > vector-only | ✅ Implemented (Spec 2) |
-| arxiv:2603.26670 — SRAG | Metadata prefixes improve retrieval 30% | ✅ Implemented |
-| arxiv:2602.11988 — ETH Zurich AGENTS.md | Less context = better performance | ✅ Implemented (config assembler) |
-| arxiv:2602.20478 — Codified Context | Hot/cold memory + domain agents pattern | ✅ Architecturally aligned |
-| arxiv:2502.06864 — KG²RAG (NAACL 2025) | Graph-organized search results | ⚠️ Partially (one-hop only, sparse graph) |
-| arxiv:2409.04701 — Late Chunking | Contextual embeddings +24% | ❌ Not yet (P2 backlog) |
-| arxiv:2603.05344 — OpenDev | Progressive/lazy tool discovery | ⚠️ Design pattern adopted, not fully implemented |
-| HuggingFace Transformers.js v4 | 4x embedding speedup | ❌ Not yet (P1 backlog) |
-| SIGIR 2025 — SEE Early Exit | Early-exit cross-encoder reranking | ❌ Not yet (P3, blocked on GPU requirement) |
+### Peer-reviewed / high-confidence
+| Paper | Source Quality | What it validates | Status |
+|-------|--------------|-------------------|--------|
+| arxiv:2602.11988 — ETH Zurich AGENTS.md study | **4/5** — ETH Zurich SRI Lab, rigorous methodology. Preprint, not yet peer-reviewed, but institution reputation is strong. | Less context = better agent performance | ✅ Implemented (config assembler) |
+| arxiv:2502.06864 — KG²RAG (NAACL 2025) | **5/5** — Peer-reviewed at NAACL, top NLP venue | Graph-organized search results | ⚠️ Partially (one-hop only) |
+| SIGIR 2025 — SEE Early Exit | **5/5** — Peer-reviewed at SIGIR, top IR venue | Early-exit cross-encoder reranking | ❌ Backlog (GPU requirement) |
+| HuggingFace Transformers.js v4 | **5/5** — First-party release announcement | 4x embedding speedup | ❌ P1 backlog |
+
+### Established techniques (no specific paper needed)
+| Technique | Status | Notes |
+|-----------|--------|-------|
+| BM25 + vector hybrid retrieval | ✅ Implemented | Standard IR practice, widely adopted |
+| Reciprocal Rank Fusion | ✅ Implemented | Standard IR fusion technique |
+| Cross-encoder reranking | ✅ Implemented | Standard re-ranking approach |
+
+### Preprints — use with caveats
+| Paper | Source Quality | What it claims | Status | Caveat |
+|-------|--------------|----------------|--------|--------|
+| arxiv:2603.26670 — SRAG | **3/5** — Recent preprint, not peer-reviewed | Metadata prefixes improve retrieval 30% | ✅ Implemented | Promising but unverified by independent replication |
+| arxiv:2602.20478 — Codified Context | **2/5** — Single author, single project, not peer-reviewed | Hot/cold memory + domain agents pattern | Architecturally aligned | Do NOT cite in user-facing materials. Fine for internal reference only |
+| arxiv:2603.05344 — OpenDev | **3/5** — System description, not controlled experiment | Progressive/lazy tool discovery | Design pattern adopted | Describes architecture, doesn't prove it outperforms alternatives |
+| arxiv:2409.04701 — Late Chunking | **4/5** — Jina AI research team, reproducible | Contextual embeddings +24% | ❌ P2 backlog | Real technique, complex implementation for BookLib's stack |
