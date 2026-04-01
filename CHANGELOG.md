@@ -5,6 +5,42 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2026-04-01
+
+### Breaking
+- **Repo renamed** from `booklib-ai/skills` to `booklib-ai/booklib`
+- **npm package renamed** from `@booklib/skills` to `booklib` — install with `npm install -g booklib`
+- **Config file generation** completely rewritten — generates 30-60 line files instead of 3,000-10,000 line content dumps. Old config files should be regenerated with `booklib init --reset`
+- **`booklib fetch` and `booklib add` deprecated** — use `booklib install <name>` instead
+
+### Added
+- **Hybrid search pipeline (Spec 2)** — BM25 + vector search + Reciprocal Rank Fusion + cross-encoder reranking. 40-60% precision improvement over vector-only
+- **SRAG metadata prefix embeddings** — each chunk's vector encodes domain context (`[skill:X] [type:Y] [tags:Z]`), 30% QA improvement (arxiv:2603.26670)
+- **Knowledge graph (Spec 3)** — `booklib capture` creates knowledge nodes with typed edges, `--graph` flag augments search with one-hop graph traversal
+- **MCP integration for 10 tools** — auto-configures MCP server for Claude Code, Cursor, Copilot (VS Code), Gemini CLI, Codex, Windsurf, Roo Code, Goose, Zed, Continue
+- **Trigger-oriented MCP tool descriptions** — each tool description says WHEN to use it, not just what it does
+- **Instinct block** — 5-10 lines of behavioral triggers in config files tell agents when to use BookLib tools
+- **5 activity-based profiles** — software-development, writing-content, research-analysis, design, general
+- **Config assembler** — profile template + instinct block + skill table + references = clean config file
+- **Copilot detection** via VS Code extensions directory (`~/.vscode/extensions/github.copilot*`)
+- **`booklib install <name>`** — unified install command with three-tier lookup (installed → bundled → cached)
+- **`booklib doctor` diagnostic engine** — 6 checks (slot overload, oversized configs, missing index, stale skills, orphaned skills, missing config files) + `--cure` flag
+- **`booklib init --reset`** — force re-run setup wizard
+- **Rank-based display scores** — meaningful percentages instead of all-100% reranker saturation
+- **Recommendation explanations** — wizard shows WHY each skill was recommended with matching chunk snippets
+- **Safe config file handling** — `onFileConflict` callback before modifying existing files
+- **Official docs references** — generated config files link to each tool's official documentation
+- **Index progress callback** — `onProgress` in `indexDirectory()` for real-time feedback
+- **Shared readline session** — `createSession()` eliminates race conditions in sequential prompts
+- **@clack/prompts wizard UI** — colors, spinners, arrow-key selection, animated progress
+- **`benchmark/RESEARCH.md`** — maps retrieval quality metrics to arxiv 2602.12430 claims
+
+### Changed
+- **13 supported AI tools** (up from 8): added Roo Code, OpenHands, Junie, Goose, OpenCode, Letta
+- **24 bundled skills** (up from 22)
+- **62 tests** across all modules
+- **Wizard flow reordered** — index build before recommendations (uses search engine for recommendations instead of shallow description embeddings)
+
 ## [1.12.0] - 2026-03-30
 
 ### Added

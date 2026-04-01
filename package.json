@@ -1,6 +1,6 @@
 {
   "name": "@booklib/skills",
-  "version": "1.18.0",
+  "version": "2.0.0",
   "description": "Book knowledge distilled into structured AI skills for Claude Code and other AI assistants",
   "bin": {
     "skills": "bin/skills.cjs",
@@ -27,8 +27,9 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.6.0",
+    "@clack/prompts": "^1.2.0",
     "@huggingface/transformers": "^3.4.0",
+    "@modelcontextprotocol/sdk": "^1.6.0",
     "gray-matter": "^4.0.3",
     "minimatch": "^10.2.4",
     "vectra": "^0.12.3"
