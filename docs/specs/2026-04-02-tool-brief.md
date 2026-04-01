@@ -16,7 +16,8 @@ Get a concise briefing on what you need to know for a specific task. Combines re
 ## When NOT to call this
 - For a specific question (use `lookup` instead)
 - For reviewing a file (use `review_file` instead)
-- Mid-task when you need one specific principle
+- Mid-task when you need one specific principle (use `lookup`)
+- When continuing the same task — only brief at task start, not repeatedly
 
 ## Input
 ```json

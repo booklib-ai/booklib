@@ -17,6 +17,8 @@ Deep-review a specific file against known principles. Returns structured finding
 - For quick questions (use `lookup` instead)
 - When the user just wants to understand the code, not review it
 - For files that have no relevant knowledge domain
+- For trivial files (configs, lock files, generated code)
+- If the same file was already reviewed in this session
 
 ## Input
 ```json
