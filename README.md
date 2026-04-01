@@ -24,20 +24,21 @@
 </p>
 
 <p align="center">
-  <b>22 bundled skills</b> &nbsp;·&nbsp; <b>258+ discoverable</b> &nbsp;·&nbsp; <b>8 agents</b> &nbsp;·&nbsp; <b>obra/superpowers &amp; ruflo compatible</b>
+  <b>24 bundled skills</b> &nbsp;·&nbsp; <b>258+ discoverable</b> &nbsp;·&nbsp; <b>13 agents</b> &nbsp;·&nbsp; <b>10 MCP-compatible</b> &nbsp;·&nbsp; <b>obra/superpowers &amp; ruflo compatible</b>
 </p>
 
 ---
 
 ## What it is
 
-BookLib packages expert knowledge from canonical programming books into skills that AI agents can apply directly to your code. It ships with 22 curated, evaluated skills — and a discovery engine that can find, index, and inject hundreds more from the community.
+BookLib packages expert knowledge from canonical books into skills that AI agents can apply directly to your work. It ships with 24 curated skills — and a discovery engine that can find, index, and inject hundreds more from the community.
 
 **Two layers:**
 
 | Layer | What it does |
 |-------|-------------|
-| **Bundled library** | 22 skills from canonical books, pre-indexed, ready to use out of the box |
+| **Bundled library** | 24 skills from canonical books, pre-indexed, ready to use out of the box |
+| **MCP server** | 8 tools (search, audit, capture, context) available to any MCP-compatible AI agent |
 | **Discovery ecosystem** | Finds and fetches skills from GitHub repos, community registries, and npm packages |
 
 BookLib is not a static install. It's a local knowledge engine: semantic search over skill content, automatic context injection via hooks, role-based profiles for swarm agents, and a sync bridge that makes every fetched skill available to any Claude Code-compatible orchestrator.
@@ -54,8 +55,9 @@ BookLib is not a static install. It's a local knowledge engine: semantic search 
 |-----------|-----------------|--------|
 | **PreToolUse hook** | Editing a file matching a skill's `filePattern` | Injects only relevant chunks — fine-grained, automatic, silent |
 | **Skill tool** | `Skill("effective-kotlin")` | Full skill dump on demand — used by orchestrators and subagents |
-| **Search** | `booklib search "<concept>"` | Semantic vector search — returns the most relevant chunks |
+| **Search** | `booklib search "<concept>"` | Hybrid search (BM25 + vector + reranker) — returns the most relevant chunks |
 | **Audit** | `booklib audit <skill> <file>` | Applies a skill's principles to a specific file |
+| **MCP** | Agent calls `search_skills`, `audit_content`, etc. | 8 tools available in Claude Code, Cursor, Copilot, Gemini, and 6 more |
 
 The **hook** is the fine-grained layer. After `booklib hooks install`, it fires on every `Read`/`Edit`/`Write`/`Bash` call, matches the file path against skill patterns, and silently injects the relevant skill sections into context — no manual invocation needed. Edit a `.kt` file and effective-kotlin appears. Edit a `.py` file and effective-python appears.
 
@@ -83,7 +85,7 @@ booklib hooks install
 booklib search "how to handle null values in Kotlin"
 ```
 
-**Using Cursor, Copilot, Gemini, Zed, or Continue?** `booklib init` writes the right context file for each tool automatically — and offers to wire up the MCP server so your AI tool can call booklib search and context directly mid-conversation.
+**Works with 13 AI tools.** `booklib init` auto-detects Claude Code, Cursor, Copilot (VS Code), Gemini CLI, Codex, Windsurf, Roo Code, Goose, Zed, Continue, OpenHands, Junie, and Letta. For the 10 MCP-capable tools, it also configures the MCP server so your agent can call BookLib tools (search, audit, capture) directly mid-conversation.
 
 ---
 
