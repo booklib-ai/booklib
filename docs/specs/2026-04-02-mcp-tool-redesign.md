@@ -1,0 +1,72 @@
+# Spec: MCP Tool Redesign
+*Date: 2026-04-02 | Status: Draft — needs individual tool specs*
+
+## Problem
+
+Current MCP tool names are BookLib-internal jargon (`search_skills`, `list_nodes`, `get_context`). An AI agent seeing these names doesn't intuitively know when to call them. The names, purposes, inputs, outputs, and trigger conditions need careful design — each tool is a product decision.
+
+## Current tools
+
+| Name | What it does now |
+|------|-----------------|
+| `search_skills` | Hybrid search across skill library |
+| `search_knowledge` | Search skills + knowledge graph |
+| `audit_content` | Deep file review against a named skill |
+| `get_context` | Build compiled context for a task |
+| `save_session_state` | Save progress for agent handoff |
+| `create_note` | Create knowledge node |
+| `list_nodes` | List knowledge graph nodes |
+| `link_nodes` | Create typed edge between nodes |
+
+## What needs design for each tool
+
+Each tool needs its own mini-spec answering:
+
+1. **Name** — what the agent sees. Should read like a natural action.
+2. **One-line purpose** — what it does in plain language.
+3. **When to trigger** — specific situations where the agent should call this. Written as trigger conditions, not abstract descriptions.
+4. **Input schema** — what parameters, which are required, what format.
+5. **Output format** — what the structured response looks like. Follows the principle: return actionable principles or "nothing relevant found."
+6. **Edge cases** — what happens when no results match, when the index doesn't exist, when the query is too vague.
+7. **What it does NOT do** — prevent misuse / confusion with other tools.
+
+## Proposed tool list (subject to design)
+
+These are starting points — each may change during individual design:
+
+| Proposed name | Direction |
+|--------------|-----------|
+| `lookup` | Search for relevant knowledge given a task/question |
+| `review_file` | Deep-review a specific file against known principles |
+| `brief` | Get a concise briefing on what to know for a task |
+| `remember` | Capture an insight for future recall |
+| `recalled` | List what has been captured/remembered |
+| `connect` | Create a relationship between two pieces of knowledge |
+| `save_progress` | Save current work state for handoff |
+
+## Open questions
+
+- Should `search_skills` and `search_knowledge` merge into one tool with a filter param, or stay separate?
+- Is `get_context` (now `brief`) redundant with `lookup`? Or is there a meaningful difference between "find relevant knowledge" and "build a full briefing"?
+- Should `audit_content` require a specific skill name, or should it auto-detect the relevant skill?
+- Do we need 7 tools or can some merge? Fewer tools = less cognitive load for the agent.
+
+## Next steps
+
+Create individual spec files for each tool:
+- `docs/specs/2026-04-02-tool-lookup.md`
+- `docs/specs/2026-04-02-tool-review.md`
+- `docs/specs/2026-04-02-tool-brief.md`
+- `docs/specs/2026-04-02-tool-remember.md`
+- `docs/specs/2026-04-02-tool-recalled.md`
+- `docs/specs/2026-04-02-tool-connect.md`
+- `docs/specs/2026-04-02-tool-save-progress.md`
+
+Each spec answers all 7 design questions above. Then implement as a batch.
+
+## Breaking change strategy
+
+Renaming MCP tools breaks existing configurations. Options:
+- Keep old names as aliases during a transition period
+- Bump MCP server version and document migration
+- Or: if adoption is still small, just rename and update docs
