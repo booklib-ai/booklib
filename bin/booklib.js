@@ -36,6 +36,7 @@ import {
   listNodes, appendEdge, parseNodeFrontmatter, resolveKnowledgePaths,
   resolveNodeRef, EDGE_TYPES, parseCaptureLinkArgs,
 } from '../lib/engine/graph.js';
+import { autoLink, autoLinkReverse } from '../lib/engine/auto-linker.js';
 import { DiscoveryEngine } from '../lib/discovery-engine.js';
 import { ProjectInitializer } from '../lib/project-initializer.js';
 import { ContextBuilder } from '../lib/context-builder.js';
@@ -950,6 +951,12 @@ async function main() {
       const noteContent = serializeNode({ id, type: 'note', title, content: body ?? '' });
       const filePath = saveNode(noteContent, id);
       await autoIndexNode(filePath);
+      try {
+        const autoLinked = await autoLink({ nodeId: id, title, content: body ?? '' });
+        if (autoLinked.length > 0) {
+          console.log(`   Auto-linked: ${autoLinked.map(l => `${l.to} (${l.type})`).join(', ')}`);
+        }
+      } catch { /* best-effort */ }
       console.log(`✅ Note created: ${filePath}`);
       console.log(`   ID: ${id}`);
       break;
@@ -972,6 +979,12 @@ async function main() {
         content: '',
       });
       const filePath = saveNode(content, id);
+      try {
+        const reverseLinks = await autoLinkReverse({ componentId: id, componentTitle: name });
+        if (reverseLinks.length > 0) {
+          console.log(`   Auto-linked ${reverseLinks.length} existing note(s) to this component`);
+        }
+      } catch { /* best-effort */ }
       console.log(`✅ Component created: ${filePath}`);
       console.log(`   ID: ${id}  paths: ${glob}`);
       break;
@@ -1068,6 +1081,18 @@ async function main() {
 
       const filePath = saveNode(nodeContent, id);
       await autoIndexNode(filePath);
+      try {
+        const savedRaw = loadNode(id);
+        const savedParsed = savedRaw ? parseNodeFrontmatter(savedRaw) : {};
+        const autoLinked = await autoLink({
+          nodeId: id,
+          title: savedParsed.title ?? titleArg ?? '',
+          content: savedParsed.body ?? rawText ?? '',
+        });
+        if (autoLinked.length > 0) {
+          console.log(`   Auto-linked: ${autoLinked.map(l => `${l.to} (${l.type})`).join(', ')}`);
+        }
+      } catch { /* best-effort */ }
       console.log(`✅ Note saved: ${filePath}`);
       console.log(`   ID: ${id}`);
       break;
@@ -1120,6 +1145,18 @@ async function main() {
 
       const filePath = saveNode(nodeContent, id);
       await autoIndexNode(filePath);
+      try {
+        const savedRaw = loadNode(id);
+        const savedParsed = savedRaw ? parseNodeFrontmatter(savedRaw) : {};
+        const autoLinked = await autoLink({
+          nodeId: id,
+          title: savedParsed.title ?? titleArg ?? 'Conversation transcript',
+          content: savedParsed.body ?? transcript ?? '',
+        });
+        if (autoLinked.length > 0) {
+          console.log(`   Auto-linked: ${autoLinked.map(l => `${l.to} (${l.type})`).join(', ')}`);
+        }
+      } catch { /* best-effort */ }
       console.log(`✅ Conversation saved: ${filePath}`);
       console.log(`   ID: ${id}`);
       break;
@@ -1139,6 +1176,12 @@ async function main() {
       });
       const filePath = saveNode(nodeContent, id);
       await autoIndexNode(filePath);
+      try {
+        const autoLinked = await autoLink({ nodeId: id, title: topic, content: template });
+        if (autoLinked.length > 0) {
+          console.log(`   Auto-linked: ${autoLinked.map(l => `${l.to} (${l.type})`).join(', ')}`);
+        }
+      } catch { /* best-effort */ }
       console.log(`✅ Research template created: ${filePath}`);
       console.log(`   ID: ${id}`);
       console.log(`   Fill in the findings — this node is already indexed and searchable.`);
@@ -1516,6 +1559,20 @@ case 'rules': {
       for (const link of links) {
         appendEdge({ from: id, to: link.to, type: link.type, weight: 1.0, created: today }, { graphFile: globalGraphFile });
       }
+
+      try {
+        const autoLinked = await autoLink({
+          nodeId: id,
+          title,
+          content: '',
+          tags,
+          nodesDir: globalNodesDir,
+          graphFile: globalGraphFile,
+        });
+        if (autoLinked.length > 0) {
+          console.log(`   Auto-linked: ${autoLinked.map(l => `${l.to} (${l.type})`).join(', ')}`);
+        }
+      } catch { /* best-effort */ }
 
       console.log(`✅ Knowledge node created: ${filePath}`);
       console.log(`   ID: ${id}`);

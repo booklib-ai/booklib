@@ -19,6 +19,8 @@ import {
 } from "../lib/engine/graph.js";
 import { BookLibIndexer } from "../lib/engine/indexer.js";
 import { buildStructuredResponse } from "../lib/engine/structured-response.js";
+import { autoLink } from '../lib/engine/auto-linker.js';
+import { buildGraphContext } from '../lib/engine/graph-injector.js';
 
 const { skillsPath } = resolveBookLibPaths();
 const searcher = new BookLibSearcher();
@@ -221,10 +223,40 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case "brief":
       case "get_context": {
         const builder = new ContextBuilder();
-        const result = args.file
-          ? await builder.buildWithGraph(args.task, args.file)
-          : await builder.build(args.task);
-        return { content: [{ type: "text", text: result }] };
+
+        // Graph-first: if file provided, find component and linked knowledge
+        let projectKnowledge = [];
+        if (args.file) {
+          try {
+            const graphNodes = await buildGraphContext({
+              filePath: args.file,
+              taskContext: args.task,
+              searcher,
+            });
+            projectKnowledge = graphNodes.map(node => ({
+              insight: node.title,
+              type: node.type,
+              source: `project ${node.type}: ${node.id}`,
+              body: node.body,
+              score: node.score,
+            }));
+          } catch { /* graph traversal is best-effort */ }
+        }
+
+        // Expert knowledge from skill search
+        const expertContext = await builder.build(args.task, { promptOnly: true });
+
+        const structured = {
+          task: args.task,
+          file: args.file ?? null,
+          project_knowledge: projectKnowledge,
+          expert_knowledge: expertContext,
+          note: projectKnowledge.length > 0
+            ? `Graph context: ${projectKnowledge.length} linked node(s) for ${args.file}.`
+            : 'No graph context — no file provided or no matching components.',
+        };
+
+        return { content: [{ type: "text", text: JSON.stringify(structured, null, 2) }] };
       }
 
       case "remember":
@@ -246,7 +278,25 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         } catch {
           // Index may not exist yet — node is saved, will appear after booklib index
         }
-        return { content: [{ type: "text", text: `Created note: ${id}\nTitle: ${args.title}\nFile: ${filePath}` }] };
+        // Auto-link to components and related knowledge
+        let autoLinked = [];
+        try {
+          autoLinked = await autoLink({
+            nodeId: id,
+            title: args.title,
+            content: args.content ?? '',
+            tags: args.tags ? args.tags.split(',').map(t => t.trim()) : [],
+          });
+        } catch { /* best-effort */ }
+        return { content: [{ type: "text", text: JSON.stringify({
+          id,
+          title: args.title,
+          type: args.type ?? 'note',
+          saved_to: filePath,
+          indexed: true,
+          auto_linked: autoLinked.map(l => `${l.to} (${l.type}) — ${l.reason}`),
+          note: `Saved and indexed.${autoLinked.length > 0 ? ` Auto-linked to ${autoLinked.length} node(s).` : ''}`
+        }, null, 2) }] };
       }
 
       case "recalled":
