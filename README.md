@@ -9,9 +9,9 @@
 <h1 align="center">booklib</h1>
 
 <p align="center">
-  Knowledge bookkeeping for AI agents — expert skills, hybrid search, MCP tools.<br/>
-  24 curated skills from canonical books, personal knowledge graph, and integration with 13 AI tools via MCP.<br/>
-  Works for programming, product, writing, strategy, design, and more.
+  Your AI agent knows how to code — but it doesn't know<br/>
+  <em>Effective Java</em>, <em>Clean Code</em>, or <em>Domain-Driven Design</em>.<br/>
+  BookLib gives it that knowledge.
 </p>
 
 <p align="center">
@@ -29,63 +29,43 @@
 
 ---
 
-## What it is
+## Why
 
-BookLib packages expert knowledge from canonical books into skills that AI agents can apply directly to your work. It ships with 24 curated skills — and a discovery engine that can find, index, and inject hundreds more from the community.
+Your AI agent generates code from its training data — generic patterns, popular conventions, whatever it saw the most of. It doesn't know that Joshua Bloch says "prefer method references to lambdas" (Effective Java, Item 44) or that Robert Martin says "a function should do one thing" (Clean Code, Ch. 3). It can't cite specific principles because it doesn't have them.
 
-**Two layers:**
+BookLib fixes this. It ships **24 skills distilled from canonical books** — each one a structured set of principles, anti-patterns, and examples that your AI agent applies directly to your code, with citations.
 
-| Layer | What it does |
-|-------|-------------|
-| **Bundled library** | 24 skills from canonical books, pre-indexed, ready to use out of the box |
-| **MCP server** | 8 tools (search, audit, capture, context) available to any MCP-compatible AI agent |
-| **Discovery ecosystem** | Finds and fetches skills from GitHub repos, community registries, and npm packages |
+## What you get
 
-BookLib is not a static install. It's a local knowledge engine: semantic search over skill content, automatic context injection via hooks, role-based profiles for swarm agents, and a sync bridge that makes every fetched skill available to any Claude Code-compatible orchestrator.
+| | What | Why it matters |
+|-|------|----------------|
+| **Skills from books** | 24 curated skills from Effective Java, Clean Code, DDD, Refactoring UI, Lean Startup, and more | Your agent applies specific, citable principles — not generic advice |
+| **Hybrid search** | BM25 + vector + cross-encoder reranking across all skills | Ask a question, get the most relevant principle from any book |
+| **MCP tools** | 8 tools your agent calls directly (search, audit, capture, context) | Works in Claude Code, Cursor, Copilot, Gemini, and 6 more — agent uses BookLib without you typing commands |
+| **Knowledge graph** | Capture your own insights, link them to skills and project components | Your architecture decisions become searchable alongside book knowledge |
+| **13 AI tools** | One `booklib init` configures Claude Code, Cursor, Copilot, Gemini CLI, Codex, Windsurf, Roo Code, Goose, and more | Switch tools, keep your knowledge |
 
-**Not just for code.** BookLib works for any domain where expert knowledge matters. The community registry includes skills for product management, technical writing, brand design, market research, and business strategy — `booklib context` extracts relevant principles from all of them the same way it does for code.
+## Not just for code
 
-**Knowledge Graph.** Beyond book skills, BookLib lets you build a personal knowledge graph from your actual work — research findings, architectural decisions, team notes — and link that knowledge to the components of your own project. When you edit a file, the graph injects not just book wisdom but your own captured context too.
-
----
-
-## How Skills Activate
-
-| Mechanism | What triggers it | Detail |
-|-----------|-----------------|--------|
-| **PreToolUse hook** | Editing a file matching a skill's `filePattern` | Injects only relevant chunks — fine-grained, automatic, silent |
-| **Skill tool** | `Skill("effective-kotlin")` | Full skill dump on demand — used by orchestrators and subagents |
-| **Search** | `booklib search "<concept>"` | Hybrid search (BM25 + vector + reranker) — returns the most relevant chunks |
-| **Audit** | `booklib audit <skill> <file>` | Applies a skill's principles to a specific file |
-| **MCP** | Agent calls `search_skills`, `audit_content`, etc. | 8 tools available in Claude Code, Cursor, Copilot, Gemini, and 6 more |
-
-The **hook** is the fine-grained layer. After `booklib hooks install`, it fires on every `Read`/`Edit`/`Write`/`Bash` call, matches the file path against skill patterns, and silently injects the relevant skill sections into context — no manual invocation needed. Edit a `.kt` file and effective-kotlin appears. Edit a `.py` file and effective-python appears.
-
-The **Skill tool** is the coarse layer — a full knowledge dump for orchestrator subagents that need an entire skill domain up front.
+BookLib works for any domain where expert knowledge matters: product management (Lean Startup), UI design (Refactoring UI), data visualization (Storytelling with Data), web animation, system design, and more. Same search engine, same agent integration.
 
 ---
 
 ## Quick Start
 
 ```bash
-# 1. Install
 npm install -g booklib
-
-# 2. Connect to your AI tool (writes CLAUDE.md, .cursor/rules/, copilot-instructions.md)
 booklib init
-
-# 3. Build the local search index
-#    First run downloads a ~25 MB embedding model — takes about 1 minute.
-booklib index
-
-# 4. Install the PreToolUse hook — injects relevant skills when you edit files
-booklib hooks install
-
-# 5. Search for wisdom by concept
-booklib search "how to handle null values in Kotlin"
 ```
 
-**Works with 13 AI tools.** `booklib init` auto-detects Claude Code, Cursor, Copilot (VS Code), Gemini CLI, Codex, Windsurf, Roo Code, Goose, Zed, Continue, OpenHands, Junie, and Letta. For the 10 MCP-capable tools, it also configures the MCP server so your agent can call BookLib tools (search, audit, capture) directly mid-conversation.
+That's it. The wizard detects your project, recommends skills, configures your AI tools, sets up MCP, and builds the search index. Your agent can now search for principles, audit files, and capture knowledge — automatically.
+
+```bash
+# Try it manually
+booklib search "how to handle null values in Kotlin"
+booklib audit effective-java src/UserService.java
+booklib capture --title "We use event sourcing for orders"
+```
 
 ---
 
@@ -160,7 +140,7 @@ BookLib can find and index skills beyond the bundled set. Configure sources in `
 ```bash
 booklib discover              # list available skills from all sources
 booklib discover --refresh    # force re-scan (bypass 24h cache)
-booklib fetch naming-cheatsheet    # download and index a specific skill
+booklib install naming-cheatsheet  # download and index a specific skill
 booklib setup                 # fetch all trusted skills at once
 ```
 
