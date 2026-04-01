@@ -24,7 +24,7 @@
 </p>
 
 <p align="center">
-  <b>13 AI tools supported</b> &nbsp;·&nbsp; <b>10 MCP-compatible</b> &nbsp;·&nbsp; <b>Hybrid search engine</b> &nbsp;·&nbsp; <b>Knowledge graph</b> &nbsp;·&nbsp; <b>Zero cloud dependencies</b>
+  <b>Multi-tool support</b> &nbsp;·&nbsp; <b>MCP-compatible</b> &nbsp;·&nbsp; <b>Hybrid search engine</b> &nbsp;·&nbsp; <b>Knowledge graph</b> &nbsp;·&nbsp; <b>Zero cloud dependencies</b>
 </p>
 
 ---
@@ -83,7 +83,7 @@ BookLib becomes part of how your agent thinks — not a tool you have to remembe
 
 ## Available Knowledge
 
-BookLib ships with 24 curated knowledge sets covering programming, architecture, design, product, and more. Browse them in the [`skills/`](./skills/) directory or search with `booklib search`.
+BookLib ships with curated knowledge sets covering programming, architecture, design, product, and more. Browse them in the [`skills/`](./skills/) directory or search with `booklib search`.
 
 ---
 

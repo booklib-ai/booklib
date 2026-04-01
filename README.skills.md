@@ -5,7 +5,7 @@
 <h1 align="center">@booklib/skills</h1>
 
 <p align="center">
-  24 curated knowledge sets from canonical books — structured, tagged, ready for AI agents.
+  Curated knowledge sets from canonical books — structured, tagged, ready for AI agents.
 </p>
 
 <p align="center">
@@ -18,7 +18,7 @@
 
 ## What's in this package
 
-The raw skill files — 24 structured SKILL.md files covering programming, architecture, design, product, and more. Each skill has XML-tagged sections (`<core_principles>`, `<anti_patterns>`, `<examples>`) and frontmatter metadata.
+The raw skill files — structured SKILL.md files covering programming, architecture, design, product, and more. Each skill has XML-tagged sections (`<core_principles>`, `<anti_patterns>`, `<examples>`) and frontmatter metadata.
 
 ```
 skills/
