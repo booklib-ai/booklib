@@ -35,7 +35,7 @@ AI agents are powerful — but they only know what's in their training data. The
 
 Research from [ETH Zurich](https://arxiv.org/abs/2602.11988) confirms this is a real problem — giving agents unstructured context files actually **reduces** task success rates while increasing costs by 20%+. More context doesn't help. Structured, relevant context does.
 
-BookLib is a **local knowledge platform** built on this principle. It gives your AI agent persistent, structured knowledge — delivered through hybrid search and MCP — that it can search and apply across every session.
+BookLib is a **local knowledge platform** built on this principle. It gives your AI agent persistent, structured knowledge that it can search and apply across every session.
 
 ## What you get
 
