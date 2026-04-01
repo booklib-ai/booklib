@@ -1,7 +1,7 @@
 ---
 name: data-reviewer
 description: >
-  Expert data systems reviewer applying @booklib/skills book-grounded expertise.
+  Expert data systems reviewer applying booklib book-grounded expertise.
   Combines data-intensive-patterns and data-pipelines. Use when reviewing database
   schemas, ETL pipelines, data ingestion, stream processing, or storage layer code.
 tools: ["Read", "Grep", "Glob", "Bash"]

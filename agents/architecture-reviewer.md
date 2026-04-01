@@ -1,7 +1,7 @@
 ---
 name: architecture-reviewer
 description: >
-  Expert architecture reviewer applying @booklib/skills book-grounded expertise.
+  Expert architecture reviewer applying booklib book-grounded expertise.
   Combines domain-driven-design, microservices-patterns, system-design-interview,
   and data-intensive-patterns. Use when reviewing system design, domain models,
   service boundaries, or data architecture — not individual code style.

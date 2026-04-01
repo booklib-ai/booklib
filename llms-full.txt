@@ -115,7 +115,7 @@ This file contains detailed descriptions and triggers for every bundled skill, p
 ---
 
 ## Skill: skill-router
-**Description**: Select the 1-2 most relevant @booklib/skills for a given file, PR, or task. Use before applying any skill when unsure which book's lens applies, or when multiple skills could apply. Trigger on "which skill", "which book", "route this", "what skill should I use", or whenever a user describes a task without specifying a skill. Returns a ranked recommendation with rationale and anti-triggers.
+**Description**: Select the 1-2 most relevant booklib for a given file, PR, or task. Use before applying any skill when unsure which book's lens applies, or when multiple skills could apply. Trigger on "which skill", "which book", "route this", "what skill should I use", or whenever a user describes a task without specifying a skill. Returns a ranked recommendation with rationale and anti-triggers.
 
 **Directory**: `skills/skill-router/`
 

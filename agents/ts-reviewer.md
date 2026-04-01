@@ -1,7 +1,7 @@
 ---
 name: ts-reviewer
 description: >
-  Expert TypeScript reviewer applying @booklib/skills book-grounded expertise.
+  Expert TypeScript reviewer applying booklib book-grounded expertise.
   Combines effective-typescript for type system issues and clean-code-reviewer
   for readability and structure. Use for all TypeScript and TSX code reviews.
 tools: ["Read", "Grep", "Glob", "Bash"]

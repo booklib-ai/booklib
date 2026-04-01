@@ -1,7 +1,7 @@
 ---
 name: rust-reviewer
 description: >
-  Expert Rust reviewer applying @booklib/skills book-grounded expertise.
+  Expert Rust reviewer applying booklib book-grounded expertise.
   Combines programming-with-rust and rust-in-action for ownership, safety,
   systems programming, and idiomatic patterns. Use for all Rust code reviews.
 tools: ["Read", "Grep", "Glob", "Bash"]

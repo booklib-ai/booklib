@@ -6,7 +6,7 @@
   <img src="assets/logo.svg" width="100" alt="booklib-ai skills"/>
 </p>
 
-<h1 align="center">booklib-ai/skills</h1>
+<h1 align="center">booklib</h1>
 
 <p align="center">
   Skills de agentes IA baseadas em livros canônicos — para Claude Code, Cursor, Copilot e Windsurf.<br/>
@@ -14,9 +14,9 @@
 </p>
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/@booklib/skills"><img src="https://img.shields.io/npm/v/@booklib/skills.svg" alt="versão npm"/></a>
-  <a href="https://www.npmjs.com/package/@booklib/skills"><img src="https://img.shields.io/npm/dw/@booklib/skills.svg" alt="downloads"/></a>
-  <a href="https://github.com/booklib-ai/skills/stargazers"><img src="https://img.shields.io/github/stars/booklib-ai/skills?style=flat" alt="estrelas"/></a>
+  <a href="https://www.npmjs.com/package/booklib"><img src="https://img.shields.io/npm/v/booklib.svg" alt="versão npm"/></a>
+  <a href="https://www.npmjs.com/package/booklib"><img src="https://img.shields.io/npm/dw/booklib.svg" alt="downloads"/></a>
+  <a href="https://github.com/booklib-ai/booklib/stargazers"><img src="https://img.shields.io/github/stars/booklib-ai/booklib?style=flat" alt="estrelas"/></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="licença"/></a>
 </p>
 
@@ -32,13 +32,13 @@ Cada skill empacota as principais práticas de um livro de programação em inst
 
 ```bash
 # Instalar tudo globalmente
-npx @booklib/skills add --all --global
+npx booklib add --all --global
 
 # Ou instalar apenas o que sua stack precisa
-npx @booklib/skills add --profile=ts --global       # TypeScript
-npx @booklib/skills add --profile=python --global   # Python
-npx @booklib/skills add --profile=rust --global     # Rust
-npx @booklib/skills add --profile=jvm --global      # Java / Kotlin
+npx booklib add --profile=ts --global       # TypeScript
+npx booklib add --profile=python --global   # Python
+npx booklib add --profile=rust --global     # Rust
+npx booklib add --profile=jvm --global      # Java / Kotlin
 ```
 
 ## Quatro camadas
@@ -53,15 +53,15 @@ npx @booklib/skills add --profile=jvm --global      # Java / Kotlin
 **Perfis** agrupam todas as quatro camadas por linguagem ou domínio:
 
 ```bash
-npx @booklib/skills add --profile=python        # Python skills + comandos + agente + regras
-npx @booklib/skills add --profile=ts            # TypeScript
-npx @booklib/skills add --profile=rust          # Rust
-npx @booklib/skills add --profile=jvm           # Java + Kotlin + Spring Boot
-npx @booklib/skills add --profile=architecture  # DDD + microsserviços + design de sistemas
-npx @booklib/skills add --profile=data          # Pipelines de dados + DDIA
-npx @booklib/skills add --profile=ui            # Refactoring UI + animações + visualização
-npx @booklib/skills add --profile=lean          # Lean Startup
-npx @booklib/skills add --profile=core          # Skill router + clean code — boa opção padrão
+npx booklib add --profile=python        # Python skills + comandos + agente + regras
+npx booklib add --profile=ts            # TypeScript
+npx booklib add --profile=rust          # Rust
+npx booklib add --profile=jvm           # Java + Kotlin + Spring Boot
+npx booklib add --profile=architecture  # DDD + microsserviços + design de sistemas
+npx booklib add --profile=data          # Pipelines de dados + DDIA
+npx booklib add --profile=ui            # Refactoring UI + animações + visualização
+npx booklib add --profile=lean          # Lean Startup
+npx booklib add --profile=core          # Skill router + clean code — boa opção padrão
 ```
 
 ---
@@ -126,9 +126,9 @@ Padrões de código sempre ativos — instalados em `.claude/rules/` e carregado
 | `rust` | Rust | *Programming with Rust* + *Rust in Action* — ownership, erros, idiomas |
 
 ```bash
-npx @booklib/skills add --rules             # instalar todas as regras
-npx @booklib/skills add --rules=python      # instalar regras de uma linguagem
-npx @booklib/skills add --hooks             # instalar o hook de sugestão de skills
+npx booklib add --rules             # instalar todas as regras
+npx booklib add --rules=python      # instalar regras de uma linguagem
+npx booklib add --hooks             # instalar o hook de sugestão de skills
 ```
 
 ---
@@ -155,14 +155,14 @@ As skills são avaliadas com e sem a skill ativa, usando `claude-haiku-4-5` como
 
 **Limites:** taxa de aprovação ≥ 80% · delta ≥ 20pp · baseline < 70%
 
-Executar avaliações: `ANTHROPIC_API_KEY=... npx @booklib/skills eval <nome>`
+Executar avaliações: `ANTHROPIC_API_KEY=... npx booklib eval <nome>`
 
 ---
 
 ## Estrutura do repositório
 
 ```
-booklib-ai/skills/
+booklib-ai/booklib/
 ├── skills/      22 skills baseadas em livros (SKILL.md + exemplos + avaliações)
 ├── agents/      8 agentes revisores autônomos
 ├── commands/    22 slash commands, um por skill
@@ -184,12 +184,12 @@ cp -r skills/clean-code-reviewer skills/your-book-name
 # 2. Edite SKILL.md, examples/before.md, examples/after.md, evals/evals.json
 
 # 3. Valide
-npx @booklib/skills check your-book-name
+npx booklib check your-book-name
 ```
 
 Veja o [CONTRIBUTING.md](./CONTRIBUTING.md) para o guia completo, incluindo como adicionar agentes.
 
-**Solicitações em aberto** (tag `good first issue`): [The Pragmatic Programmer](https://github.com/booklib-ai/skills/issues/2) · [Clean Architecture](https://github.com/booklib-ai/skills/issues/3) · [A Philosophy of Software Design](https://github.com/booklib-ai/skills/issues/4) · [Accelerate](https://github.com/booklib-ai/skills/issues/8) · [mais →](https://github.com/booklib-ai/skills/issues?q=is%3Aopen+label%3A%22good+first+issue%22)
+**Solicitações em aberto** (tag `good first issue`): [The Pragmatic Programmer](https://github.com/booklib-ai/booklib/issues/2) · [Clean Architecture](https://github.com/booklib-ai/booklib/issues/3) · [A Philosophy of Software Design](https://github.com/booklib-ai/booklib/issues/4) · [Accelerate](https://github.com/booklib-ai/booklib/issues/8) · [mais →](https://github.com/booklib-ai/booklib/issues?q=is%3Aopen+label%3A%22good+first+issue%22)
 
 ---
 

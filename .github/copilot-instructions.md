@@ -328,3 +328,45 @@ This is the definitive checklist. Reference these codes in reviews.
 | **T7** | Patterns of Failure Are Revealing |
 | **T8** | Test Coverage Patterns Can Be Revealing |
 | **T9** | Tests Should Be Fast |
+
+
+<!-- booklib-standards-start -->
+## Overview
+<!-- Describe what this project does -->
+
+## Stack
+javascript
+
+## Conventions
+<!-- Define your naming conventions, file structure, commit message style -->
+<!-- See references below for how to customize this file -->
+
+## Architecture Decisions
+<!-- Key technical decisions and rationale -->
+
+## Testing
+<!-- How to run tests, what to test, coverage expectations -->
+
+## BookLib Agent Behaviors
+## BookLib
+BookLib MCP tools are available for code quality guidance.
+- Before answering best-practices questions → search_skills
+- When reviewing or writing code → search_skills for relevant principles
+- When user says "remember/note/capture this" → create_note
+- For deep file review against a skill → audit_content
+- When code quality issues accumulate → suggest running `booklib doctor`
+
+## Active Skills
+| Skill | Focus | Tags |
+|-------|-------|------|
+| clean-code-reviewer | Reviews code against Robert C. Martin's Clean Code principle | all-languages, quality, naming, refactoring |
+| skill-router | Select the 1-2 most relevant booklib for a given fil | meta, routing, agent-skills |
+
+
+## References
+
+- [How to customize this file](https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions)
+- [BookLib documentation](https://booklib-ai.github.io/booklib/)
+- [BookLib skills catalog](https://github.com/booklib-ai/booklib)
+
+<!-- booklib-standards-end -->

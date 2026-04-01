@@ -1,6 +1,6 @@
 # Agent Integration
 
-How to install and use `@booklib/skills` with different AI coding assistants.
+How to install and use `booklib` with different AI coding assistants.
 
 ## What gets installed
 
@@ -15,18 +15,18 @@ Each install creates up to three things in your project (or globally with `--glo
 The fastest way to install is by **profile** — one command installs the right skills, commands, and agent for your language or domain:
 
 ```bash
-npx @booklib/skills add --profile=python        # Python
-npx @booklib/skills add --profile=ts            # TypeScript / JavaScript
-npx @booklib/skills add --profile=jvm           # Java + Kotlin + Spring Boot
-npx @booklib/skills add --profile=rust          # Rust
-npx @booklib/skills add --profile=architecture  # DDD, microservices, system design
-npx @booklib/skills add --profile=data          # Pipelines, ETL, storage
-npx @booklib/skills add --profile=ui            # UI design, charts, animations
-npx @booklib/skills add --profile=lean          # Lean Startup practices
-npx @booklib/skills add --profile=core          # Routing + general quality (good default)
+npx booklib add --profile=python        # Python
+npx booklib add --profile=ts            # TypeScript / JavaScript
+npx booklib add --profile=jvm           # Java + Kotlin + Spring Boot
+npx booklib add --profile=rust          # Rust
+npx booklib add --profile=architecture  # DDD, microservices, system design
+npx booklib add --profile=data          # Pipelines, ETL, storage
+npx booklib add --profile=ui            # UI design, charts, animations
+npx booklib add --profile=lean          # Lean Startup practices
+npx booklib add --profile=core          # Routing + general quality (good default)
 
 # Or install everything
-npx @booklib/skills add --all
+npx booklib add --all
 ```
 
 Add `--global` to any command to install to `~/.claude/` instead of the project directory.
@@ -39,13 +39,13 @@ Add `--global` to any command to install to `~/.claude/` instead of the project 
 
 ```bash
 # Recommended — install by profile
-npx @booklib/skills add --profile=ts --global
+npx booklib add --profile=ts --global
 
 # Everything
-npx @booklib/skills add --all --global
+npx booklib add --all --global
 
 # Single skill
-npx @booklib/skills add effective-typescript
+npx booklib add effective-typescript
 ```
 
 ### How skills trigger
@@ -98,13 +98,13 @@ Cursor reads rules from `.cursor/rules/`. Use `--target=cursor` to install there
 
 ```bash
 # Install to Cursor only
-npx @booklib/skills add --profile=ts --target=cursor
+npx booklib add --profile=ts --target=cursor
 
 # Install to both Claude Code and Cursor
-npx @booklib/skills add --profile=ts --target=all
+npx booklib add --profile=ts --target=all
 
 # Single skill to Cursor
-npx @booklib/skills add effective-typescript --target=cursor
+npx booklib add effective-typescript --target=cursor
 ```
 
 Skills are written as `.cursor/rules/<skill-name>.md`. Cursor loads them in Agent mode. Agents are not applicable to Cursor (no native agent system).
@@ -129,7 +129,7 @@ Or install globally and reference by name — some Copilot extensions pick up `.
 Install into your project:
 
 ```bash
-npx @booklib/skills add --profile=ts
+npx booklib add --profile=ts
 ```
 
 Skills go to `.claude/skills/`. In Windsurf's Cascade mode, reference a skill by name or use `@booklib-reviewer` if agents are supported. The `skill-router` skill selects the right skill automatically when you describe your task.

@@ -68,7 +68,7 @@ You are an expert in [domain] grounded in [Book Title] by [Author].
 `examples/before.md` — code or artifact that violates the book's principles.
 `examples/after.md` — the same thing improved by applying the skill.
 
-These power the `npx @booklib/skills demo <name>` command.
+These power the `npx booklib demo <name>` command.
 
 ### 4. Add evals
 
@@ -98,7 +98,7 @@ Aim for 3–5 evals per skill covering:
 ### 5. Run evals and commit results
 
 ```bash
-ANTHROPIC_API_KEY=your-key npx @booklib/skills eval <name>
+ANTHROPIC_API_KEY=your-key npx booklib eval <name>
 ```
 
 This runs each eval **with and without** the skill and writes `evals/results.json`. Commit this file — it is how CI and readers verify the skill actually works.
@@ -131,7 +131,7 @@ PR checklist:
 - [ ] SKILL.md is under 500 lines
 - [ ] `examples/before.md` and `examples/after.md` exist
 - [ ] `evals/evals.json` has at least 3 test cases
-- [ ] `evals/results.json` committed (run `npx @booklib/skills eval <name>`)
+- [ ] `evals/results.json` committed (run `npx booklib eval <name>`)
 - [ ] Pass rate ≥ 80% and delta ≥ 20pp in results.json
 - [ ] README.md skills table updated
 
@@ -249,10 +249,10 @@ Agents install to `.claude/agents/` alongside skills:
 
 ```bash
 # Install one agent
-npx skills add booklib-ai/skills --agent=python-reviewer
+npx skills add booklib-ai/booklib --agent=python-reviewer
 
 # Install everything (skills + agents)
-npx skills add booklib-ai/skills --all
+npx skills add booklib-ai/booklib --all
 ```
 
 Once installed, Claude Code reads the agent's `description` field and auto-invokes it when a matching request arrives — no slash command needed.

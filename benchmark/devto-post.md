@@ -87,18 +87,18 @@ The skill library maps roughly to these levels — Clean Code for level 1, DDD f
 
 ## Try It Yourself
 
-The skills and the router are open source: [github.com/booklib-ai/skills](https://github.com/booklib-ai/skills)
+The skills and the router are open source: [github.com/booklib-ai/booklib](https://github.com/booklib-ai/booklib)
 
 You can use them with Claude Code, Cursor, or any agent that supports SKILL.md files. The quickest way to try it — install everything and let the router decide:
 
 ```bash
-npx @booklib/skills add --all
+npx booklib add --all
 ```
 
 Or globally, so it's available in every project:
 
 ```bash
-npx @booklib/skills add --all --global
+npx booklib add --all --global
 ```
 
 Then just ask your agent to review a file — the router picks the right skill automatically. You don't need to know the library upfront.
@@ -159,7 +159,7 @@ They target different moments in the development lifecycle, which is why using b
 
 One gap this benchmark exposed was the noise filtering: Claude's native reviewer discards anything below 80% confidence; skill-router had no equivalent. Since writing this, the router has been updated to instruct selected skills to classify every finding as HIGH / MEDIUM / LOW and skip LOW-tier findings on standard reviews — same idea, book-grounded framing instead of a confidence score.
 
-The full before/after code and comparison report are in the repo under [`/benchmark/`](https://github.com/booklib-ai/skills/tree/main/benchmark).
+The full before/after code and comparison report are in the repo under [`/benchmark/`](https://github.com/booklib-ai/booklib/tree/main/benchmark).
 
 ## Open Questions
 

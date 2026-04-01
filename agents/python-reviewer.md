@@ -1,7 +1,7 @@
 ---
 name: python-reviewer
 description: >
-  Expert Python reviewer applying @booklib/skills book-grounded expertise.
+  Expert Python reviewer applying booklib book-grounded expertise.
   Automatically selects between effective-python, using-asyncio-python, and
   web-scraping-python based on what the code does. Use for all Python code
   reviews, refactors, and new Python files.

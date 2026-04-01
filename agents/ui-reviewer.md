@@ -1,7 +1,7 @@
 ---
 name: ui-reviewer
 description: >
-  Expert UI and visual design reviewer applying @booklib/skills book-grounded
+  Expert UI and visual design reviewer applying booklib book-grounded
   expertise. Combines refactoring-ui, storytelling-with-data, and animation-at-work.
   Use when reviewing UI components, dashboards, data visualizations, or animations.
 tools: ["Read", "Grep", "Glob", "Bash"]

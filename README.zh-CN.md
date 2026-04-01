@@ -6,7 +6,7 @@
   <img src="assets/logo.svg" width="100" alt="booklib-ai skills"/>
 </p>
 
-<h1 align="center">booklib-ai/skills</h1>
+<h1 align="center">booklib</h1>
 
 <p align="center">
   基于经典书籍的 AI 代理技能 — 适用于 Claude Code、Cursor、Copilot 和 Windsurf。<br/>
@@ -14,9 +14,9 @@
 </p>
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/@booklib/skills"><img src="https://img.shields.io/npm/v/@booklib/skills.svg" alt="npm 版本"/></a>
-  <a href="https://www.npmjs.com/package/@booklib/skills"><img src="https://img.shields.io/npm/dw/@booklib/skills.svg" alt="下载量"/></a>
-  <a href="https://github.com/booklib-ai/skills/stargazers"><img src="https://img.shields.io/github/stars/booklib-ai/skills?style=flat" alt="Star 数"/></a>
+  <a href="https://www.npmjs.com/package/booklib"><img src="https://img.shields.io/npm/v/booklib.svg" alt="npm 版本"/></a>
+  <a href="https://www.npmjs.com/package/booklib"><img src="https://img.shields.io/npm/dw/booklib.svg" alt="下载量"/></a>
+  <a href="https://github.com/booklib-ai/booklib/stargazers"><img src="https://img.shields.io/github/stars/booklib-ai/booklib?style=flat" alt="Star 数"/></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="许可证"/></a>
 </p>
 
@@ -32,13 +32,13 @@
 
 ```bash
 # 全局安装所有内容
-npx @booklib/skills add --all --global
+npx booklib add --all --global
 
 # 或只安装适合你技术栈的内容
-npx @booklib/skills add --profile=ts --global       # TypeScript
-npx @booklib/skills add --profile=python --global   # Python
-npx @booklib/skills add --profile=rust --global     # Rust
-npx @booklib/skills add --profile=jvm --global      # Java / Kotlin
+npx booklib add --profile=ts --global       # TypeScript
+npx booklib add --profile=python --global   # Python
+npx booklib add --profile=rust --global     # Rust
+npx booklib add --profile=jvm --global      # Java / Kotlin
 ```
 
 ## 四个层级
@@ -53,15 +53,15 @@ npx @booklib/skills add --profile=jvm --global      # Java / Kotlin
 **配置文件**按语言或领域捆绑以上所有层级：
 
 ```bash
-npx @booklib/skills add --profile=python        # Python 技能 + 命令 + 代理 + 规则
-npx @booklib/skills add --profile=ts            # TypeScript
-npx @booklib/skills add --profile=rust          # Rust
-npx @booklib/skills add --profile=jvm           # Java + Kotlin + Spring Boot
-npx @booklib/skills add --profile=architecture  # DDD + 微服务 + 系统设计
-npx @booklib/skills add --profile=data          # 数据管道 + DDIA
-npx @booklib/skills add --profile=ui            # Refactoring UI + 动画 + 数据可视化
-npx @booklib/skills add --profile=lean          # 精益创业
-npx @booklib/skills add --profile=core          # 技能路由器 + 代码整洁 — 推荐默认值
+npx booklib add --profile=python        # Python 技能 + 命令 + 代理 + 规则
+npx booklib add --profile=ts            # TypeScript
+npx booklib add --profile=rust          # Rust
+npx booklib add --profile=jvm           # Java + Kotlin + Spring Boot
+npx booklib add --profile=architecture  # DDD + 微服务 + 系统设计
+npx booklib add --profile=data          # 数据管道 + DDIA
+npx booklib add --profile=ui            # Refactoring UI + 动画 + 数据可视化
+npx booklib add --profile=lean          # 精益创业
+npx booklib add --profile=core          # 技能路由器 + 代码整洁 — 推荐默认值
 ```
 
 ---
@@ -126,9 +126,9 @@ npx @booklib/skills add --profile=core          # 技能路由器 + 代码整洁
 | `rust` | Rust | *Programming with Rust* + *Rust in Action* — 所有权、错误、惯用模式 |
 
 ```bash
-npx @booklib/skills add --rules             # 安装所有规则
-npx @booklib/skills add --rules=python      # 安装单个语言的规则
-npx @booklib/skills add --hooks             # 安装技能建议钩子
+npx booklib add --rules             # 安装所有规则
+npx booklib add --rules=python      # 安装单个语言的规则
+npx booklib add --hooks             # 安装技能建议钩子
 ```
 
 ---
@@ -155,14 +155,14 @@ npx @booklib/skills add --hooks             # 安装技能建议钩子
 
 **阈值：** 通过率 ≥ 80% · delta ≥ 20pp · 基线 < 70%
 
-运行评估：`ANTHROPIC_API_KEY=... npx @booklib/skills eval <技能名>`
+运行评估：`ANTHROPIC_API_KEY=... npx booklib eval <技能名>`
 
 ---
 
 ## 仓库结构
 
 ```
-booklib-ai/skills/
+booklib-ai/booklib/
 ├── skills/      22 个基于书籍的技能（SKILL.md + 示例 + 评估）
 ├── agents/      8 个自主审查代理
 ├── commands/    22 个斜杠命令，每个技能一个
@@ -184,12 +184,12 @@ cp -r skills/clean-code-reviewer skills/your-book-name
 # 2. 编辑 SKILL.md、examples/before.md、examples/after.md、evals/evals.json
 
 # 3. 验证
-npx @booklib/skills check your-book-name
+npx booklib check your-book-name
 ```
 
 完整指南请参阅 [CONTRIBUTING.md](./CONTRIBUTING.md)，包括如何添加代理。
 
-**待认领的书籍**（标记为 `good first issue`）：[The Pragmatic Programmer](https://github.com/booklib-ai/skills/issues/2) · [Clean Architecture](https://github.com/booklib-ai/skills/issues/3) · [A Philosophy of Software Design](https://github.com/booklib-ai/skills/issues/4) · [Accelerate](https://github.com/booklib-ai/skills/issues/8) · [更多 →](https://github.com/booklib-ai/skills/issues?q=is%3Aopen+label%3A%22good+first+issue%22)
+**待认领的书籍**（标记为 `good first issue`）：[The Pragmatic Programmer](https://github.com/booklib-ai/booklib/issues/2) · [Clean Architecture](https://github.com/booklib-ai/booklib/issues/3) · [A Philosophy of Software Design](https://github.com/booklib-ai/booklib/issues/4) · [Accelerate](https://github.com/booklib-ai/booklib/issues/8) · [更多 →](https://github.com/booklib-ai/booklib/issues?q=is%3Aopen+label%3A%22good+first+issue%22)
 
 ---
 

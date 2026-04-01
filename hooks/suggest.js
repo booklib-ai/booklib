@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * booklib-suggest.js
- * Claude Code UserPromptSubmit hook — suggests a relevant @booklib/skills skill
+ * Claude Code UserPromptSubmit hook — suggests a relevant booklib skill
  * when the prompt contains a review intent AND a language/domain signal.
  *
  * Install: copy (or symlink) this file to ~/.claude/booklib-suggest.js

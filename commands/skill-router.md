@@ -1,5 +1,5 @@
 ---
-description: Route your task to the most relevant @booklib/skills skill. Usage: /skill-router [file | task description]
+description: Route your task to the most relevant booklib skill. Usage: /skill-router [file | task description]
 ---
 
 Apply the `skill-router` skill to recommend the best @booklib skill for this task.

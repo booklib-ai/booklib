@@ -9,5 +9,5 @@
 - [ ] `SKILL.md` is under 500 lines
 - [ ] `examples/before.md` and `examples/after.md` exist
 - [ ] `evals/evals.json` has at least 3 test cases
-- [ ] Quality check passes: `npx @booklib/skills check <skill-name>`
+- [ ] Quality check passes: `npx booklib check <skill-name>`
 - [ ] README skills table updated

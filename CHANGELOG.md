@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.0.0] - 2026-04-01
 
 ### Breaking
-- **Repo renamed** from `booklib-ai/skills` to `booklib-ai/booklib`
+- **Repo renamed** from `booklib-ai/booklib` to `booklib-ai/booklib`
 - **npm package renamed** from `@booklib/skills` to `booklib` — install with `npm install -g booklib`
 - **Config file generation** completely rewritten — generates 30-60 line files instead of 3,000-10,000 line content dumps. Old config files should be regenerated with `booklib init --reset`
 - **`booklib fetch` and `booklib add` deprecated** — use `booklib install <name>` instead
@@ -117,7 +117,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - **Installation profiles** — Platform-specific quick-install (e.g., `--profile=ts`, `--profile=python`)
 - **Benchmark suite** — Performance testing infrastructure
-- **Skill quality checker** — `npx @booklib/skills check <skill-name>`
+- **Skill quality checker** — `npx booklib check <skill-name>`
 
 ### Changed
 - Project logo added and displayed in README
@@ -141,7 +141,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - **Slash commands system** — Explicit skill invocation without relying on auto-trigger
-- **Skill verification** — `npx @booklib/skills eval <skill-name>` for running test cases
+- **Skill verification** — `npx booklib eval <skill-name>` for running test cases
 
 ## [1.5.0] - 2026-02-18
 
@@ -214,7 +214,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Release Notes
 
-For detailed release notes, see [GitHub Releases](https://github.com/booklib-ai/skills/releases).
+For detailed release notes, see [GitHub Releases](https://github.com/booklib-ai/booklib/releases).
 
 ## Versioning Policy
 

@@ -6,21 +6,21 @@
   <img src="assets/logo.svg" width="100" alt="booklib-ai skills"/>
 </p>
 
-<h1 align="center">booklib-ai/skills</h1>
+<h1 align="center">booklib</h1>
 
 <p align="center">
-  An open knowledge ecosystem for AI agents — code and beyond.<br/>
-  Curated skills from canonical books — plus community discovery, semantic search, and orchestrator compatibility.<br/>
+  Knowledge bookkeeping for AI agents — expert skills, hybrid search, MCP tools.<br/>
+  24 curated skills from canonical books, personal knowledge graph, and integration with 13 AI tools via MCP.<br/>
   Works for programming, product, writing, strategy, design, and more.
 </p>
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/@booklib/skills"><img src="https://img.shields.io/npm/v/@booklib/skills.svg" alt="npm version"/></a>
-  <a href="https://www.npmjs.com/package/@booklib/skills"><img src="https://img.shields.io/npm/dw/@booklib/skills.svg" alt="downloads"/></a>
-  <a href="https://github.com/booklib-ai/skills/stargazers"><img src="https://img.shields.io/github/stars/booklib-ai/skills?style=flat" alt="stars"/></a>
+  <a href="https://www.npmjs.com/package/booklib"><img src="https://img.shields.io/npm/v/booklib.svg" alt="npm version"/></a>
+  <a href="https://www.npmjs.com/package/booklib"><img src="https://img.shields.io/npm/dw/booklib.svg" alt="downloads"/></a>
+  <a href="https://github.com/booklib-ai/booklib/stargazers"><img src="https://img.shields.io/github/stars/booklib-ai/booklib?style=flat" alt="stars"/></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="license"/></a>
-  <a href="https://github.com/booklib-ai/skills/blob/main/CHANGELOG.md"><img src="https://img.shields.io/badge/Actively%20Maintained-✓-brightgreen" alt="actively maintained"/></a>
-  <a href="https://github.com/booklib-ai/skills/actions"><img src="https://img.shields.io/github/actions/workflow/status/booklib-ai/skills/check.yml?branch=main" alt="CI/CD status"/></a>
+  <a href="https://github.com/booklib-ai/booklib/blob/main/CHANGELOG.md"><img src="https://img.shields.io/badge/Actively%20Maintained-✓-brightgreen" alt="actively maintained"/></a>
+  <a href="https://github.com/booklib-ai/booklib/actions"><img src="https://img.shields.io/github/actions/workflow/status/booklib-ai/booklib/check.yml?branch=main" alt="CI/CD status"/></a>
 </p>
 
 <p align="center">
@@ -69,7 +69,7 @@ The **Skill tool** is the coarse layer — a full knowledge dump for orchestrato
 
 ```bash
 # 1. Install
-npm install -g @booklib/skills
+npm install -g booklib
 
 # 2. Connect to your AI tool (writes CLAUDE.md, .cursor/rules/, copilot-instructions.md)
 booklib init
@@ -451,14 +451,14 @@ Thresholds: pass rate ≥ 80% · delta ≥ 20pp · baseline < 70%
 | web-scraping-python | 96% | 38% | +58pp | 3 | 2026-03-28 |
 <!-- quality-table-end -->
 
-Run evals: `ANTHROPIC_API_KEY=... npx @booklib/skills eval <name>`
+Run evals: `ANTHROPIC_API_KEY=... npx booklib eval <name>`
 
 ---
 
 ## Repo Structure
 
 ```
-booklib-ai/skills/
+booklib-ai/booklib/
 ├── skills/                   22 bundled skills (SKILL.md + examples + evals)
 ├── community/                community skill registry (registry.json)
 ├── agents/                   8 autonomous reviewer agents
@@ -503,7 +503,7 @@ To add a bundled skill:
 ```bash
 cp -r skills/clean-code-reviewer skills/your-book-name
 # Edit SKILL.md, examples/before.md, examples/after.md, evals/evals.json
-npx @booklib/skills check your-book-name
+npx booklib check your-book-name
 ```
 
 To add a community skill, edit `community/registry.json` and open a PR.
@@ -511,7 +511,7 @@ To add an external source, edit `booklib.config.json`.
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for the full guide.
 
-**Open requests:** [The Pragmatic Programmer](https://github.com/booklib-ai/skills/issues/2) · [Clean Architecture](https://github.com/booklib-ai/skills/issues/3) · [A Philosophy of Software Design](https://github.com/booklib-ai/skills/issues/4) · [more →](https://github.com/booklib-ai/skills/issues?q=is%3Aopen+label%3A%22good+first+issue%22)
+**Open requests:** [The Pragmatic Programmer](https://github.com/booklib-ai/booklib/issues/2) · [Clean Architecture](https://github.com/booklib-ai/booklib/issues/3) · [A Philosophy of Software Design](https://github.com/booklib-ai/booklib/issues/4) · [more →](https://github.com/booklib-ai/booklib/issues?q=is%3Aopen+label%3A%22good+first+issue%22)
 
 ---
 
@@ -527,19 +527,19 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for the full guide.
 | v1.11.0 — Non-code domain support (product, writing, strategy, design), `scan --docs` mode | Mar 30, 2026 |
 | v1.12.0 — Knowledge Graph: nodes, edges, components, dictation, save-chat, graph-aware context injection | Mar 30, 2026 |
 
-Full commit history at [github.com/booklib-ai/skills](https://github.com/booklib-ai/skills).
+Full commit history at [github.com/booklib-ai/booklib](https://github.com/booklib-ai/booklib).
 
 ---
 
 ## Feedback & Issues
 
-Found a bug? Have a suggestion? [Open an issue](https://github.com/booklib-ai/skills/issues) — all feedback welcome.
+Found a bug? Have a suggestion? [Open an issue](https://github.com/booklib-ai/booklib/issues) — all feedback welcome.
 
 ---
 
 ## Star
 
-If BookLib has helped you write better code, a ⭐ on [GitHub](https://github.com/booklib-ai/skills) helps me know people are using it — and helps others discover it.
+If BookLib has helped you write better code, a ⭐ on [GitHub](https://github.com/booklib-ai/booklib) helps me know people are using it — and helps others discover it.
 
 ---
 

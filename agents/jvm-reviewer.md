@@ -1,7 +1,7 @@
 ---
 name: jvm-reviewer
 description: >
-  Expert JVM reviewer applying @booklib/skills book-grounded expertise across
+  Expert JVM reviewer applying booklib book-grounded expertise across
   Java and Kotlin. Automatically selects between effective-java, effective-kotlin,
   kotlin-in-action, and spring-boot-in-action based on what the code does.
   Use for all Java and Kotlin code reviews.

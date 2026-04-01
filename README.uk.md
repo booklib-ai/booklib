@@ -6,7 +6,7 @@
   <img src="assets/logo.svg" width="100" alt="booklib-ai skills"/>
 </p>
 
-<h1 align="center">booklib-ai/skills</h1>
+<h1 align="center">booklib</h1>
 
 <p align="center">
   Відкрита екосистема знань для AI-агентів.<br/>
@@ -14,9 +14,9 @@
 </p>
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/@booklib/skills"><img src="https://img.shields.io/npm/v/@booklib/skills.svg" alt="npm версія"/></a>
-  <a href="https://www.npmjs.com/package/@booklib/skills"><img src="https://img.shields.io/npm/dw/@booklib/skills.svg" alt="завантаження"/></a>
-  <a href="https://github.com/booklib-ai/skills/stargazers"><img src="https://img.shields.io/github/stars/booklib-ai/skills?style=flat" alt="зірки"/></a>
+  <a href="https://www.npmjs.com/package/booklib"><img src="https://img.shields.io/npm/v/booklib.svg" alt="npm версія"/></a>
+  <a href="https://www.npmjs.com/package/booklib"><img src="https://img.shields.io/npm/dw/booklib.svg" alt="завантаження"/></a>
+  <a href="https://github.com/booklib-ai/booklib/stargazers"><img src="https://img.shields.io/github/stars/booklib-ai/booklib?style=flat" alt="зірки"/></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="ліцензія"/></a>
 </p>
 
@@ -58,7 +58,7 @@ BookLib — не статична інсталяція. Це локальний 
 
 ```bash
 # Встановити CLI
-npm install -g @booklib/skills
+npm install -g booklib
 
 # Побудувати локальний індекс пошуку
 booklib index
@@ -227,7 +227,7 @@ booklib sessions-compare python-audit,kotlin-audit src/auth.ts comparison
 ```bash
 cp -r skills/clean-code-reviewer skills/назва-вашої-книги
 # Відредагуйте SKILL.md, examples/before.md, examples/after.md, evals/evals.json
-npx @booklib/skills check назва-вашої-книги
+npx booklib check назва-вашої-книги
 ```
 
 Щоб додати навичку спільноти — відредагуйте `community/registry.json` та відкрийте PR.

@@ -3,7 +3,7 @@ name: booklib-skills
 description: >
   BookLib — curated skills from canonical programming books. Covers Kotlin,
   Python, Java, TypeScript, Rust, architecture, DDD, data-intensive systems,
-  UI design, and more. Install individual skills via npx skillsadd booklib-ai/skills/<name>.
+  UI design, and more. Install individual skills via npx skillsadd booklib-ai/booklib/<name>.
 version: "1.0"
 license: MIT
 tags: [books, knowledge, all-languages, architecture, best-practices]
@@ -14,7 +14,7 @@ tags: [books, knowledge, all-languages, architecture, best-practices]
 Book knowledge distilled into structured AI skills. Install any skill with:
 
 ```
-npx skillsadd booklib-ai/skills/<skill-name>
+npx skillsadd booklib-ai/booklib/<skill-name>
 ```
 
 ## Available Skills
@@ -35,7 +35,7 @@ npx skillsadd booklib-ai/skills/<skill-name>
 - **programming-with-rust**: Write and review Rust code using practices from "Programming with Rust" by Donis Marshall. Covers ownership, borrowing, 
 - **refactoring-ui**: Apply UI design principles from Refactoring UI by Adam Wathan & Steve Schoger. Covers visual hierarchy (size, weight, co
 - **rust-in-action**: Write and review Rust code using systems programming concepts from "Rust in Action" by Tim McNamara. Covers language fou
-- **skill-router**: Select the 1-2 most relevant @booklib/skills for a given file, PR, or task. Use before applying any skill when unsure wh
+- **skill-router**: Select the 1-2 most relevant booklib for a given file, PR, or task. Use before applying any skill when unsure wh
 - **spring-boot-in-action**: Write and review Spring Boot applications using practices from "Spring Boot in Action" by Craig Walls. Covers auto-confi
 - **storytelling-with-data**: Apply data visualization and storytelling principles from Storytelling with Data by Cole Nussbaumer Knaflic. Covers choo
 - **system-design-interview**: Apply system design principles from System Design Interview by Alex Xu. Covers scaling (load balancing, DB replication, 
@@ -45,5 +45,5 @@ npx skillsadd booklib-ai/skills/<skill-name>
 ## Install Everything
 
 ```bash
-npm install -g @booklib/skills && booklib init
+npm install -g booklib && booklib init
 ```
