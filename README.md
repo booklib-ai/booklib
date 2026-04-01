@@ -61,72 +61,29 @@ npm install -g booklib
 booklib init
 ```
 
-The wizard detects your project, configures your AI tools, sets up MCP, builds the search index, and recommends relevant knowledge. Your agent starts using BookLib automatically.
+The wizard handles everything — detecting your project, configuring your AI tools, building the search index, and recommending relevant knowledge. After that, just work. Your agent uses BookLib automatically.
 
-```bash
-# Search for knowledge
-booklib search "how to handle authentication"
+## How It Feels in Practice
 
-# Capture your own insights
-booklib capture --title "We use event sourcing for orders"
+You don't type BookLib commands. Your agent does.
 
-# Deep-review a file against a knowledge domain
-booklib audit clean-code-reviewer src/UserService.java
+> **You:** "Review this authentication module"
+>
+> **Agent:** *searches BookLib for auth patterns, finds relevant principles, applies them to the review with citations*
 
-# Check system health
-booklib doctor
-```
+> **You:** "Remember that we decided to use event sourcing for orders"
+>
+> **Agent:** *captures the insight into the knowledge graph, links it to your project*
 
----
+> **You:** "Something feels off about our code quality lately"
+>
+> **Agent:** *runs diagnostics, suggests which knowledge areas need attention*
 
-## Your First 5 Minutes with the Knowledge Graph
+BookLib becomes part of how your agent thinks — not a tool you have to remember to use.
 
-After the Quick Start, do this once to see BookLib's full power:
+## Available Knowledge
 
-```bash
-# 1. Define a component — maps source files to a named node in the graph
-booklib component add auth "src/auth/**"
-
-# 2. Capture a note about your architecture decision
-echo "Use short-lived JWTs (15 min) with refresh token rotation" | booklib note "JWT strategy"
-
-# 3. Link the note to the component
-booklib link "JWT strategy" "auth" --type applies-to
-
-# 4. Now ask for context — BookLib injects both book wisdom and your own captured knowledge
-booklib context "implement JWT middleware" --file src/auth/middleware.js
-```
-
-You'll see a `## Knowledge Graph Context` section in the output with your note alongside the relevant book principles. This is graph-aware context injection — it traverses the graph from the component owning the file, finds linked knowledge, and combines it with semantic search.
-
----
-
-## Bundled Skills
-
-| Skill | Book | Author |
-|-------|------|--------|
-| [animation-at-work](./skills/animation-at-work/) | *Animation at Work* | Rachel Nabors |
-| [clean-code-reviewer](./skills/clean-code-reviewer/) | *Clean Code* | Robert C. Martin |
-| [data-intensive-patterns](./skills/data-intensive-patterns/) | *Designing Data-Intensive Applications* | Martin Kleppmann |
-| [data-pipelines](./skills/data-pipelines/) | *Data Pipelines Pocket Reference* | James Densmore |
-| [design-patterns](./skills/design-patterns/) | *Head First Design Patterns* | Freeman & Robson |
-| [domain-driven-design](./skills/domain-driven-design/) | *Domain-Driven Design* | Eric Evans |
-| [effective-java](./skills/effective-java/) | *Effective Java* (3rd ed) | Joshua Bloch |
-| [effective-kotlin](./skills/effective-kotlin/) | *Effective Kotlin* (2nd ed) | Marcin Moskała |
-| [effective-python](./skills/effective-python/) | *Effective Python* (3rd ed) | Brett Slatkin |
-| [effective-typescript](./skills/effective-typescript/) | *Effective TypeScript* (2nd ed) | Dan Vanderkam |
-| [kotlin-in-action](./skills/kotlin-in-action/) | *Kotlin in Action* (2nd ed) | Elizarov & Isakova |
-| [lean-startup](./skills/lean-startup/) | *The Lean Startup* | Eric Ries |
-| [microservices-patterns](./skills/microservices-patterns/) | *Microservices Patterns* | Chris Richardson |
-| [programming-with-rust](./skills/programming-with-rust/) | *Programming with Rust* | Donis Marshall |
-| [refactoring-ui](./skills/refactoring-ui/) | *Refactoring UI* | Wathan & Schoger |
-| [rust-in-action](./skills/rust-in-action/) | *Rust in Action* | Tim McNamara |
-| [skill-router](./skills/skill-router/) | Meta-skill — routes to the right skill automatically | booklib-ai |
-| [spring-boot-in-action](./skills/spring-boot-in-action/) | *Spring Boot in Action* | Craig Walls |
-| [storytelling-with-data](./skills/storytelling-with-data/) | *Storytelling with Data* | Cole Nussbaumer Knaflic |
-| [system-design-interview](./skills/system-design-interview/) | *System Design Interview* | Alex Xu |
-| [using-asyncio-python](./skills/using-asyncio-python/) | *Using Asyncio in Python* | Caleb Hattingh |
-| [web-scraping-python](./skills/web-scraping-python/) | *Web Scraping with Python* | Ryan Mitchell |
+BookLib ships with 24 curated knowledge sets covering programming, architecture, design, product, and more. Browse them in the [`skills/`](./skills/) directory or search with `booklib search`.
 
 ---
 
