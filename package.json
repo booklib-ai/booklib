@@ -1,5 +1,5 @@
 {
-  "name": "booklib",
+  "name": "dumka",
   "version": "2.0.0",
   "description": "Knowledge bookkeeping for AI agents — expert skills, hybrid search, knowledge graph, MCP tools",
   "bin": {
