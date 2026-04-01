@@ -1,7 +1,7 @@
 {
-  "name": "@booklib/skills",
+  "name": "booklib",
   "version": "2.0.0",
-  "description": "Book knowledge distilled into structured AI skills for Claude Code and other AI assistants",
+  "description": "Knowledge bookkeeping for AI agents — expert skills, hybrid search, knowledge graph, MCP tools",
   "bin": {
     "skills": "bin/skills.cjs",
     "booklib": "bin/booklib.js",
@@ -18,10 +18,10 @@
     "rag"
   ],
   "license": "MIT",
-  "homepage": "https://booklib-ai.github.io/skills/",
+  "homepage": "https://booklib-ai.github.io/booklib/",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/booklib-ai/skills.git"
+    "url": "git+https://github.com/booklib-ai/booklib.git"
   },
   "engines": {
     "node": ">=18"

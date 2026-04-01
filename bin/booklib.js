@@ -1671,9 +1671,9 @@ async function maybeAskFeedback() {
       rl.close();
       const a = answer.trim().toLowerCase();
       if (a === 'y' || a === 'yes') {
-        console.error('  Glad to hear it! A ⭐ helps others find it: https://github.com/booklib-ai/skills\n');
+        console.error('  Glad to hear it! A ⭐ helps others find it: https://github.com/booklib-ai/booklib\n');
       } else if (a === 'n' || a === 'no') {
-        console.error('  Thanks for the honesty. Tell us what\'s missing: https://github.com/booklib-ai/skills/issues\n');
+        console.error('  Thanks for the honesty. Tell us what\'s missing: https://github.com/booklib-ai/booklib/issues\n');
       }
       resolve();
     });
@@ -1688,7 +1688,7 @@ function maybeNudgeStar() {
     const next = readCounter(counterFile) + 1;
     writeCounter(counterFile, next);
     if (next % NUDGE_EVERY === 0) {
-      console.error('\n  ⭐  If BookLib is useful, a star helps: https://github.com/booklib-ai/skills\n');
+      console.error('\n  ⭐  If BookLib is useful, a star helps: https://github.com/booklib-ai/booklib\n');
     }
   } catch {
     // never block the CLI for a nudge
@@ -1700,6 +1700,6 @@ main()
   .then(() => maybeNudgeStar())
   .catch(err => {
     console.error(err.message);
-    console.error('\n  If this looks like a bug, please report it: https://github.com/booklib-ai/skills/issues\n');
+    console.error('\n  If this looks like a bug, please report it: https://github.com/booklib-ai/booklib/issues\n');
     process.exit(1);
   });
