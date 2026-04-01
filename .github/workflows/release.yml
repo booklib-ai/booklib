@@ -56,7 +56,11 @@ jobs:
         run: |
           node -p "JSON.stringify({...JSON.parse(fs.readFileSync('package.json','utf8')), name:'@booklib/skills'}, null, 2)" > package.json.tmp
           mv package.json.tmp package.json
+          mv README.md README.core.md
+          mv README.skills.md README.md
           npm publish --access public || echo "⚠ @booklib/skills publish skipped (may already exist at this version)"
+          mv README.md README.skills.md
+          mv README.core.md README.md
           git checkout package.json
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
