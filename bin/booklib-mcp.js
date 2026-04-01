@@ -18,6 +18,7 @@ import {
   resolveNodeRef, appendEdge, EDGE_TYPES,
 } from "../lib/engine/graph.js";
 import { BookLibIndexer } from "../lib/engine/indexer.js";
+import { buildStructuredResponse } from "../lib/engine/structured-response.js";
 
 const { skillsPath } = resolveBookLibPaths();
 const searcher = new BookLibSearcher();
@@ -52,6 +53,10 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             limit: {
               type: "number",
               description: "Maximum results (default: 5)",
+            },
+            file: {
+              type: "string",
+              description: "Optional: path to the file being worked on — provides language/domain context without reading content",
             },
           },
           required: ["query"],
@@ -194,26 +199,29 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
   try {
     switch (name) {
-      case "search_skills":
-        const searchResults = await searcher.search(args.query, args.limit);
-        return { content: [{ type: "text", text: JSON.stringify(searchResults, null, 2) }] };
+      case "search_skills": {
+        const results = await searcher.search(args.query, args.limit ?? 5, 0);
+        const structured = buildStructuredResponse(args.query, results, {
+          maxPrinciples: args.limit ?? 3,
+          file: args.file,
+        });
+        return { content: [{ type: "text", text: JSON.stringify(structured, null, 2) }] };
+      }
 
       case "search_knowledge": {
-        const raw = await searcher.search(args.query, args.limit ?? 8);
+        const raw = await searcher.search(args.query, args.limit ?? 8, 0);
         const sourceFilter = args.source ?? 'all';
-        const results = raw
+        const filtered = raw
           .filter(r => {
             if (sourceFilter === 'skills') return r.metadata?.nodeKind !== 'knowledge';
             if (sourceFilter === 'knowledge') return r.metadata?.nodeKind === 'knowledge';
             return true;
-          })
-          .map(r => ({
-            source: r.metadata?.nodeKind === 'knowledge' ? 'knowledge' : 'skill',
-            title: r.metadata?.title ?? r.metadata?.skill ?? 'unknown',
-            text: r.text,
-            score: r.score,
-          }));
-        return { content: [{ type: "text", text: JSON.stringify(results, null, 2) }] };
+          });
+        const structured = buildStructuredResponse(args.query, filtered, {
+          maxPrinciples: args.limit ?? 3,
+          file: args.file,
+        });
+        return { content: [{ type: "text", text: JSON.stringify(structured, null, 2) }] };
       }
 
       case "audit_content":
