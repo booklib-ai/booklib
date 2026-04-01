@@ -33,7 +33,9 @@
 
 AI agents are powerful — but they only know what's in their training data. They don't know your team's conventions, your architecture decisions, or the specific expert frameworks you follow. Every new session starts from zero.
 
-BookLib is a **local knowledge platform** that gives your AI agent persistent, structured knowledge it can search and apply across every session.
+Research confirms this is a real problem. A [study from ETH Zurich](https://arxiv.org/abs/2602.11988) found that giving agents unstructured context files actually **reduces** task success rates while increasing costs by 20%+. More context doesn't help — *structured, relevant* context does. A separate [study on codified context infrastructure](https://arxiv.org/abs/2602.20478) showed that agents with persistent, layered knowledge systems maintain coherence across 283+ development sessions.
+
+BookLib is a **local knowledge platform** built on these findings. It gives your AI agent persistent, structured knowledge — delivered through [hybrid search](https://arxiv.org/abs/2602.12430) with [metadata-enriched retrieval](https://arxiv.org/abs/2603.26670) — that it can search and apply across every session.
 
 ## What you get
 
