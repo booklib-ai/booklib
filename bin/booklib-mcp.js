@@ -41,52 +41,34 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
   return {
     tools: [
       {
-        name: "search_skills",
-        description: "Use BEFORE reviewing code, answering best-practices questions, or suggesting patterns. Searches BookLib's expert library and returns relevant principles with citations.",
+        name: "lookup",
+        description: "Check BookLib when you're about to make a recommendation about code quality, architecture, or design patterns. Query with task description + domain (e.g., 'authentication patterns for spring boot'). Call once per distinct task, not per message. Skip for trivial tasks.",
         inputSchema: {
           type: "object",
           properties: {
             query: {
               type: "string",
-              description: "The conceptual or technical search query (e.g., 'handling nulls', 'lean startup pivot')",
-            },
-            limit: {
-              type: "number",
-              description: "Maximum results (default: 5)",
+              description: "Task description + domain (e.g., 'error handling in kotlin coroutines')",
             },
             file: {
               type: "string",
               description: "Optional: path to the file being worked on — provides language/domain context without reading content",
             },
-          },
-          required: ["query"],
-        },
-      },
-      {
-        name: "search_knowledge",
-        description: "Use for broader search that includes personal knowledge captured in this project. Returns results from both expert skills and saved insights/notes.",
-        inputSchema: {
-          type: "object",
-          properties: {
-            query: {
-              type: "string",
-              description: "The search query (e.g. 'handling concurrency in Python')",
-            },
             limit: {
               type: "number",
-              description: "Maximum number of results (default: 8)",
+              description: "Maximum results (default: 3)",
             },
             source: {
               type: "string",
               enum: ["all", "skills", "knowledge"],
-              description: "Filter by source: 'all' (default), 'skills', or 'knowledge'",
+              description: "Filter by source: 'all' (default), 'skills' (expert knowledge only), or 'knowledge' (personal insights only)",
             },
           },
           required: ["query"],
         },
       },
       {
-        name: "audit_content",
+        name: "review_file",
         description: "Use when the user asks for deep code review or quality analysis of a specific file. Audits against a named skill's principles and returns structured findings.",
         inputSchema: {
           type: "object",
@@ -97,30 +79,15 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             },
             file_path: {
               type: "string",
-              description: "The path to the file to audit.",
+              description: "The path to the file to review.",
             },
           },
           required: ["skill_name", "file_path"],
         },
       },
       {
-        name: "save_session_state",
-        description: "Use when handing off to another agent or ending a long session. Saves progress, goals, and next steps so another agent can resume.",
-        inputSchema: {
-          type: "object",
-          properties: {
-            name: { type: "string", description: "Optional session name (defaults to git branch)" },
-            goal: { type: "string", description: "The ultimate objective of the session" },
-            progress: { type: "string", description: "What has been achieved so far" },
-            next: { type: "string", description: "The immediate next task for the next agent" },
-            skills: { type: "string", description: "Comma-separated list of active BookLib skills" },
-          },
-          required: ["goal", "next"],
-        },
-      },
-      {
-        name: "get_context",
-        description: "Use at session start or when switching tasks to load relevant BookLib context for the current work. Returns combined wisdom from matched skills and knowledge graph.",
+        name: "brief",
+        description: "Use at task start or when switching context. Combines expert knowledge + personal insights + project component context into one briefing. Call once when starting a task, not repeatedly.",
         inputSchema: {
           type: "object",
           properties: {
@@ -130,45 +97,58 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             },
             file: {
               type: "string",
-              description: "Optional: path to the file being edited — enables graph context injection for the owning component",
+              description: "Optional: path to the file being edited — enables component-level context from knowledge graph",
             },
           },
           required: ["task"],
         },
       },
       {
-        name: "create_note",
-        description: "Use when the user discovers a useful pattern, says 'remember this', 'take a note', or 'capture this insight'. Creates a searchable knowledge node.",
+        name: "remember",
+        description: "Use when the user discovers a useful pattern, says 'remember this', 'take a note', or 'capture this insight'. Also when the user makes a decision worth preserving ('we decided to...', 'from now on...'). Creates a searchable knowledge node.",
         inputSchema: {
           type: "object",
           properties: {
             title: {
               type: "string",
-              description: "The note title (e.g. 'JWT refresh token strategy')",
+              description: "Short descriptive title (e.g. 'JWT refresh token strategy')",
             },
             content: {
               type: "string",
-              description: "The note body (markdown supported). Leave empty to create a stub.",
+              description: "Detailed description (markdown supported). Leave empty to create a stub.",
+            },
+            type: {
+              type: "string",
+              enum: ["insight", "decision", "pattern", "note", "research"],
+              description: "Node type (default: 'insight')",
+            },
+            tags: {
+              type: "string",
+              description: "Comma-separated tags for categorization",
+            },
+            links: {
+              type: "string",
+              description: "Link targets — 'target:edge-type' pairs, e.g. 'auth:applies-to,security:see-also'",
             },
           },
           required: ["title"],
         },
       },
       {
-        name: "list_nodes",
+        name: "recalled",
         description: "Use when the user asks 'what have I captured?' or wants to see saved knowledge. Lists all notes, insights, and research nodes.",
         inputSchema: {
           type: "object",
           properties: {
             type_filter: {
               type: "string",
-              description: "Optional: filter by node type ('note', 'research', 'component', 'decision', 'feature')",
+              description: "Optional: filter by type ('insight', 'decision', 'pattern', 'note', 'research')",
             },
           },
         },
       },
       {
-        name: "link_nodes",
+        name: "connect",
         description: "Use when the user says two concepts are related or wants to connect knowledge. Creates a typed relationship (see-also, applies-to, extends, etc.).",
         inputSchema: {
           type: "object",
@@ -190,6 +170,20 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           required: ["from", "to", "type"],
         },
       },
+      {
+        name: "save_progress",
+        description: "Use when handing off to another agent or ending a long session. Saves progress, goals, and next steps so another agent can resume.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            goal: { type: "string", description: "The ultimate objective of the session" },
+            next: { type: "string", description: "The immediate next task for whoever resumes" },
+            progress: { type: "string", description: "What has been achieved so far" },
+            name: { type: "string", description: "Optional session name (defaults to git branch)" },
+          },
+          required: ["goal", "next"],
+        },
+      },
     ],
   };
 });
@@ -199,17 +193,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
   try {
     switch (name) {
-      case "search_skills": {
-        const results = await searcher.search(args.query, args.limit ?? 5, 0);
-        const structured = buildStructuredResponse(args.query, results, {
-          maxPrinciples: args.limit ?? 3,
-          file: args.file,
-        });
-        return { content: [{ type: "text", text: JSON.stringify(structured, null, 2) }] };
-      }
-
+      case "lookup":
+      case "search_skills":
       case "search_knowledge": {
-        const raw = await searcher.search(args.query, args.limit ?? 8, 0);
+        const raw = await searcher.search(args.query, args.limit ?? 3, 0);
         const sourceFilter = args.source ?? 'all';
         const filtered = raw
           .filter(r => {
@@ -224,15 +211,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         return { content: [{ type: "text", text: JSON.stringify(structured, null, 2) }] };
       }
 
-      case "audit_content":
+      case "review_file":
+      case "audit_content": {
         const skillPath = path.join(skillsPath, args.skill_name);
         const auditReport = await auditor.audit(skillPath, args.file_path);
         return { content: [{ type: "text", text: auditReport }] };
+      }
 
-      case "save_session_state":
-        handoff.saveState(args);
-        return { content: [{ type: "text", text: `Session state saved successfully for ${args.name || 'current branch'}.` }] };
-
+      case "brief":
       case "get_context": {
         const builder = new ContextBuilder();
         const result = args.file
@@ -241,14 +227,17 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         return { content: [{ type: "text", text: result }] };
       }
 
+      case "remember":
       case "create_note": {
         const { nodesDir, indexPath } = resolveBookLibPaths();
         const id = generateNodeId('node');
         const nodeContent = serializeNode({
           id,
-          type: 'note',
+          type: args.type ?? 'note',
           title: args.title,
           content: args.content ?? '',
+          tags: args.tags,
+          links: args.links,
         });
         const filePath = saveNode(nodeContent, id, { nodesDir });
         try {
@@ -260,6 +249,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         return { content: [{ type: "text", text: `Created note: ${id}\nTitle: ${args.title}\nFile: ${filePath}` }] };
       }
 
+      case "recalled":
       case "list_nodes": {
         const { nodesDir } = resolveBookLibPaths();
         const allIds = listNodes({ nodesDir });
@@ -278,6 +268,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         return { content: [{ type: "text", text: JSON.stringify(nodes, null, 2) }] };
       }
 
+      case "connect":
       case "link_nodes": {
         const fromId = resolveNodeRef(args.from);
         const toId = resolveNodeRef(args.to);
@@ -293,6 +284,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         };
         appendEdge(edge);
         return { content: [{ type: "text", text: `Edge created: ${fromId} --[${args.type}]--> ${toId}` }] };
+      }
+
+      case "save_progress":
+      case "save_session_state": {
+        handoff.saveState(args);
+        return { content: [{ type: "text", text: `Session state saved successfully for ${args.name || 'current branch'}.` }] };
       }
 
       default:
