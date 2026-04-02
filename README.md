@@ -157,6 +157,18 @@ BookLib ships with curated knowledge sets covering programming, architecture, de
 
 ---
 
+## History
+
+| Milestone | Date |
+|-----------|------|
+| First commit | Feb 11, 2026 |
+| First npm publish (`@booklib/skills` v1.0.0) | Feb 17, 2026 |
+| BookLib Engine — semantic search, session handoff, multi-agent coordination | Mar 29, 2026 |
+| Knowledge Graph — nodes, edges, graph-aware context injection | Mar 30, 2026 |
+| v2.0.0 — MCP-first architecture, hybrid search, structured responses, auto-linking | Apr 1, 2026 |
+
+---
+
 ## Contributing
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for the full guide.
@@ -166,6 +178,18 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for the full guide.
 ## Feedback & Issues
 
 Found a bug? Have a suggestion? [Open an issue](https://github.com/booklib-ai/booklib/issues) — all feedback welcome.
+
+---
+
+## Star
+
+If BookLib has helped your work, a ⭐ on [GitHub](https://github.com/booklib-ai/booklib) helps others discover it.
+
+---
+
+## Supporters
+
+Thanks to everyone who supports BookLib on [Ko-fi](https://ko-fi.com/booklib) ☕
 
 ---
 
