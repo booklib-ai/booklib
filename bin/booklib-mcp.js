@@ -17,9 +17,9 @@ import {
   serializeNode, saveNode, generateNodeId,
   listNodes, loadNode, parseNodeFrontmatter,
   resolveNodeRef, appendEdge, EDGE_TYPES,
+  resolveKnowledgePaths, parseCaptureLinkArgs,
 } from "../lib/engine/graph.js";
 import { BookLibIndexer } from "../lib/engine/indexer.js";
-import { buildStructuredResponse } from "../lib/engine/structured-response.js";
 import { processResults } from "../lib/engine/reasoning-modes.js";
 import { autoLink } from '../lib/engine/auto-linker.js';
 import { buildGraphContext } from '../lib/engine/graph-injector.js';
@@ -299,14 +299,16 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       case "remember":
       case "create_note": {
-        const { nodesDir, indexPath } = resolveBookLibPaths();
+        const { nodesDir } = resolveKnowledgePaths();
+        const { indexPath } = resolveBookLibPaths();
         const id = generateNodeId('node');
+        const nodeType = args.type ?? 'insight';
         const nodeContent = serializeNode({
           id,
-          type: args.type ?? 'note',
+          type: nodeType,
           title: args.title,
           content: args.content ?? '',
-          tags: args.tags,
+          tags: args.tags ? args.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
           links: args.links,
         });
         const filePath = saveNode(nodeContent, id, { nodesDir });
@@ -316,6 +318,16 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         } catch {
           // Index may not exist yet — node is saved, will appear after booklib index
         }
+        // Process explicit links
+        if (args.links) {
+          const links = parseCaptureLinkArgs(args.links);
+          const today = new Date().toISOString().split('T')[0];
+          for (const link of links) {
+            if (EDGE_TYPES.includes(link.type)) {
+              appendEdge({ from: id, to: link.to, type: link.type, weight: 1.0, created: today });
+            }
+          }
+        }
         // Auto-link to components and related knowledge
         let autoLinked = [];
         try {
@@ -323,13 +335,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             nodeId: id,
             title: args.title,
             content: args.content ?? '',
-            tags: args.tags ? args.tags.split(',').map(t => t.trim()) : [],
+            tags: args.tags ? args.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
           });
         } catch { /* best-effort */ }
         return { content: [{ type: "text", text: JSON.stringify({
           id,
           title: args.title,
-          type: args.type ?? 'note',
+          type: nodeType,
           saved_to: filePath,
           indexed: true,
           auto_linked: autoLinked.map(l => `${l.to} (${l.type}) — ${l.reason}`),
@@ -339,7 +351,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       case "recalled":
       case "list_nodes": {
-        const { nodesDir } = resolveBookLibPaths();
+        const { nodesDir } = resolveKnowledgePaths();
         const allIds = listNodes({ nodesDir });
         const nodes = allIds
           .map(id => {
