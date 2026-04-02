@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import path from 'path';
+import fs from 'fs';
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
@@ -19,8 +20,11 @@ import {
 } from "../lib/engine/graph.js";
 import { BookLibIndexer } from "../lib/engine/indexer.js";
 import { buildStructuredResponse } from "../lib/engine/structured-response.js";
+import { processResults } from "../lib/engine/reasoning-modes.js";
 import { autoLink } from '../lib/engine/auto-linker.js';
 import { buildGraphContext } from '../lib/engine/graph-injector.js';
+import { graphActivatedSearch } from '../lib/engine/graph-search.js';
+import { extractFromResults } from '../lib/engine/principle-extractor.js';
 
 const { skillsPath } = resolveBookLibPaths();
 const searcher = new BookLibSearcher();
@@ -206,9 +210,22 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             if (sourceFilter === 'knowledge') return r.metadata?.nodeKind === 'knowledge';
             return true;
           });
-        const structured = buildStructuredResponse(args.query, filtered, {
+
+        // Read config for reasoning mode
+        let reasoningMode = 'fast';
+        try {
+          const configPath = path.join(process.cwd(), 'booklib.config.json');
+          if (fs.existsSync(configPath)) {
+            const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+            reasoningMode = config.reasoning ?? 'fast';
+          }
+        } catch { /* use default */ }
+
+        const structured = await processResults(args.query, filtered, reasoningMode, {
           maxPrinciples: args.limit ?? 3,
           file: args.file,
+          apiKey: process.env.ANTHROPIC_API_KEY ?? process.env.OPENAI_API_KEY,
+          apiProvider: process.env.ANTHROPIC_API_KEY ? 'anthropic' : 'openai',
         });
         return { content: [{ type: "text", text: JSON.stringify(structured, null, 2) }] };
       }
