@@ -479,18 +479,18 @@
     <div class="demo-grid">
       <div>
         <h2 class="section-title" style="margin-bottom: var(--space-4);">How it works</h2>
-        <p style="color: var(--text-dim); font-size: var(--text-lg); margin-bottom: var(--space-6);">A <strong>PreToolUse hook</strong> watches every file you edit and auto-injects the matching skill chunks into context — no commands needed. For deeper work, invoke any skill on demand or let orchestrators load them via the Skill tool.</p>
+        <p style="color: var(--text-dim); font-size: var(--text-lg); margin-bottom: var(--space-6);">BookLib integrates with your AI agent via <strong>MCP</strong> — the agent calls BookLib tools directly when it needs knowledge. No commands to remember, no context dumps. The agent asks, BookLib answers with structured, relevant principles.</p>
 
         <div style="background: var(--primary-dim); border-left: 4px solid var(--primary); padding: var(--space-4); border-radius: 4px; margin-bottom: var(--space-6);">
-          <p style="font-size: var(--text-sm); font-weight: 600; color: #fff;">Two activation layers</p>
-          <p style="font-size: var(--text-sm); color: #c7d2fe; opacity: 0.8;">Fine-grained: hook injects relevant chunks automatically when editing matching files. Coarse: Skill tool dumps full skill on demand for orchestrator subagents.</p>
+          <p style="font-size: var(--text-sm); font-weight: 600; color: #fff;">Structured, not dumped</p>
+          <p style="font-size: var(--text-sm); color: #c7d2fe; opacity: 0.8;">BookLib returns specific actionable principles with source attribution — or nothing, if nothing is relevant. Your agent's context stays clean.</p>
         </div>
 
         <ul style="color: var(--text-dim); list-style: none; display: flex; flex-direction: column; gap: var(--space-3);">
-          <li style="display: flex; gap: var(--space-3);"><span style="color: var(--primary); font-weight: 800;">✔</span> Auto-injection via PreToolUse hook</li>
-          <li style="display: flex; gap: var(--space-3);"><span style="color: var(--primary); font-weight: 800;">✔</span> Semantic search across all skill content</li>
-          <li style="display: flex; gap: var(--space-3);"><span style="color: var(--primary); font-weight: 800;">✔</span> obra/superpowers &amp; ruflo compatible</li>
-          <li style="display: flex; gap: var(--space-3);"><span style="color: var(--primary); font-weight: 800;">✔</span> 258+ community skills discoverable</li>
+          <li style="display: flex; gap: var(--space-3);"><span style="color: var(--primary); font-weight: 800;">✔</span> MCP integration — works with Claude Code, Cursor, Copilot, Gemini, and more</li>
+          <li style="display: flex; gap: var(--space-3);"><span style="color: var(--primary); font-weight: 800;">✔</span> Hybrid search — BM25 + vector + cross-encoder reranking</li>
+          <li style="display: flex; gap: var(--space-3);"><span style="color: var(--primary); font-weight: 800;">✔</span> Knowledge graph with auto-linking</li>
+          <li style="display: flex; gap: var(--space-3);"><span style="color: var(--primary); font-weight: 800;">✔</span> Multi-dimensional graph search — finds concept intersections</li>
           <li style="display: flex; gap: var(--space-3);"><span style="color: var(--primary); font-weight: 800;">✔</span> Works beyond code — product, writing, strategy, design</li>
         </ul>
       </div>
