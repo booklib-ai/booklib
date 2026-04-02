@@ -221,6 +221,27 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           }
         } catch { /* use default */ }
 
+        // Try graph-activated search for multi-concept queries
+        const graphResult = graphActivatedSearch(args.query, filtered);
+
+        if (graphResult.activated && graphResult.graphResults.length > 0) {
+          const limit = args.limit ?? 3;
+          const textPrinciples = extractFromResults(filtered, limit);
+          const allPrinciples = [
+            ...graphResult.graphResults.slice(0, limit),
+            ...textPrinciples,
+          ].slice(0, limit);
+
+          return { content: [{ type: "text", text: JSON.stringify({
+            query: args.query,
+            file: args.file ?? null,
+            concepts: graphResult.concepts,
+            graphActivated: true,
+            results: allPrinciples,
+            note: `${graphResult.graphResults.length} graph intersection(s), ${textPrinciples.length} text result(s).`,
+          }, null, 2) }] };
+        }
+
         const structured = await processResults(args.query, filtered, reasoningMode, {
           maxPrinciples: args.limit ?? 3,
           file: args.file,
