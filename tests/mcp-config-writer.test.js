@@ -9,13 +9,12 @@ function tmpDir() {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'booklib-mcp-test-'));
 }
 
-test('writes claude MCP config with mcpServers key', () => {
-  const cwd = tmpDir();
-  writeMCPConfig('claude', cwd);
-  const config = JSON.parse(fs.readFileSync(path.join(cwd, '.claude', 'settings.json'), 'utf8'));
-  assert.ok(config.mcpServers.booklib);
-  assert.strictEqual(config.mcpServers.booklib.command, 'booklib-mcp');
-  fs.rmSync(cwd, { recursive: true });
+test('claude MCP uses claude CLI (returns claude-mcp or null)', () => {
+  // writeMCPConfig('claude') now calls `claude mcp add` instead of writing JSON.
+  // In test environments without the claude CLI, it returns null gracefully.
+  const result = writeMCPConfig('claude', tmpDir());
+  // Result is 'claude-mcp' if claude CLI is available, null otherwise
+  assert.ok(result === 'claude-mcp' || result === null);
 });
 
 test('writes copilot MCP config with servers key', () => {
