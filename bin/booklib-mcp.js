@@ -211,13 +211,15 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             return true;
           });
 
-        // Read config for reasoning mode
+        // Read config for reasoning mode + ollama model
         let reasoningMode = 'fast';
+        let ollamaModel = 'phi3';
         try {
           const configPath = path.join(process.cwd(), 'booklib.config.json');
           if (fs.existsSync(configPath)) {
             const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
             reasoningMode = config.reasoning ?? 'fast';
+            ollamaModel = config.ollamaModel ?? 'phi3';
           }
         } catch { /* use default */ }
 
@@ -247,6 +249,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           file: args.file,
           apiKey: process.env.ANTHROPIC_API_KEY ?? process.env.OPENAI_API_KEY,
           apiProvider: process.env.ANTHROPIC_API_KEY ? 'anthropic' : 'openai',
+          ollamaModel,
         });
         return { content: [{ type: "text", text: JSON.stringify(structured, null, 2) }] };
       }
