@@ -34,4 +34,35 @@ Kotlin null safety prevents null pointer exceptions.
     assert.ok(results.length > 0, 'loaded BM25 index should return results');
     assert.ok(results[0].score > 0);
   });
+
+  it('indexes chunks with parentId and siblingIndex metadata', async () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'booklib-idx-'));
+    const indexDir = path.join(tmpDir, 'index');
+    const skillsDir = path.join(tmpDir, 'skills');
+    const testSkillDir = path.join(skillsDir, 'test-skill');
+    fs.mkdirSync(testSkillDir, { recursive: true });
+    fs.writeFileSync(path.join(testSkillDir, 'SKILL.md'), `---
+name: test-skill
+tags: [kotlin]
+---
+
+## Rules
+
+- Use val over var for immutability
+- Prefer data classes for DTOs
+- Use sealed classes for state
+`);
+
+    const indexer = new BookLibIndexer(indexDir);
+    await indexer.indexDirectory(skillsDir, true, { quiet: true });
+
+    const bm25Path = path.join(path.dirname(indexDir), 'bm25.json');
+    const idx = BM25Index.load(bm25Path);
+    const results = idx.search('immutability val', 3);
+
+    assert.ok(results.length > 0, 'should find results for immutability query');
+    assert.ok(results[0].metadata.parentId, 'chunk should have parentId');
+    assert.strictEqual(typeof results[0].metadata.siblingIndex, 'number', 'siblingIndex should be a number');
+    assert.strictEqual(typeof results[0].metadata.siblingCount, 'number', 'siblingCount should be a number');
+  });
 });
