@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import { serializeNode, saveNode, appendEdge, loadEdges } from '../../lib/engine/graph.js';
-import { autoLink, autoLinkReverse } from '../../lib/engine/auto-linker.js';
+import { autoLink, autoLinkReverse, autoLinkSkills } from '../../lib/engine/auto-linker.js';
 
 function setup() {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'booklib-autolink-'));
@@ -130,5 +130,32 @@ describe('autoLinkReverse', () => {
     assert.ok(links.length > 0, 'should retroactively link');
     assert.strictEqual(links[0].from, 'note_es');
     assert.strictEqual(links[0].to, 'comp_orders');
+  });
+});
+
+describe('autoLinkSkills', () => {
+  test('creates see-also edges between knowledge nodes and matching skills', async () => {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'booklib-autolink-'));
+    const graphFile = path.join(tmp, 'graph.jsonl');
+    fs.writeFileSync(graphFile, '');
+
+    const knowledgeNodes = [
+      { id: 'node_abc', title: 'SQL injection prevention', tags: ['sql', 'security', 'parameterized'] },
+      { id: 'node_def', title: 'Redis caching strategy', tags: ['redis', 'cache', 'performance'] },
+    ];
+
+    const skillTags = [
+      { name: 'springboot-security', tags: ['security', 'authentication', 'sql'] },
+      { name: 'effective-java', tags: ['java', 'oop'] },
+      { name: 'system-design-interview', tags: ['cache', 'scaling', 'redis'] },
+    ];
+
+    const links = await autoLinkSkills({ knowledgeNodes, skillTags, graphFile });
+
+    assert.ok(links.length >= 2, 'should create at least 2 links');
+    const sqlLink = links.find(l => l.from === 'node_abc' && l.to === 'springboot-security');
+    assert.ok(sqlLink, 'SQL node should link to springboot-security');
+    const cacheLink = links.find(l => l.from === 'node_def' && l.to === 'system-design-interview');
+    assert.ok(cacheLink, 'Redis node should link to system-design-interview');
   });
 });
