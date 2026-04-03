@@ -1,6 +1,6 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
-import { processResults } from '../../lib/engine/reasoning-modes.js';
+import { processResults, formatResultsForModel } from '../../lib/engine/reasoning-modes.js';
 
 const mockResults = [
   { text: '- Use stateless JWT\n- Validate per request', metadata: { name: 'springboot-security', type: 'core_principles' }, score: 0.95 },
@@ -45,4 +45,35 @@ describe('processResults', () => {
     const result = await processResults('test', mockResults, 'unknown');
     assert.ok(result.results.length > 0);
   });
+});
+
+test('formatResultsForModel produces clean chunk text without frontmatter', async () => {
+  const results = [
+    {
+      text: 'Use parameterized queries with $1 placeholders',
+      metadata: { name: 'ADR-003', parentTitle: 'Raw SQL — Rules', type: 'framework' },
+    },
+    {
+      text: 'Never concatenate user input into SQL strings',
+      metadata: { name: 'ADR-003', parentTitle: 'Raw SQL — Rules', type: 'framework' },
+    },
+    {
+      text: 'Use sealed classes for representing state',
+      metadata: { name: 'effective-kotlin', parentTitle: 'Classes', type: 'framework' },
+    },
+  ];
+
+  const formatted = formatResultsForModel(results);
+
+  assert.ok(!formatted.includes('---'), 'should not contain frontmatter delimiters');
+  assert.ok(!formatted.includes('created:'), 'should not contain frontmatter fields');
+  assert.ok(formatted.includes('ADR-003'), 'should include source name');
+  assert.ok(formatted.includes('parameterized queries'), 'should include chunk text');
+  assert.ok(formatted.includes('effective-kotlin'), 'should include second source');
+});
+
+test('formatResultsForModel returns (no results) for empty input', () => {
+  assert.strictEqual(formatResultsForModel([]), '(no results)');
+  assert.strictEqual(formatResultsForModel(null), '(no results)');
+  assert.strictEqual(formatResultsForModel(undefined), '(no results)');
 });
