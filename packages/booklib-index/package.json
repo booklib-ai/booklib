@@ -1,0 +1,14 @@
+{
+  "name": "@booklib/index",
+  "version": "1.0.0",
+  "description": "Pre-built search index for BookLib — 75 curated skills, instant setup",
+  "type": "module",
+  "main": "index.js",
+  "files": [
+    "index.js",
+    "data/index.json.gz",
+    "data/bm25.json.gz"
+  ],
+  "keywords": ["booklib", "ai", "skills", "index", "search"],
+  "license": "MIT"
+}
