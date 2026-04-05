@@ -1639,7 +1639,7 @@ case 'rules': {
     case 'connect': {
       const target = args[1];
       if (!target) {
-        console.error('Usage: booklib connect <url-or-path> [--type=<type>] [--name=<name>] [--depth=N]');
+        console.error('Usage: booklib connect <url-or-path> [--type=<type>] [--name=<name>] [--depth=N] [--include=ext1,ext2] [--exclude=dir1,dir2] [--watch]');
         process.exit(1);
       }
 
@@ -1692,12 +1692,22 @@ case 'rules': {
           process.exit(1);
         }
       } else {
-        // Local path connector (existing behavior)
+        // Local path connector — with filtering, mtime tracking, and optional watch
         const resolvedPath = path.resolve(target);
         if (!fs.existsSync(resolvedPath)) {
           console.error(`Path does not exist: ${resolvedPath}`);
           process.exit(1);
         }
+
+        const includeArg = parseFlag(args, 'include');
+        const excludeArg = parseFlag(args, 'exclude');
+        const include = includeArg ? includeArg.split(',').map(s => s.trim()) : undefined;
+        const exclude = excludeArg ? excludeArg.split(',').map(s => s.trim()) : undefined;
+
+        const { LocalConnector } = await import('../lib/connectors/local.js');
+        const lc = new LocalConnector({ include, exclude });
+        const matchingFiles = lc.listFiles(resolvedPath);
+        console.log(`Found ${matchingFiles.length} file(s) matching filters.`);
 
         let source;
         try {
@@ -1722,12 +1732,30 @@ case 'rules': {
             chunkCount = idx._docs.filter(d => d.metadata?.sourceName === source.name).length;
           }
           mgr.markIndexed(source.name, chunkCount);
+
+          // Store file mtimes for incremental refresh
+          const mtimes = lc.getFileMtimes(resolvedPath);
+          mgr.updateMtimes(source.name, mtimes);
+
           console.log(`Source "${source.name}" connected and indexed (${chunkCount} chunks).`);
         } catch (indexErr) {
           try { mgr.removeSource(source.name); } catch { /* best effort */ }
           console.error(`Indexing failed for "${source.name}": ${indexErr.message}`);
           console.error('Source registration rolled back.');
           process.exit(1);
+        }
+
+        // Optional: watch for changes and re-index
+        if (args.includes('--watch')) {
+          const indexer = new BookLibIndexer();
+          const watcher = lc.watch(resolvedPath, async (eventType, filename) => {
+            console.log(`  ${eventType}: ${filename}`);
+            await indexer.indexDirectory(resolvedPath, false, { quiet: true, sourceName: source.name });
+            const updatedMtimes = lc.getFileMtimes(resolvedPath);
+            mgr.updateMtimes(source.name, updatedMtimes);
+            console.log(`  Re-indexed ${source.name}`);
+          });
+          process.on('SIGINT', () => { watcher.close(); process.exit(0); });
         }
       }
       break;
@@ -1801,11 +1829,33 @@ case 'rules': {
 
       console.log(`Refreshing source "${refreshName}" from ${source.sourcePath}...`);
 
+      // Use LocalConnector for incremental refresh on local sources
+      const isLocalSource = source.type === 'local' || (!source.url && fs.statSync(source.sourcePath).isDirectory());
       const indexer = new BookLibIndexer();
-      await removeSourceChunks(refreshName, indexer.bm25Path, indexer);
 
-      // Re-index from the source directory
-      await indexer.indexDirectory(source.sourcePath, false, { quiet: false, sourceName: refreshName });
+      if (isLocalSource) {
+        const { LocalConnector } = await import('../lib/connectors/local.js');
+        const lc = new LocalConnector();
+        const previousMtimes = mgr.getMtimes(refreshName);
+        const { changed, removed, currentMtimes } = lc.findChanges(source.sourcePath, previousMtimes);
+
+        if (changed.length === 0 && removed.length === 0) {
+          console.log(`Source "${refreshName}" is up to date — no changes detected.`);
+          break;
+        }
+
+        console.log(`  ${changed.length} changed, ${removed.length} removed`);
+
+        // Full re-index for the source (removes old chunks, re-indexes all)
+        await removeSourceChunks(refreshName, indexer.bm25Path, indexer);
+        await indexer.indexDirectory(source.sourcePath, false, { quiet: false, sourceName: refreshName });
+
+        // Update stored mtimes
+        mgr.updateMtimes(refreshName, currentMtimes);
+      } else {
+        await removeSourceChunks(refreshName, indexer.bm25Path, indexer);
+        await indexer.indexDirectory(source.sourcePath, false, { quiet: false, sourceName: refreshName });
+      }
 
       // Update chunk count from the rebuilt BM25 index
       let chunkCount = 0;
