@@ -21,6 +21,7 @@ import {
 } from "../lib/engine/graph.js";
 import { BookLibIndexer } from "../lib/engine/indexer.js";
 import { processResults } from "../lib/engine/reasoning-modes.js";
+import { detectResultSourceType } from '../lib/engine/synthesis-templates.js';
 import { autoLink } from '../lib/engine/auto-linker.js';
 import { buildGraphContext } from '../lib/engine/graph-injector.js';
 import { graphActivatedSearch } from '../lib/engine/graph-search.js';
@@ -229,10 +230,11 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         if (graphResult.activated && graphResult.graphResults.length > 0) {
           const limit = args.limit ?? 3;
           const textPrinciples = extractFromResults(filtered, limit);
+          // Skills first, graph context appended — never replace skill results
           const allPrinciples = [
-            ...graphResult.graphResults.slice(0, limit),
-            ...textPrinciples,
-          ].slice(0, limit);
+            ...textPrinciples.slice(0, limit),
+            ...graphResult.graphResults.slice(0, 2),
+          ];
 
           return { content: [{ type: "text", text: JSON.stringify({
             query: args.query,
@@ -240,13 +242,16 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             concepts: graphResult.concepts,
             graphActivated: true,
             results: allPrinciples,
-            note: `${graphResult.graphResults.length} graph intersection(s), ${textPrinciples.length} text result(s).`,
+            note: `${textPrinciples.length} expert result(s), ${graphResult.graphResults.length} project context(s).`,
           }, null, 2) }] };
         }
+
+        const sourceType = detectResultSourceType(filtered);
 
         const structured = await processResults(args.query, filtered, reasoningMode, {
           maxPrinciples: args.limit ?? 3,
           file: args.file,
+          sourceType,
           apiKey: process.env.ANTHROPIC_API_KEY ?? process.env.OPENAI_API_KEY,
           apiProvider: process.env.ANTHROPIC_API_KEY ? 'anthropic' : 'openai',
           ollamaModel,
