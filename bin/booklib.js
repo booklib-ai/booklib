@@ -1895,27 +1895,34 @@ case 'rules': {
       const { GapDetector } = await import('../lib/engine/gap-detector.js');
       const detector = new GapDetector();
       console.log('Scanning project for knowledge gaps...\n');
-      const gaps = await detector.detect(process.cwd());
+      try {
+        const gaps = await detector.detect(process.cwd());
 
-      if (gaps.postTraining.length > 0) {
-        console.log('Post-training dependencies (model may have outdated knowledge):');
-        for (const dep of gaps.postTraining) {
-          const date = dep.publishDate.toISOString().split('T')[0];
-          console.log(`  ${dep.name}@${dep.version} (${dep.ecosystem}, published ${date})`);
+        if (gaps.postTraining.length > 0) {
+          console.log('Post-training dependencies (model may have outdated knowledge):');
+          for (const dep of gaps.postTraining) {
+            const date = dep.publishDate.toISOString().split('T')[0];
+            console.log(`  ${dep.name}@${dep.version} (${dep.ecosystem}, published ${date})`);
+          }
+        } else {
+          console.log('No post-training dependencies detected.');
         }
-      } else {
-        console.log('No post-training dependencies detected.');
-      }
 
-      if (gaps.uncapturedDocs.length > 0) {
-        console.log('\nUncaptured project docs:');
-        for (const doc of gaps.uncapturedDocs) {
-          console.log(`  ${doc.path} (${doc.fileCount} file(s))`);
-          console.log(`    → booklib connect ./${doc.path}/ --type=team-decision`);
+        if (gaps.uncapturedDocs.length > 0) {
+          console.log('\nUncaptured project docs:');
+          for (const doc of gaps.uncapturedDocs) {
+            const suffix = doc.type === 'directory' ? '/' : '';
+            console.log(`  ${doc.path} (${doc.fileCount} file(s))`);
+            console.log(`    → booklib connect ./${doc.path}${suffix} --type=team-decision`);
+          }
         }
-      }
 
-      console.log(`\nScanned: ${gaps.totalDeps} dependencies across ${gaps.ecosystems.join(', ')}`);
+        const ecoList = gaps.ecosystems.length > 0 ? gaps.ecosystems.join(', ') : 'none detected';
+        console.log(`\nScanned: ${gaps.totalDeps} dependencies across ${ecoList}`);
+      } catch (err) {
+        console.error(`Gap detection failed: ${err.message}`);
+        process.exit(1);
+      }
       break;
     }
 
@@ -1930,6 +1937,7 @@ CORE:
   booklib search "<query>"                       Search skills and your knowledge nodes
   booklib audit <skill> <file>                   Deep-audit a file against a skill
   booklib scan [dir] [--docs]                    Project-wide heatmap
+  booklib gaps                                   Detect post-training deps & uncaptured docs
   booklib capture --title "<title>" [--type insight] [--tags t1,t2] [--links "skill:edge-type,...]"
   booklib benchmark                              Run retrieval quality benchmark (MRR/Recall/NDCG)
   booklib context "<task>" [--prompt-only]       Cross-skill context + conflict resolution
@@ -2003,6 +2011,7 @@ EVERYDAY USE:
   booklib context "<task>"               Cross-skill context for your AI
   booklib audit <skill> <file>           Get a review prompt for a file
   booklib scan                           Project-wide code quality heatmap
+  booklib gaps                           Detect post-training deps & uncaptured docs
   booklib capture --title "<title>" [--type insight] [--tags t1,t2] [--links "skill:edge-type,...]"
   booklib benchmark                      Run retrieval quality benchmark (MRR/Recall/NDCG)
   booklib doctor                         Check skill health & usage

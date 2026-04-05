@@ -35,8 +35,8 @@ describe('GapDetector.detect', () => {
 
     const detector = new GapDetector({
       cachePath: path.join(tmpDir, '.booklib', 'version-cache.json'),
-      // Use very short timeout to avoid real network calls in tests
-      cacheTtlMs: 0,
+      // Long TTL ensures pre-populated cache is used — avoids real network calls
+      cacheTtlMs: 999_999_999,
     });
 
     // Stub checkPublishDate to avoid network calls by pre-populating cache
