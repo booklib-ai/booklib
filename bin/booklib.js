@@ -1595,6 +1595,199 @@ case 'rules': {
       process.exit(0);
     }
 
+    case 'connect': {
+      const sourcePath = args[1];
+      if (!sourcePath) {
+        console.error('Usage: booklib connect <path> [--type=<type>] [--name=<name>]');
+        process.exit(1);
+      }
+      const resolvedPath = path.resolve(sourcePath);
+      if (!fs.existsSync(resolvedPath)) {
+        console.error(`Path does not exist: ${resolvedPath}`);
+        process.exit(1);
+      }
+      const type = parseFlag(args, 'type') ?? 'local';
+      const name = parseFlag(args, 'name') ?? undefined;
+
+      const { SourceManager } = await import('../lib/engine/source-manager.js');
+      const booklibDir = path.join(process.cwd(), '.booklib');
+      const mgr = new SourceManager(booklibDir);
+
+      let source;
+      try {
+        source = mgr.registerSource({ name, sourcePath: resolvedPath, type });
+      } catch (err) {
+        console.error(err.message);
+        process.exit(1);
+      }
+      console.log(`Registered source "${source.name}" (${resolvedPath})`);
+
+      // Index the source directory
+      const indexer = new BookLibIndexer();
+      console.log('Indexing source...');
+      await indexer.indexDirectory(resolvedPath, false, { quiet: false, sourceName: source.name });
+
+      // Count chunks from BM25 to record in the registry
+      const { BM25Index: BM25 } = await import('../lib/engine/bm25-index.js');
+      const bm25File = indexer.bm25Path;
+      let chunkCount = 0;
+      if (fs.existsSync(bm25File)) {
+        const idx = BM25.load(bm25File);
+        chunkCount = idx._docs.filter(d => d.metadata?.sourceName === source.name).length;
+      }
+      mgr.markIndexed(source.name, chunkCount);
+      console.log(`Source "${source.name}" connected and indexed (${chunkCount} chunks).`);
+      break;
+    }
+
+    case 'disconnect': {
+      const disconnectName = args[1];
+      if (!disconnectName) {
+        console.error('Usage: booklib disconnect <name>');
+        process.exit(1);
+      }
+      const { SourceManager } = await import('../lib/engine/source-manager.js');
+      const booklibDir = path.join(process.cwd(), '.booklib');
+      const mgr = new SourceManager(booklibDir);
+
+      const source = mgr.getSource(disconnectName);
+      if (!source) {
+        console.error(`Source not found: "${disconnectName}". Run 'booklib sources' to see registered sources.`);
+        process.exit(1);
+      }
+
+      // Remove matching chunks from BM25 index
+      const indexer = new BookLibIndexer();
+      const bm25File = indexer.bm25Path;
+      if (fs.existsSync(bm25File)) {
+        const { BM25Index: BM25 } = await import('../lib/engine/bm25-index.js');
+        const idx = BM25.load(bm25File);
+        const before = idx._docs.length;
+        idx._docs = idx._docs.filter(d => d.metadata?.sourceName !== disconnectName);
+        // Rebuild df and avgLen after filtering
+        idx._df = {};
+        idx._totalLen = 0;
+        for (const doc of idx._docs) {
+          for (const term of Object.keys(doc.freq)) {
+            idx._df[term] = (idx._df[term] ?? 0) + 1;
+          }
+          idx._totalLen += doc.len;
+        }
+        idx._avgLen = idx._docs.length > 0 ? idx._totalLen / idx._docs.length : 0;
+        idx.save(bm25File);
+        console.log(`Removed ${before - idx._docs.length} BM25 chunk(s).`);
+      }
+
+      // Remove matching items from Vectra index
+      try {
+        const items = await indexer.index.listItems();
+        let vectraRemoved = 0;
+        for (const item of items) {
+          if (item.metadata?.sourceName === disconnectName) {
+            await indexer.index.deleteItem(item.id);
+            vectraRemoved++;
+          }
+        }
+        if (vectraRemoved > 0) console.log(`Removed ${vectraRemoved} vector chunk(s).`);
+      } catch {
+        // Vectra index may not exist yet
+      }
+
+      mgr.removeSource(disconnectName);
+      console.log(`Source "${disconnectName}" disconnected.`);
+      break;
+    }
+
+    case 'sources': {
+      const { SourceManager } = await import('../lib/engine/source-manager.js');
+      const booklibDir = path.join(process.cwd(), '.booklib');
+      const mgr = new SourceManager(booklibDir);
+      const sources = mgr.listSources();
+
+      if (sources.length === 0) {
+        console.log('No sources connected. Use `booklib connect <path>` to add one.');
+        break;
+      }
+
+      console.log(`\n  ${'Name'.padEnd(20)} ${'Type'.padEnd(8)} ${'Chunks'.padEnd(8)} Path`);
+      console.log(`  ${'─'.repeat(20)} ${'─'.repeat(8)} ${'─'.repeat(8)} ${'─'.repeat(30)}`);
+      for (const s of sources) {
+        const chunks = s.chunk_count != null ? String(s.chunk_count) : '-';
+        console.log(`  ${s.name.padEnd(20)} ${s.type.padEnd(8)} ${chunks.padEnd(8)} ${s.sourcePath}`);
+      }
+      console.log();
+      break;
+    }
+
+    case 'refresh': {
+      const refreshName = args[1];
+      if (!refreshName) {
+        console.error('Usage: booklib refresh <name>');
+        process.exit(1);
+      }
+      const { SourceManager } = await import('../lib/engine/source-manager.js');
+      const booklibDir = path.join(process.cwd(), '.booklib');
+      const mgr = new SourceManager(booklibDir);
+
+      const source = mgr.getSource(refreshName);
+      if (!source) {
+        console.error(`Source not found: "${refreshName}". Run 'booklib sources' to see registered sources.`);
+        process.exit(1);
+      }
+
+      if (!fs.existsSync(source.sourcePath)) {
+        console.error(`Source path no longer exists: ${source.sourcePath}`);
+        process.exit(1);
+      }
+
+      console.log(`Refreshing source "${refreshName}" from ${source.sourcePath}...`);
+
+      // Remove old chunks for this source from BM25
+      const indexer = new BookLibIndexer();
+      const bm25File = indexer.bm25Path;
+      if (fs.existsSync(bm25File)) {
+        const { BM25Index: BM25 } = await import('../lib/engine/bm25-index.js');
+        const idx = BM25.load(bm25File);
+        idx._docs = idx._docs.filter(d => d.metadata?.sourceName !== refreshName);
+        idx._df = {};
+        idx._totalLen = 0;
+        for (const doc of idx._docs) {
+          for (const term of Object.keys(doc.freq)) {
+            idx._df[term] = (idx._df[term] ?? 0) + 1;
+          }
+          idx._totalLen += doc.len;
+        }
+        idx._avgLen = idx._docs.length > 0 ? idx._totalLen / idx._docs.length : 0;
+        idx.save(bm25File);
+      }
+
+      // Remove old vectors
+      try {
+        const items = await indexer.index.listItems();
+        for (const item of items) {
+          if (item.metadata?.sourceName === refreshName) {
+            await indexer.index.deleteItem(item.id);
+          }
+        }
+      } catch {
+        // Vectra index may not exist
+      }
+
+      // Re-index
+      await indexer.indexDirectory(source.sourcePath, false, { quiet: false, sourceName: refreshName });
+
+      // Update chunk count
+      let chunkCount = 0;
+      if (fs.existsSync(bm25File)) {
+        const { BM25Index: BM25 } = await import('../lib/engine/bm25-index.js');
+        const idx = BM25.load(bm25File);
+        chunkCount = idx._docs.filter(d => d.metadata?.sourceName === refreshName).length;
+      }
+      mgr.markIndexed(refreshName, chunkCount);
+      console.log(`Source "${refreshName}" refreshed (${chunkCount} chunks).`);
+      break;
+    }
+
     default: {
       const showAll = args.includes('--all');
       if (showAll) {
@@ -1650,6 +1843,12 @@ SESSION MANAGEMENT:
   booklib sessions create --template=<t> <n>     Create from template
   booklib sessions history <id>                  Version history
 
+SOURCES:
+  booklib connect <path> [--type=<type>] [--name=<name>]   Connect a doc source
+  booklib disconnect <name>                                Disconnect a source + remove chunks
+  booklib sources                                          List connected sources
+  booklib refresh <name>                                   Re-index a source
+
 ORCHESTRATOR COMPATIBILITY:
   booklib sync                                   Sync all fetched skills → ~/.claude/skills/
 
@@ -1685,6 +1884,11 @@ SKILLS:
   booklib install <skill-name>            Install a skill
   booklib fetch <skill-name>             (deprecated) Use: booklib install
   booklib discover                       Browse the community skill catalog
+
+SOURCES:
+  booklib connect <path>                 Connect a documentation source
+  booklib sources                        List connected sources
+  booklib disconnect <name>              Remove a source
 
 KNOWLEDGE GRAPH:
   booklib note "<title>"                 Save a note (pipe or type content)
