@@ -203,6 +203,17 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           required: ["file_path"],
         },
       },
+      {
+        name: "check_decisions",
+        description: "Check if code contradicts captured team decisions. Use after writing code that touches architecture or API choices.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            file_path: { type: "string", description: "Path to the source file to check" },
+          },
+          required: ["file_path"],
+        },
+      },
     ],
   };
 });
@@ -444,6 +455,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         };
 
         return { content: [{ type: "text", text: JSON.stringify(summary, null, 2) }] };
+      }
+
+      case "check_decisions": {
+        const { DecisionChecker } = await import('../lib/engine/decision-checker.js');
+        const checker = new DecisionChecker({ searcher });
+        const filePath = path.resolve(args.file_path);
+        const result = await checker.checkFile(filePath);
+        return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
       }
 
       default:

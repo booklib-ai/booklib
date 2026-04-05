@@ -57,5 +57,11 @@ process.stdin.on('end', async () => {
   } catch {
     // Best effort — don't break the hook chain
   }
+
+  // Future integration point: decision contradiction checking.
+  // DecisionChecker requires a BookLibSearcher with the embedding model loaded,
+  // which is too heavy for a PostToolUse hook. Will activate when hooks can
+  // access a persistent searcher instance (e.g., via MCP or shared process).
+
   process.exit(0);
 });

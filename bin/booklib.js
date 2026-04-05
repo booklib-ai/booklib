@@ -1926,6 +1926,37 @@ case 'rules': {
       break;
     }
 
+    case 'check-decisions': {
+      const filePath = args[1];
+      if (!filePath) {
+        console.error('Usage: booklib check-decisions <file>');
+        process.exit(1);
+      }
+      try {
+        const { DecisionChecker } = await import('../lib/engine/decision-checker.js');
+        const { BookLibSearcher } = await import('../lib/engine/searcher.js');
+        const searcher = new BookLibSearcher();
+        const checker = new DecisionChecker({ searcher });
+        const result = await checker.checkFile(filePath);
+
+        if (result.contradictions.length > 0) {
+          console.log(`\u26a0 ${result.contradictions.length} potential contradiction(s):\n`);
+          for (const c of result.contradictions) {
+            console.log(`  ${c.identifier} \u2014 contradicts: ${c.source}`);
+            console.log(`    "${c.decision.slice(0, 120)}..."`);
+            console.log('');
+          }
+        } else {
+          console.log('No contradictions found.');
+        }
+        console.log(`Checked ${result.checked} identifier(s).`);
+      } catch (err) {
+        console.error(`Decision check failed: ${err.message}`);
+        process.exit(1);
+      }
+      break;
+    }
+
     case 'check-imports': {
       const filePath = args[1];
       if (!filePath) {
@@ -1989,6 +2020,7 @@ CORE:
   booklib scan [dir] [--docs]                    Project-wide heatmap
   booklib gaps                                   Detect post-training deps & uncaptured docs
   booklib check-imports <file>                   Check if file imports are covered by BookLib
+  booklib check-decisions <file>                 Check if code contradicts captured team decisions
   booklib capture --title "<title>" [--type insight] [--tags t1,t2] [--links "skill:edge-type,...]"
   booklib benchmark                              Run retrieval quality benchmark (MRR/Recall/NDCG)
   booklib context "<task>" [--prompt-only]       Cross-skill context + conflict resolution
@@ -2064,6 +2096,7 @@ EVERYDAY USE:
   booklib scan                           Project-wide code quality heatmap
   booklib gaps                           Detect post-training deps & uncaptured docs
   booklib check-imports <file>           Check if file imports are covered by BookLib
+  booklib check-decisions <file>         Check if code contradicts team decisions
   booklib capture --title "<title>" [--type insight] [--tags t1,t2] [--links "skill:edge-type,...]"
   booklib benchmark                      Run retrieval quality benchmark (MRR/Recall/NDCG)
   booklib doctor                         Check skill health & usage
