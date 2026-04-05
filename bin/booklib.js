@@ -1926,6 +1926,56 @@ case 'rules': {
       break;
     }
 
+    case 'check-imports': {
+      const filePath = args[1];
+      if (!filePath) {
+        console.error('Usage: booklib check-imports <file>');
+        process.exit(1);
+      }
+      const { ImportChecker } = await import('../lib/engine/import-checker.js');
+
+      let indexMode = 'manual';
+      try {
+        const cfgPath = path.join(process.cwd(), 'booklib.config.json');
+        if (fs.existsSync(cfgPath)) {
+          const cfg = JSON.parse(fs.readFileSync(cfgPath, 'utf8'));
+          indexMode = cfg.importChecking ?? 'manual';
+        }
+      } catch { /* use default */ }
+
+      const checker = new ImportChecker({
+        searcher: new BookLibSearcher(),
+        indexMode,
+      });
+
+      const resolved = path.resolve(filePath);
+      console.log(`Checking imports in ${filePath}...\n`);
+      try {
+        const result = await checker.checkFile(resolved, process.cwd());
+
+        if (result.unknown.length > 0) {
+          console.log('Unknown APIs (not in BookLib index):');
+          for (const imp of result.unknown) {
+            const eco = imp.language === 'js' ? 'npm' : imp.language;
+            console.log(`  ${imp.module} (${eco})`);
+            const docs = await checker.resolveDocsUrl(imp);
+            if (docs.url) {
+              console.log(`    \u2192 booklib connect ${docs.url} --type=framework-docs`);
+            }
+          }
+        }
+
+        const knownCount = result.known.length;
+        const unknownCount = result.unknown.length;
+        const skippedCount = result.skipped.length;
+        console.log(`\nKnown: ${knownCount} imports | Unknown: ${unknownCount} imports | Skipped: ${skippedCount} stdlib`);
+      } catch (err) {
+        console.error(`Import check failed: ${err.message}`);
+        process.exit(1);
+      }
+      break;
+    }
+
     default: {
       const showAll = args.includes('--all');
       if (showAll) {
@@ -1938,6 +1988,7 @@ CORE:
   booklib audit <skill> <file>                   Deep-audit a file against a skill
   booklib scan [dir] [--docs]                    Project-wide heatmap
   booklib gaps                                   Detect post-training deps & uncaptured docs
+  booklib check-imports <file>                   Check if file imports are covered by BookLib
   booklib capture --title "<title>" [--type insight] [--tags t1,t2] [--links "skill:edge-type,...]"
   booklib benchmark                              Run retrieval quality benchmark (MRR/Recall/NDCG)
   booklib context "<task>" [--prompt-only]       Cross-skill context + conflict resolution
@@ -2012,6 +2063,7 @@ EVERYDAY USE:
   booklib audit <skill> <file>           Get a review prompt for a file
   booklib scan                           Project-wide code quality heatmap
   booklib gaps                           Detect post-training deps & uncaptured docs
+  booklib check-imports <file>           Check if file imports are covered by BookLib
   booklib capture --title "<title>" [--type insight] [--tags t1,t2] [--links "skill:edge-type,...]"
   booklib benchmark                      Run retrieval quality benchmark (MRR/Recall/NDCG)
   booklib doctor                         Check skill health & usage

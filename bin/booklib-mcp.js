@@ -191,6 +191,18 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           required: ["goal", "next"],
         },
       },
+      {
+        name: "check_imports",
+        description: "Check if a file's imports are covered by BookLib's index. Use after writing code that uses unfamiliar APIs.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            file_path: { type: "string", description: "Path to the source file to check" },
+            auto_index: { type: "boolean", description: "Auto-index docs for unknown imports if configured" },
+          },
+          required: ["file_path"],
+        },
+      },
     ],
   };
 });
@@ -398,6 +410,40 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case "save_session_state": {
         handoff.saveState(args);
         return { content: [{ type: "text", text: `Session state saved successfully for ${args.name || 'current branch'}.` }] };
+      }
+
+      case "check_imports": {
+        const { ImportChecker } = await import('../lib/engine/import-checker.js');
+
+        let indexMode = 'manual';
+        try {
+          const cfgPath = path.join(process.cwd(), 'booklib.config.json');
+          if (fs.existsSync(cfgPath)) {
+            const cfg = JSON.parse(fs.readFileSync(cfgPath, 'utf8'));
+            indexMode = cfg.importChecking ?? 'manual';
+          }
+        } catch { /* use default */ }
+
+        const checker = new ImportChecker({ searcher, indexMode });
+        const resolved = path.resolve(args.file_path);
+        const result = await checker.checkFile(resolved, process.cwd());
+
+        const summary = {
+          file: args.file_path,
+          unknown: await Promise.all(result.unknown.map(async imp => {
+            const docs = await checker.resolveDocsUrl(imp);
+            return { module: imp.module, language: imp.language, docsUrl: docs.url };
+          })),
+          known: result.known.map(i => i.module),
+          skipped: result.skipped.map(i => i.module),
+          counts: {
+            known: result.known.length,
+            unknown: result.unknown.length,
+            skipped: result.skipped.length,
+          },
+        };
+
+        return { content: [{ type: "text", text: JSON.stringify(summary, null, 2) }] };
       }
 
       default:

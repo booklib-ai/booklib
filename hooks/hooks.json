@@ -18,6 +18,15 @@
           "command": "node \"${BOOKLIB_ROOT}/hooks/posttooluse-capture.mjs\""
         }
       ]
+    },
+    {
+      "matcher": "Write|Edit",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "node \"${BOOKLIB_ROOT}/hooks/posttooluse-imports.mjs\""
+        }
+      ]
     }
   ]
 }
