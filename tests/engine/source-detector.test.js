@@ -260,11 +260,178 @@ describe('detectSourceType', () => {
       'spec',
       'team-decision',
       'tutorial',
+      'sdd-spec',
+      'api-spec',
+      'bdd-spec',
+      'architecture',
     ];
 
     for (const t of expectedTypes) {
       assert.ok(t in result.scores, `scores should include ${t}`);
       assert.equal(typeof result.scores[t], 'number');
     }
+  });
+
+  it('detects sdd-spec from SpecKit/GSD/Superpowers patterns', () => {
+    fs.writeFileSync(
+      path.join(tmpDir, 'spec.md'),
+      [
+        '# Feature Design',
+        '',
+        'GOAL: Build user authentication system',
+        '',
+        'DELIVERS:',
+        '- OAuth 2.0 integration',
+        '- JWT token management',
+        '',
+        'NOT DOING:',
+        '- Social login (Phase 2)',
+        '',
+        'ASSUMPTIONS:',
+        '- PostgreSQL as primary database',
+        '',
+        '### Task 1: Setup auth middleware',
+        '- [ ] Write failing test for JWT validation',
+        '- [ ] Implement middleware',
+        '- [ ] Write integration test',
+        '',
+        '### Task 2: Token rotation',
+        '- [ ] Design refresh token flow',
+      ].join('\n')
+    );
+
+    const result = detectSourceType(tmpDir);
+    assert.equal(result.type, 'sdd-spec');
+  });
+
+  it('detects api-spec from OpenAPI YAML', () => {
+    fs.writeFileSync(
+      path.join(tmpDir, 'openapi.yaml'),
+      [
+        'openapi: "3.1.0"',
+        'info:',
+        '  title: User API',
+        '  version: 1.0.0',
+        'paths:',
+        '  /users:',
+        '    get:',
+        '      operationId: listUsers',
+        '      responses:',
+        '        200:',
+        '          description: OK',
+        '    post:',
+        '      operationId: createUser',
+        '      requestBody:',
+        '        required: true',
+        '      responses:',
+        '        201:',
+        '          description: Created',
+        'components:',
+        '  schemas:',
+        '    User:',
+        '      type: object',
+      ].join('\n')
+    );
+
+    const result = detectSourceType(tmpDir);
+    assert.equal(result.type, 'api-spec');
+  });
+
+  it('detects api-spec from GraphQL SDL', () => {
+    fs.writeFileSync(
+      path.join(tmpDir, 'schema.graphql'),
+      [
+        'type Query {',
+        '  users: [User!]!',
+        '  user(id: ID!): User',
+        '}',
+        '',
+        'type Mutation {',
+        '  createUser(input: CreateUserInput!): User!',
+        '}',
+        '',
+        'input CreateUserInput {',
+        '  name: String!',
+        '  email: String!',
+        '}',
+        '',
+        'enum Role {',
+        '  ADMIN',
+        '  USER',
+        '}',
+      ].join('\n')
+    );
+
+    const result = detectSourceType(tmpDir);
+    assert.equal(result.type, 'api-spec');
+  });
+
+  it('detects bdd-spec from Gherkin .feature files', () => {
+    fs.writeFileSync(
+      path.join(tmpDir, 'auth.feature'),
+      [
+        'Feature: User Authentication',
+        '  Users should be able to log in and access their account.',
+        '',
+        '  Background:',
+        '    Given the application is running',
+        '',
+        '  Scenario: Successful login',
+        '    Given a registered user with email "test@example.com"',
+        '    When the user logs in with correct credentials',
+        '    Then the user should see the dashboard',
+        '    And a session token should be created',
+        '',
+        '  Scenario: Failed login',
+        '    Given a registered user with email "test@example.com"',
+        '    When the user logs in with wrong password',
+        '    Then the user should see an error message',
+        '',
+        '  Scenario Outline: Rate limiting',
+        '    Given <attempts> failed login attempts',
+        '    When the user tries to log in again',
+        '    Then the account should be locked',
+        '',
+        '    Examples:',
+        '      | attempts |',
+        '      | 3        |',
+        '      | 5        |',
+      ].join('\n')
+    );
+
+    const result = detectSourceType(tmpDir);
+    assert.equal(result.type, 'bdd-spec');
+  });
+
+  it('detects architecture from Structurizr DSL', () => {
+    fs.writeFileSync(
+      path.join(tmpDir, 'workspace.dsl'),
+      [
+        'workspace {',
+        '  model {',
+        '    user = person "User"',
+        '    webapp = softwareSystem "Web Application" {',
+        '      frontend = container "Frontend" "React SPA"',
+        '      backend = container "Backend" "Node.js API"',
+        '      database = container "Database" "PostgreSQL"',
+        '    }',
+        '    user -> webapp "Uses"',
+        '    frontend -> backend "API calls"',
+        '    backend -> database "Reads/writes"',
+        '  }',
+        '  views {',
+        '    systemContext webapp {',
+        '      include *',
+        '    }',
+        '    container webapp {',
+        '      include *',
+        '    }',
+        '  }',
+        '}',
+      ].join('\n')
+    );
+
+    const result = detectSourceType(tmpDir);
+    assert.equal(result.type, 'architecture');
   });
 });
