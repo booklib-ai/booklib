@@ -1644,7 +1644,7 @@ case 'rules': {
       }
 
       const isUrl = target.startsWith('http://') || target.startsWith('https://');
-      const type = parseFlag(args, 'type') ?? (isUrl ? 'framework-docs' : 'local');
+      const typeFlag = parseFlag(args, 'type');
       const name = parseFlag(args, 'name') ?? undefined;
 
       const { SourceManager } = await import('../lib/engine/source-manager.js');
@@ -1663,6 +1663,17 @@ case 'rules': {
         console.log(`Scraping ${target} (depth=${depth})...`);
         const { pageCount } = await wc.scrape(target, outputDir);
         console.log(`Scraped ${pageCount} page(s) to ${outputDir}`);
+
+        // Auto-detect source type from scraped content when --type not provided
+        let type;
+        if (typeFlag) {
+          type = typeFlag;
+        } else {
+          const { detectSourceType } = await import('../lib/engine/source-detector.js');
+          const detection = detectSourceType(outputDir);
+          type = detection.type;
+          console.log(`  Detected source type: ${detection.type} (confidence: ${detection.confidence})`);
+        }
 
         let source;
         try {
@@ -1708,6 +1719,17 @@ case 'rules': {
         const lc = new LocalConnector({ include, exclude });
         const matchingFiles = lc.listFiles(resolvedPath);
         console.log(`Found ${matchingFiles.length} file(s) matching filters.`);
+
+        // Auto-detect source type from directory content when --type not provided
+        let type;
+        if (typeFlag) {
+          type = typeFlag;
+        } else {
+          const { detectSourceType } = await import('../lib/engine/source-detector.js');
+          const detection = detectSourceType(resolvedPath);
+          type = detection.type;
+          console.log(`  Detected source type: ${detection.type} (confidence: ${detection.confidence})`);
+        }
 
         let source;
         try {
