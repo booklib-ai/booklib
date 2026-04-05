@@ -3,17 +3,10 @@
 // Reads tool info from stdin (JSON), runs ImportChecker on written files,
 // outputs a hint when unknown imports are found.
 
-"use strict";
-
 import path from 'node:path';
+import { detectLanguage } from '../lib/engine/import-parser.js';
 
 process.exitCode = 0;
-
-const CODE_EXTENSIONS = new Set([
-  '.js', '.mjs', '.cjs', '.ts', '.tsx', '.jsx',
-  '.py', '.pyw', '.go', '.rs', '.java', '.kt', '.kts',
-  '.rb', '.php', '.cs', '.swift', '.dart',
-]);
 
 let input = '';
 process.stdin.setEncoding('utf8');
@@ -36,8 +29,8 @@ process.stdin.on('end', async () => {
   const filePath = toolInput.file_path ?? toolInput.filePath ?? '';
   if (!filePath) process.exit(0);
 
-  const ext = path.extname(filePath);
-  if (!CODE_EXTENSIONS.has(ext)) process.exit(0);
+  // Use the parser's language detection instead of duplicating extension list
+  if (!detectLanguage(filePath)) process.exit(0);
 
   try {
     const { ImportChecker } = await import('../lib/engine/import-checker.js');
