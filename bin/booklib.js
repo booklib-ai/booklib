@@ -50,6 +50,47 @@ import { listAvailable as listAvailableRules, installRule as installRuleFn, stat
 import { addCorrection, listCorrections, removeCorrection, levelFromMentions } from '../lib/engine/corrections.js';
 import { WellKnownBuilder } from '../lib/well-known-builder.js';
 
+/**
+ * Remove all BM25 and Vectra chunks belonging to a named source.
+ * Shared by the disconnect and refresh commands to avoid duplication.
+ */
+async function removeSourceChunks(sourceName, bm25Path, indexer) {
+  // Remove BM25 chunks and rebuild index stats
+  if (fs.existsSync(bm25Path)) {
+    const { BM25Index: BM25 } = await import('../lib/engine/bm25-index.js');
+    const idx = BM25.load(bm25Path);
+    const before = idx._docs.length;
+    idx._docs = idx._docs.filter(d => d.metadata?.sourceName !== sourceName);
+    idx._df = {};
+    idx._totalLen = 0;
+    for (const doc of idx._docs) {
+      for (const term of Object.keys(doc.freq)) {
+        idx._df[term] = (idx._df[term] ?? 0) + 1;
+      }
+      idx._totalLen += doc.len;
+    }
+    idx._avgLen = idx._docs.length > 0 ? idx._totalLen / idx._docs.length : 0;
+    idx.save(bm25Path);
+    const removed = before - idx._docs.length;
+    if (removed > 0) console.log(`Removed ${removed} BM25 chunk(s).`);
+  }
+
+  // Remove matching Vectra vectors
+  try {
+    const items = await indexer.index.listItems();
+    let vectraRemoved = 0;
+    for (const item of items) {
+      if (item.metadata?.sourceName === sourceName) {
+        await indexer.index.deleteItem(item.id);
+        vectraRemoved++;
+      }
+    }
+    if (vectraRemoved > 0) console.log(`Removed ${vectraRemoved} vector chunk(s).`);
+  } catch {
+    // Vectra index may not exist yet
+  }
+}
+
 const args = process.argv.slice(2);
 const command = args[0];
 
@@ -1622,21 +1663,28 @@ case 'rules': {
       }
       console.log(`Registered source "${source.name}" (${resolvedPath})`);
 
-      // Index the source directory
-      const indexer = new BookLibIndexer();
-      console.log('Indexing source...');
-      await indexer.indexDirectory(resolvedPath, false, { quiet: false, sourceName: source.name });
+      // Index the source directory — rollback registration on failure
+      try {
+        const indexer = new BookLibIndexer();
+        console.log('Indexing source...');
+        await indexer.indexDirectory(resolvedPath, false, { quiet: false, sourceName: source.name });
 
-      // Count chunks from BM25 to record in the registry
-      const { BM25Index: BM25 } = await import('../lib/engine/bm25-index.js');
-      const bm25File = indexer.bm25Path;
-      let chunkCount = 0;
-      if (fs.existsSync(bm25File)) {
-        const idx = BM25.load(bm25File);
-        chunkCount = idx._docs.filter(d => d.metadata?.sourceName === source.name).length;
+        const { BM25Index: BM25 } = await import('../lib/engine/bm25-index.js');
+        const bm25File = indexer.bm25Path;
+        let chunkCount = 0;
+        if (fs.existsSync(bm25File)) {
+          const idx = BM25.load(bm25File);
+          chunkCount = idx._docs.filter(d => d.metadata?.sourceName === source.name).length;
+        }
+        mgr.markIndexed(source.name, chunkCount);
+        console.log(`Source "${source.name}" connected and indexed (${chunkCount} chunks).`);
+      } catch (indexErr) {
+        // Rollback: remove the registered source on indexing failure
+        try { mgr.removeSource(source.name); } catch { /* best effort */ }
+        console.error(`Indexing failed for "${source.name}": ${indexErr.message}`);
+        console.error('Source registration rolled back.');
+        process.exit(1);
       }
-      mgr.markIndexed(source.name, chunkCount);
-      console.log(`Source "${source.name}" connected and indexed (${chunkCount} chunks).`);
       break;
     }
 
@@ -1656,42 +1704,8 @@ case 'rules': {
         process.exit(1);
       }
 
-      // Remove matching chunks from BM25 index
       const indexer = new BookLibIndexer();
-      const bm25File = indexer.bm25Path;
-      if (fs.existsSync(bm25File)) {
-        const { BM25Index: BM25 } = await import('../lib/engine/bm25-index.js');
-        const idx = BM25.load(bm25File);
-        const before = idx._docs.length;
-        idx._docs = idx._docs.filter(d => d.metadata?.sourceName !== disconnectName);
-        // Rebuild df and avgLen after filtering
-        idx._df = {};
-        idx._totalLen = 0;
-        for (const doc of idx._docs) {
-          for (const term of Object.keys(doc.freq)) {
-            idx._df[term] = (idx._df[term] ?? 0) + 1;
-          }
-          idx._totalLen += doc.len;
-        }
-        idx._avgLen = idx._docs.length > 0 ? idx._totalLen / idx._docs.length : 0;
-        idx.save(bm25File);
-        console.log(`Removed ${before - idx._docs.length} BM25 chunk(s).`);
-      }
-
-      // Remove matching items from Vectra index
-      try {
-        const items = await indexer.index.listItems();
-        let vectraRemoved = 0;
-        for (const item of items) {
-          if (item.metadata?.sourceName === disconnectName) {
-            await indexer.index.deleteItem(item.id);
-            vectraRemoved++;
-          }
-        }
-        if (vectraRemoved > 0) console.log(`Removed ${vectraRemoved} vector chunk(s).`);
-      } catch {
-        // Vectra index may not exist yet
-      }
+      await removeSourceChunks(disconnectName, indexer.bm25Path, indexer);
 
       mgr.removeSource(disconnectName);
       console.log(`Source "${disconnectName}" disconnected.`);
@@ -1742,45 +1756,17 @@ case 'rules': {
 
       console.log(`Refreshing source "${refreshName}" from ${source.sourcePath}...`);
 
-      // Remove old chunks for this source from BM25
       const indexer = new BookLibIndexer();
-      const bm25File = indexer.bm25Path;
-      if (fs.existsSync(bm25File)) {
-        const { BM25Index: BM25 } = await import('../lib/engine/bm25-index.js');
-        const idx = BM25.load(bm25File);
-        idx._docs = idx._docs.filter(d => d.metadata?.sourceName !== refreshName);
-        idx._df = {};
-        idx._totalLen = 0;
-        for (const doc of idx._docs) {
-          for (const term of Object.keys(doc.freq)) {
-            idx._df[term] = (idx._df[term] ?? 0) + 1;
-          }
-          idx._totalLen += doc.len;
-        }
-        idx._avgLen = idx._docs.length > 0 ? idx._totalLen / idx._docs.length : 0;
-        idx.save(bm25File);
-      }
+      await removeSourceChunks(refreshName, indexer.bm25Path, indexer);
 
-      // Remove old vectors
-      try {
-        const items = await indexer.index.listItems();
-        for (const item of items) {
-          if (item.metadata?.sourceName === refreshName) {
-            await indexer.index.deleteItem(item.id);
-          }
-        }
-      } catch {
-        // Vectra index may not exist
-      }
-
-      // Re-index
+      // Re-index from the source directory
       await indexer.indexDirectory(source.sourcePath, false, { quiet: false, sourceName: refreshName });
 
-      // Update chunk count
+      // Update chunk count from the rebuilt BM25 index
       let chunkCount = 0;
-      if (fs.existsSync(bm25File)) {
+      if (fs.existsSync(indexer.bm25Path)) {
         const { BM25Index: BM25 } = await import('../lib/engine/bm25-index.js');
-        const idx = BM25.load(bm25File);
+        const idx = BM25.load(indexer.bm25Path);
         chunkCount = idx._docs.filter(d => d.metadata?.sourceName === refreshName).length;
       }
       mgr.markIndexed(refreshName, chunkCount);
