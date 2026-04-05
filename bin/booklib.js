@@ -1891,6 +1891,34 @@ case 'rules': {
       break;
     }
 
+    case 'gaps': {
+      const { GapDetector } = await import('../lib/engine/gap-detector.js');
+      const detector = new GapDetector();
+      console.log('Scanning project for knowledge gaps...\n');
+      const gaps = await detector.detect(process.cwd());
+
+      if (gaps.postTraining.length > 0) {
+        console.log('Post-training dependencies (model may have outdated knowledge):');
+        for (const dep of gaps.postTraining) {
+          const date = dep.publishDate.toISOString().split('T')[0];
+          console.log(`  ${dep.name}@${dep.version} (${dep.ecosystem}, published ${date})`);
+        }
+      } else {
+        console.log('No post-training dependencies detected.');
+      }
+
+      if (gaps.uncapturedDocs.length > 0) {
+        console.log('\nUncaptured project docs:');
+        for (const doc of gaps.uncapturedDocs) {
+          console.log(`  ${doc.path} (${doc.fileCount} file(s))`);
+          console.log(`    → booklib connect ./${doc.path}/ --type=team-decision`);
+        }
+      }
+
+      console.log(`\nScanned: ${gaps.totalDeps} dependencies across ${gaps.ecosystems.join(', ')}`);
+      break;
+    }
+
     default: {
       const showAll = args.includes('--all');
       if (showAll) {

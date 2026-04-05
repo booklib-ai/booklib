@@ -49,7 +49,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
     tools: [
       {
         name: "lookup",
-        description: "Check BookLib when you're about to make a recommendation about code quality, architecture, or design patterns. Query with task description + domain (e.g., 'authentication patterns for spring boot'). Call once per distinct task, not per message. Skip for trivial tasks.",
+        description: "Check BookLib when you're about to make a recommendation about code quality, architecture, or design patterns. Query with task description + domain. Call once per distinct task, not per message. Skip for trivial tasks. If you encounter unfamiliar APIs or patterns that might be newer than your training data, suggest: booklib connect <docs-url> to index current documentation.",
         inputSchema: {
           type: "object",
           properties: {
