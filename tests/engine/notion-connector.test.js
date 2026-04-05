@@ -642,7 +642,7 @@ describe('NotionConnector', () => {
   describe('fetchPage (with stubbed API)', () => {
     it('fetches page metadata and blocks, saves as markdown', async () => {
       const outputDir = path.join(tmpDir, 'page-out');
-      const pageId = 'abc-123';
+      const pageId = 'a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d';
 
       const n = new TestNotionConnector({
         [`/pages/${pageId}`]: {
@@ -678,7 +678,7 @@ describe('NotionConnector', () => {
   describe('fetchDatabase (with stubbed API)', () => {
     it('queries database and saves entries as markdown', async () => {
       const outputDir = path.join(tmpDir, 'db-out');
-      const dbId = 'db-456';
+      const dbId = 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e';
 
       const n = new TestNotionConnector({
         [`/databases/${dbId}/query`]: {
@@ -733,7 +733,7 @@ describe('NotionConnector', () => {
 
     it('passes since filter in query body', async () => {
       const outputDir = path.join(tmpDir, 'db-since');
-      const dbId = 'db-789';
+      const dbId = 'c3d4e5f6-a7b8-9c0d-1e2f-3a4b5c6d7e8f';
 
       // Capture the POST body by overriding _apiPost
       let capturedBody;

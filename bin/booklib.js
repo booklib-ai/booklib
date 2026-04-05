@@ -2036,13 +2036,20 @@ case 'rules': {
       if (every) {
         const ms = parseInterval(every);
         console.log(`Watching "${refreshName}" — refreshing every ${every} (Ctrl+C to stop)`);
-        const tick = async () => {
-          await runRefresh();
-          console.log(`Refreshed at ${new Date().toLocaleTimeString()}`);
+        // Sequential loop: wait for completion before scheduling next run
+        // Prevents overlapping refreshes and handles errors gracefully
+        const loop = async () => {
+          while (true) {
+            try {
+              await runRefresh();
+              console.log(`Refreshed at ${new Date().toLocaleTimeString()}`);
+            } catch (err) {
+              console.error(`Refresh failed: ${err.message} — retrying in ${every}`);
+            }
+            await new Promise(r => setTimeout(r, ms));
+          }
         };
-        await tick();
-        setInterval(tick, ms);
-        await new Promise(() => {}); // keep process alive
+        await loop();
       } else {
         await runRefresh();
       }
