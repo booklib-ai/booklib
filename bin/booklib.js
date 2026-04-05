@@ -1637,53 +1637,98 @@ case 'rules': {
     }
 
     case 'connect': {
-      const sourcePath = args[1];
-      if (!sourcePath) {
-        console.error('Usage: booklib connect <path> [--type=<type>] [--name=<name>]');
+      const target = args[1];
+      if (!target) {
+        console.error('Usage: booklib connect <url-or-path> [--type=<type>] [--name=<name>] [--depth=N]');
         process.exit(1);
       }
-      const resolvedPath = path.resolve(sourcePath);
-      if (!fs.existsSync(resolvedPath)) {
-        console.error(`Path does not exist: ${resolvedPath}`);
-        process.exit(1);
-      }
-      const type = parseFlag(args, 'type') ?? 'local';
+
+      const isUrl = target.startsWith('http://') || target.startsWith('https://');
+      const type = parseFlag(args, 'type') ?? (isUrl ? 'framework-docs' : 'local');
       const name = parseFlag(args, 'name') ?? undefined;
 
       const { SourceManager } = await import('../lib/engine/source-manager.js');
       const booklibDir = path.join(process.cwd(), '.booklib');
       const mgr = new SourceManager(booklibDir);
 
-      let source;
-      try {
-        source = mgr.registerSource({ name, sourcePath: resolvedPath, type });
-      } catch (err) {
-        console.error(err.message);
-        process.exit(1);
-      }
-      console.log(`Registered source "${source.name}" (${resolvedPath})`);
+      if (isUrl) {
+        // Web connector: scrape URL into local markdown, then index
+        const depth = parseInt(parseFlag(args, 'depth') ?? '1', 10);
+        const { WebConnector } = await import('../lib/connectors/web.js');
+        const wc = new WebConnector({ depth });
 
-      // Index the source directory — rollback registration on failure
-      try {
-        const indexer = new BookLibIndexer();
-        console.log('Indexing source...');
-        await indexer.indexDirectory(resolvedPath, false, { quiet: false, sourceName: source.name });
+        const sourceName = name ?? new URL(target).hostname.replace(/\./g, '-');
+        const outputDir = path.join(booklibDir, 'sources', sourceName);
 
-        const { BM25Index: BM25 } = await import('../lib/engine/bm25-index.js');
-        const bm25File = indexer.bm25Path;
-        let chunkCount = 0;
-        if (fs.existsSync(bm25File)) {
-          const idx = BM25.load(bm25File);
-          chunkCount = idx._docs.filter(d => d.metadata?.sourceName === source.name).length;
+        console.log(`Scraping ${target} (depth=${depth})...`);
+        const { pageCount } = await wc.scrape(target, outputDir);
+        console.log(`Scraped ${pageCount} page(s) to ${outputDir}`);
+
+        let source;
+        try {
+          source = mgr.registerSource({ name: sourceName, sourcePath: outputDir, type, url: target });
+        } catch (err) { console.error(err.message); process.exit(1); }
+        console.log(`Registered source "${source.name}" (${outputDir})`);
+
+        // Index the scraped markdown — rollback registration on failure
+        try {
+          const indexer = new BookLibIndexer();
+          console.log('Indexing source...');
+          await indexer.indexDirectory(outputDir, false, { quiet: false, sourceName: source.name });
+
+          const { BM25Index: BM25 } = await import('../lib/engine/bm25-index.js');
+          const bm25File = indexer.bm25Path;
+          let chunkCount = 0;
+          if (fs.existsSync(bm25File)) {
+            const idx = BM25.load(bm25File);
+            chunkCount = idx._docs.filter(d => d.metadata?.sourceName === source.name).length;
+          }
+          mgr.markIndexed(source.name, chunkCount);
+          console.log(`Source "${source.name}" connected and indexed (${chunkCount} chunks).`);
+        } catch (indexErr) {
+          try { mgr.removeSource(source.name); } catch { /* best effort */ }
+          console.error(`Indexing failed for "${source.name}": ${indexErr.message}`);
+          console.error('Source registration rolled back.');
+          process.exit(1);
         }
-        mgr.markIndexed(source.name, chunkCount);
-        console.log(`Source "${source.name}" connected and indexed (${chunkCount} chunks).`);
-      } catch (indexErr) {
-        // Rollback: remove the registered source on indexing failure
-        try { mgr.removeSource(source.name); } catch { /* best effort */ }
-        console.error(`Indexing failed for "${source.name}": ${indexErr.message}`);
-        console.error('Source registration rolled back.');
-        process.exit(1);
+      } else {
+        // Local path connector (existing behavior)
+        const resolvedPath = path.resolve(target);
+        if (!fs.existsSync(resolvedPath)) {
+          console.error(`Path does not exist: ${resolvedPath}`);
+          process.exit(1);
+        }
+
+        let source;
+        try {
+          source = mgr.registerSource({ name, sourcePath: resolvedPath, type });
+        } catch (err) {
+          console.error(err.message);
+          process.exit(1);
+        }
+        console.log(`Registered source "${source.name}" (${resolvedPath})`);
+
+        // Index the source directory — rollback registration on failure
+        try {
+          const indexer = new BookLibIndexer();
+          console.log('Indexing source...');
+          await indexer.indexDirectory(resolvedPath, false, { quiet: false, sourceName: source.name });
+
+          const { BM25Index: BM25 } = await import('../lib/engine/bm25-index.js');
+          const bm25File = indexer.bm25Path;
+          let chunkCount = 0;
+          if (fs.existsSync(bm25File)) {
+            const idx = BM25.load(bm25File);
+            chunkCount = idx._docs.filter(d => d.metadata?.sourceName === source.name).length;
+          }
+          mgr.markIndexed(source.name, chunkCount);
+          console.log(`Source "${source.name}" connected and indexed (${chunkCount} chunks).`);
+        } catch (indexErr) {
+          try { mgr.removeSource(source.name); } catch { /* best effort */ }
+          console.error(`Indexing failed for "${source.name}": ${indexErr.message}`);
+          console.error('Source registration rolled back.');
+          process.exit(1);
+        }
       }
       break;
     }
