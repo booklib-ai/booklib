@@ -1640,7 +1640,75 @@ case 'rules': {
       const target = args[1];
       if (!target) {
         console.error('Usage: booklib connect <url-or-path> [--type=<type>] [--name=<name>] [--depth=N] [--include=ext1,ext2] [--exclude=dir1,dir2] [--watch]');
+        console.error('       booklib connect github <releases|wiki|discussions> <owner/repo>');
         process.exit(1);
+      }
+
+      // GitHub subcommand — fetch releases, wiki, or discussions via gh CLI
+      if (target === 'github') {
+        const subcommand = args[2];
+        const repo = args[3];
+
+        if (!subcommand || !repo) {
+          console.error('Usage: booklib connect github <releases|wiki|discussions> <owner/repo>');
+          process.exit(1);
+        }
+
+        const { GitHubConnector } = await import('../lib/connectors/github.js');
+        const gh = new GitHubConnector();
+
+        const auth = gh.checkAuth();
+        if (!auth.ok) {
+          console.error(auth.error);
+          process.exit(1);
+        }
+
+        const sourceName = parseFlag(args, 'name') ?? `github-${repo.replace('/', '-')}-${subcommand}`;
+        const outputDir = path.join('.booklib', 'sources', sourceName);
+
+        console.log(`Fetching ${subcommand} from ${repo}...`);
+
+        let result;
+        try {
+          switch (subcommand) {
+            case 'releases':
+              result = await gh.fetchReleases(repo, outputDir);
+              break;
+            case 'wiki':
+              result = await gh.fetchWiki(repo, outputDir);
+              break;
+            case 'discussions':
+              result = await gh.fetchDiscussions(repo, outputDir);
+              break;
+            default:
+              console.error(`Unknown subcommand: ${subcommand}. Use: releases, wiki, discussions`);
+              process.exit(1);
+          }
+        } catch (err) {
+          console.error(`GitHub fetch failed: ${err.message}`);
+          process.exit(1);
+        }
+
+        if (result.pageCount === 0) {
+          console.log(`No ${subcommand} found for ${repo}.`);
+          break;
+        }
+
+        console.log(`Fetched ${result.pageCount} ${subcommand}.`);
+
+        const { detectSourceType } = await import('../lib/engine/source-detector.js');
+        const detected = detectSourceType(outputDir);
+        const sourceType = parseFlag(args, 'type') ?? detected.type;
+
+        const { SourceManager } = await import('../lib/engine/source-manager.js');
+        const mgr = new SourceManager(path.join(process.cwd(), '.booklib'));
+        mgr.registerSource({ name: sourceName, sourcePath: outputDir, type: sourceType, url: `https://github.com/${repo}` });
+
+        const indexer = new BookLibIndexer();
+        await indexer.indexDirectory(outputDir, false, { sourceName });
+
+        console.log(`Indexed ${result.pageCount} ${subcommand} from ${repo} as "${sourceName}" (type: ${sourceType}).`);
+        break;
       }
 
       const isUrl = target.startsWith('http://') || target.startsWith('https://');
@@ -2067,6 +2135,9 @@ SESSION MANAGEMENT:
 
 SOURCES:
   booklib connect <path> [--type=<type>] [--name=<name>]   Connect a doc source
+  booklib connect github releases <owner/repo>             Index GitHub releases
+  booklib connect github wiki <owner/repo>                 Index GitHub wiki pages
+  booklib connect github discussions <owner/repo>          Index GitHub discussions
   booklib disconnect <name>                                Disconnect a source + remove chunks
   booklib sources                                          List connected sources
   booklib refresh <name>                                   Re-index a source
@@ -2112,6 +2183,7 @@ SKILLS:
 
 SOURCES:
   booklib connect <path>                 Connect a documentation source
+  booklib connect github <type> <repo>   Index GitHub releases/wiki/discussions
   booklib sources                        List connected sources
   booklib disconnect <name>              Remove a source
 
