@@ -108,6 +108,14 @@ function parseFlag(args, flag) {
   return idx !== -1 ? args[idx + 1] : null;
 }
 
+function parseInterval(str) {
+  const match = str.match(/^(\d+)(s|m|h)$/);
+  if (!match) throw new Error(`Invalid interval: "${str}". Use: 30s, 5m, 1h`);
+  const [, num, unit] = match;
+  const multipliers = { s: 1000, m: 60000, h: 3600000 };
+  return parseInt(num) * multipliers[unit];
+}
+
 function formatBytes(bytes) {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
@@ -1641,7 +1649,75 @@ case 'rules': {
       if (!target) {
         console.error('Usage: booklib connect <url-or-path> [--type=<type>] [--name=<name>] [--depth=N] [--include=ext1,ext2] [--exclude=dir1,dir2] [--watch]');
         console.error('       booklib connect github <releases|wiki|discussions> <owner/repo>');
+        console.error('       booklib connect notion <page|database|search> <id-or-query>');
         process.exit(1);
+      }
+
+      // Notion subcommand — fetch pages, databases, or search results via Notion API
+      if (target === 'notion') {
+        const subcommand = args[2];
+        const targetId = args[3];
+
+        if (!subcommand || !targetId) {
+          console.error('Usage: booklib connect notion <page|database|search> <id-or-query>');
+          process.exit(1);
+        }
+
+        const { NotionConnector } = await import('../lib/connectors/notion.js');
+        const notion = new NotionConnector();
+
+        const auth = notion.checkAuth();
+        if (!auth.ok) {
+          console.error(auth.error);
+          process.exit(1);
+        }
+
+        const sourceName = parseFlag(args, 'name') ?? `notion-${subcommand}-${targetId.slice(0, 12)}`;
+        const outputDir = path.join('.booklib', 'sources', sourceName);
+
+        console.log(`Fetching from Notion (${subcommand})...`);
+
+        let result;
+        try {
+          switch (subcommand) {
+            case 'page':
+              result = await notion.fetchPage(targetId, outputDir);
+              break;
+            case 'database':
+              result = await notion.fetchDatabase(targetId, outputDir);
+              break;
+            case 'search':
+              result = await notion.fetchSearch(targetId, outputDir);
+              break;
+            default:
+              console.error(`Unknown subcommand: ${subcommand}. Use: page, database, search`);
+              process.exit(1);
+          }
+        } catch (err) {
+          console.error(`Notion fetch failed: ${err.message}`);
+          process.exit(1);
+        }
+
+        if (result.pageCount === 0) {
+          console.log('No pages found.');
+          break;
+        }
+
+        console.log(`Fetched ${result.pageCount} page(s).`);
+
+        const { detectSourceType } = await import('../lib/engine/source-detector.js');
+        const detected = detectSourceType(outputDir);
+        const sourceType = parseFlag(args, 'type') ?? detected.type;
+
+        const { SourceManager } = await import('../lib/engine/source-manager.js');
+        const mgr = new SourceManager(path.join(process.cwd(), '.booklib'));
+        mgr.registerSource({ name: sourceName, sourcePath: outputDir, type: sourceType });
+
+        const indexer = new BookLibIndexer();
+        await indexer.indexDirectory(outputDir, false, { sourceName });
+
+        console.log(`Indexed as "${sourceName}" (type: ${sourceType}).`);
+        break;
       }
 
       // GitHub subcommand — fetch releases, wiki, or discussions via gh CLI
@@ -1899,7 +1975,7 @@ case 'rules': {
     case 'refresh': {
       const refreshName = args[1];
       if (!refreshName) {
-        console.error('Usage: booklib refresh <name>');
+        console.error('Usage: booklib refresh <name> [--every 5m]');
         process.exit(1);
       }
       const { SourceManager } = await import('../lib/engine/source-manager.js');
@@ -1917,45 +1993,59 @@ case 'rules': {
         process.exit(1);
       }
 
-      console.log(`Refreshing source "${refreshName}" from ${source.sourcePath}...`);
+      /** Run a single refresh cycle for the source. */
+      const runRefresh = async () => {
+        console.log(`Refreshing source "${refreshName}" from ${source.sourcePath}...`);
 
-      // Use LocalConnector for incremental refresh on local sources
-      const isLocalSource = source.type === 'local' || (!source.url && fs.statSync(source.sourcePath).isDirectory());
-      const indexer = new BookLibIndexer();
+        const isLocalSource = source.type === 'local' || (!source.url && fs.statSync(source.sourcePath).isDirectory());
+        const indexer = new BookLibIndexer();
 
-      if (isLocalSource) {
-        const { LocalConnector } = await import('../lib/connectors/local.js');
-        const lc = new LocalConnector();
-        const previousMtimes = mgr.getMtimes(refreshName);
-        const { changed, removed, currentMtimes } = lc.findChanges(source.sourcePath, previousMtimes);
+        if (isLocalSource) {
+          const { LocalConnector } = await import('../lib/connectors/local.js');
+          const lc = new LocalConnector();
+          const previousMtimes = mgr.getMtimes(refreshName);
+          const { changed, removed, currentMtimes } = lc.findChanges(source.sourcePath, previousMtimes);
 
-        if (changed.length === 0 && removed.length === 0) {
-          console.log(`Source "${refreshName}" is up to date — no changes detected.`);
-          break;
+          if (changed.length === 0 && removed.length === 0) {
+            console.log(`Source "${refreshName}" is up to date — no changes detected.`);
+            return;
+          }
+
+          console.log(`  ${changed.length} changed, ${removed.length} removed`);
+
+          await removeSourceChunks(refreshName, indexer.bm25Path, indexer);
+          await indexer.indexDirectory(source.sourcePath, false, { quiet: false, sourceName: refreshName });
+
+          mgr.updateMtimes(refreshName, currentMtimes);
+        } else {
+          await removeSourceChunks(refreshName, indexer.bm25Path, indexer);
+          await indexer.indexDirectory(source.sourcePath, false, { quiet: false, sourceName: refreshName });
         }
 
-        console.log(`  ${changed.length} changed, ${removed.length} removed`);
+        let chunkCount = 0;
+        if (fs.existsSync(indexer.bm25Path)) {
+          const { BM25Index: BM25 } = await import('../lib/engine/bm25-index.js');
+          const idx = BM25.load(indexer.bm25Path);
+          chunkCount = idx._docs.filter(d => d.metadata?.sourceName === refreshName).length;
+        }
+        mgr.markIndexed(refreshName, chunkCount);
+        console.log(`Source "${refreshName}" refreshed (${chunkCount} chunks).`);
+      };
 
-        // Full re-index for the source (removes old chunks, re-indexes all)
-        await removeSourceChunks(refreshName, indexer.bm25Path, indexer);
-        await indexer.indexDirectory(source.sourcePath, false, { quiet: false, sourceName: refreshName });
-
-        // Update stored mtimes
-        mgr.updateMtimes(refreshName, currentMtimes);
+      const every = parseFlag(args, 'every');
+      if (every) {
+        const ms = parseInterval(every);
+        console.log(`Watching "${refreshName}" — refreshing every ${every} (Ctrl+C to stop)`);
+        const tick = async () => {
+          await runRefresh();
+          console.log(`Refreshed at ${new Date().toLocaleTimeString()}`);
+        };
+        await tick();
+        setInterval(tick, ms);
+        await new Promise(() => {}); // keep process alive
       } else {
-        await removeSourceChunks(refreshName, indexer.bm25Path, indexer);
-        await indexer.indexDirectory(source.sourcePath, false, { quiet: false, sourceName: refreshName });
+        await runRefresh();
       }
-
-      // Update chunk count from the rebuilt BM25 index
-      let chunkCount = 0;
-      if (fs.existsSync(indexer.bm25Path)) {
-        const { BM25Index: BM25 } = await import('../lib/engine/bm25-index.js');
-        const idx = BM25.load(indexer.bm25Path);
-        chunkCount = idx._docs.filter(d => d.metadata?.sourceName === refreshName).length;
-      }
-      mgr.markIndexed(refreshName, chunkCount);
-      console.log(`Source "${refreshName}" refreshed (${chunkCount} chunks).`);
       break;
     }
 
@@ -2138,9 +2228,12 @@ SOURCES:
   booklib connect github releases <owner/repo>             Index GitHub releases
   booklib connect github wiki <owner/repo>                 Index GitHub wiki pages
   booklib connect github discussions <owner/repo>          Index GitHub discussions
+  booklib connect notion page <page-id>                    Index a Notion page
+  booklib connect notion database <database-id>            Index a Notion database
+  booklib connect notion search <query>                    Index Notion search results
   booklib disconnect <name>                                Disconnect a source + remove chunks
   booklib sources                                          List connected sources
-  booklib refresh <name>                                   Re-index a source
+  booklib refresh <name> [--every 5m]                      Re-index a source (with optional polling)
 
 ORCHESTRATOR COMPATIBILITY:
   booklib sync                                   Sync all fetched skills → ~/.claude/skills/
@@ -2184,6 +2277,7 @@ SKILLS:
 SOURCES:
   booklib connect <path>                 Connect a documentation source
   booklib connect github <type> <repo>   Index GitHub releases/wiki/discussions
+  booklib connect notion <type> <id>     Index Notion pages/databases/search
   booklib sources                        List connected sources
   booklib disconnect <name>              Remove a source
 
