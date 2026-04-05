@@ -264,6 +264,7 @@ describe('detectSourceType', () => {
       'api-spec',
       'bdd-spec',
       'architecture',
+      'pkm',
     ];
 
     for (const t of expectedTypes) {
@@ -401,6 +402,67 @@ describe('detectSourceType', () => {
 
     const result = detectSourceType(tmpDir);
     assert.equal(result.type, 'bdd-spec');
+  });
+
+  it('detects pkm from Obsidian vault with wikilinks', () => {
+    // Simulate .obsidian config dir
+    fs.mkdirSync(path.join(tmpDir, '.obsidian'), { recursive: true });
+    fs.writeFileSync(
+      path.join(tmpDir, 'architecture-decisions.md'),
+      [
+        '---',
+        'tags: [architecture, decisions]',
+        'aliases: [ADRs]',
+        'date: 2025-03-15',
+        '---',
+        '',
+        '# Architecture Decisions',
+        '',
+        'We decided to use [[PostgreSQL]] over [[MongoDB]].',
+        'See also [[API Design]] and [[Authentication Strategy]].',
+        '',
+        '## Related Notes',
+        '- [[Sprint Planning 2025-03]]',
+        '- [[Tech Debt Tracker]]',
+        '',
+        '#architecture #decisions',
+      ].join('\n')
+    );
+
+    const result = detectSourceType(tmpDir);
+    assert.equal(result.type, 'pkm');
+    assert.equal(result.confidence, 'high');
+  });
+
+  it('detects pkm from Logseq content with block refs', () => {
+    fs.mkdirSync(path.join(tmpDir, '.logseq'), { recursive: true });
+    fs.writeFileSync(
+      path.join(tmpDir, 'meeting-notes.md'),
+      [
+        '- Team meeting 2025-03-20',
+        '  - Discussed [[migration plan]]',
+        '  - Action: move to [[Kubernetes]] by Q3',
+        '  - Referenced ((a1b2c3d4-5678-9abc-def0-123456789abc))',
+      ].join('\n')
+    );
+
+    const result = detectSourceType(tmpDir);
+    assert.equal(result.type, 'pkm');
+  });
+
+  it('detects sdd-spec from .specify directory presence', () => {
+    fs.mkdirSync(path.join(tmpDir, '.specify'), { recursive: true });
+    fs.writeFileSync(
+      path.join(tmpDir, 'spec.md'),
+      [
+        '# Feature: User Auth',
+        '',
+        'Basic spec content here.',
+      ].join('\n')
+    );
+
+    const result = detectSourceType(tmpDir);
+    assert.equal(result.type, 'sdd-spec');
   });
 
   it('detects architecture from Structurizr DSL', () => {
