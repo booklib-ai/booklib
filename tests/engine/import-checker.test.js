@@ -95,7 +95,7 @@ describe('ImportChecker.checkFile', () => {
     assert.equal(result.skipped.length, 0);
   });
 
-  it('works without a searcher (all third-party become unknown)', async () => {
+  it('without searcher: declared deps go to skipped, not unknown', async () => {
     fs.writeFileSync(path.join(tmpDir, 'package.json'), JSON.stringify({
       dependencies: { express: '^4.18.0' },
     }));
@@ -103,8 +103,10 @@ describe('ImportChecker.checkFile', () => {
 
     const checker = new ImportChecker({ searcher: null });
     const result = await checker.checkFile(path.join(tmpDir, 'app.js'), tmpDir);
-    assert.equal(result.unknown.length, 1);
+    assert.equal(result.unknown.length, 0, 'no searcher means no unknown classification');
     assert.equal(result.known.length, 0);
+    assert.equal(result.skipped.length, 1);
+    assert.equal(result.skipped[0].module, 'express');
   });
 });
 

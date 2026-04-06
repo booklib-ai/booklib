@@ -85,20 +85,24 @@ describe('BookLib E2E: Full Flow', () => {
 
   it('Step 2: Import detection finds affected files', async () => {
     const { ImportChecker } = await import('../../lib/engine/import-checker.js');
-    // No searcher means all declared deps are classified as unknown (not in index)
+    // No searcher — all imports go to skipped (classification not possible)
     const checker = new ImportChecker();
     const result = await checker.checkFile(
       path.join(projectDir, 'src', 'app.ts'),
       projectDir,
     );
 
-    // my-post-training-lib and express are declared deps with no index coverage
-    assert.ok(result.unknown.length >= 1, 'should have at least one unknown dep');
+    // Without a searcher, declared deps cannot be classified — they go to skipped
+    assert.equal(result.unknown.length, 0, 'no searcher means no unknown classification');
+    assert.equal(result.known.length, 0, 'no searcher means no known classification');
     assert.ok(
-      result.unknown.some(i => i.module === 'my-post-training-lib'),
-      'my-post-training-lib should be unknown',
+      result.skipped.some(i => i.module === 'my-post-training-lib'),
+      'my-post-training-lib should be skipped without searcher',
     );
-    // path is a bare import not in package.json deps -- should be skipped
+    assert.ok(
+      result.skipped.some(i => i.module === 'express'),
+      'express should be skipped without searcher',
+    );
     assert.ok(
       result.skipped.some(i => i.module === 'path'),
       'path should be skipped as undeclared stdlib',

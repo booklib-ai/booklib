@@ -112,6 +112,27 @@ describe('parseImports — JS/TS', () => {
     const result = parseImports(code, 'js');
     assert.equal(result.length, 1);
   });
+
+  it('parses import type { X } from statement', () => {
+    const code = `import type { Config } from 'vite';`;
+    const result = parseImports(code, 'js');
+    assert.equal(result.length, 1);
+    assert.equal(result[0].module, 'vite');
+  });
+
+  it('parses import { type X, Y } from statement', () => {
+    const code = `import { type Config, defineConfig } from 'vite';`;
+    const result = parseImports(code, 'js');
+    assert.equal(result.length, 1);
+    assert.equal(result[0].module, 'vite');
+  });
+
+  it('parses import type X from statement', () => {
+    const code = `import type React from 'react';`;
+    const result = parseImports(code, 'js');
+    assert.equal(result.length, 1);
+    assert.equal(result[0].module, 'react');
+  });
 });
 
 describe('parseImports — Python', () => {
@@ -127,6 +148,30 @@ describe('parseImports — Python', () => {
     const result = parseImports(code, 'python');
     assert.equal(result.length, 1);
     assert.equal(result[0].module, 'django');
+  });
+
+  it('skips relative import: from . import foo', () => {
+    const code = `from . import foo`;
+    const result = parseImports(code, 'python');
+    assert.equal(result.length, 0);
+  });
+
+  it('skips relative import: from .. import bar', () => {
+    const code = `from .. import bar`;
+    const result = parseImports(code, 'python');
+    assert.equal(result.length, 0);
+  });
+
+  it('skips relative import: from .module import baz', () => {
+    const code = `from .module import baz`;
+    const result = parseImports(code, 'python');
+    assert.equal(result.length, 0);
+  });
+
+  it('skips relative import: from ..utils import helper', () => {
+    const code = `from ..utils import helper`;
+    const result = parseImports(code, 'python');
+    assert.equal(result.length, 0);
   });
 });
 
