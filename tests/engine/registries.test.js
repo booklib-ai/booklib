@@ -15,6 +15,7 @@ import {
   parseGoMod,
   parseCsproj,
   parseComposerJson,
+  parsePubspecYaml,
   scanDependencies,
 } from '../../lib/engine/registries.js';
 
@@ -265,6 +266,165 @@ describe('parseComposerJson', () => {
 
     const laravel = deps.find(d => d.name === 'laravel/framework');
     assert.equal(laravel.version, '10.0');
+  });
+});
+
+describe('parsePubspecYaml', () => {
+  it('extracts dependencies and dev_dependencies', () => {
+    const fp = writeFile('pubspec.yaml', `
+name: my_app
+version: 1.0.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^0.13.5
+  provider: ^6.0.5
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  mockito: ^5.4.0
+`);
+    const deps = parsePubspecYaml(fp);
+    assert.ok(deps.every(d => d.ecosystem === 'dart'));
+
+    const http = deps.find(d => d.name === 'http');
+    assert.ok(http, 'should find http');
+    assert.equal(http.version, '0.13.5');
+
+    const provider = deps.find(d => d.name === 'provider');
+    assert.ok(provider, 'should find provider');
+    assert.equal(provider.version, '6.0.5');
+
+    const mockito = deps.find(d => d.name === 'mockito');
+    assert.ok(mockito, 'should find mockito from dev_dependencies');
+    assert.equal(mockito.version, '5.4.0');
+  });
+
+  it('skips sdk dependencies without versions', () => {
+    const fp = writeFile('pubspec.yaml', `
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.2
+`);
+    const deps = parsePubspecYaml(fp);
+    assert.ok(!deps.some(d => d.name === 'flutter'), 'sdk deps without version should be skipped');
+    assert.equal(deps.length, 1);
+    assert.equal(deps[0].name, 'cupertino_icons');
+  });
+});
+
+describe('parseCargoToml — dev and build dependencies', () => {
+  it('extracts [dev-dependencies] and [build-dependencies]', () => {
+    const fp = writeFile('Cargo.toml', `
+[package]
+name = "myapp"
+
+[dependencies]
+serde = "1.0.188"
+
+[dev-dependencies]
+proptest = "1.2.0"
+criterion = { version = "0.5.1", features = ["html_reports"] }
+
+[build-dependencies]
+cc = "1.0.83"
+`);
+    const deps = parseCargoToml(fp);
+    assert.equal(deps.length, 4);
+    assert.ok(deps.every(d => d.ecosystem === 'crates'));
+
+    const serde = deps.find(d => d.name === 'serde');
+    assert.equal(serde.version, '1.0.188');
+
+    const proptest = deps.find(d => d.name === 'proptest');
+    assert.ok(proptest, 'should find dev-dependency proptest');
+    assert.equal(proptest.version, '1.2.0');
+
+    const criterion = deps.find(d => d.name === 'criterion');
+    assert.ok(criterion, 'should find dev-dependency criterion');
+    assert.equal(criterion.version, '0.5.1');
+
+    const cc = deps.find(d => d.name === 'cc');
+    assert.ok(cc, 'should find build-dependency cc');
+    assert.equal(cc.version, '1.0.83');
+  });
+});
+
+describe('parsePyprojectToml — optional and Poetry deps', () => {
+  it('extracts [project.optional-dependencies]', () => {
+    const fp = writeFile('pyproject.toml', `
+[project]
+name = "myapp"
+dependencies = [
+  "fastapi>=0.100.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=7.0",
+  "ruff>=0.1.0",
+]
+docs = [
+  "sphinx>=6.0",
+]
+`);
+    const deps = parsePyprojectToml(fp);
+    assert.ok(deps.every(d => d.ecosystem === 'pypi'));
+
+    const fastapi = deps.find(d => d.name === 'fastapi');
+    assert.ok(fastapi, 'should find main dependency');
+
+    const pytest = deps.find(d => d.name === 'pytest');
+    assert.ok(pytest, 'should find optional dev dependency');
+    assert.equal(pytest.version, '7.0');
+
+    const sphinx = deps.find(d => d.name === 'sphinx');
+    assert.ok(sphinx, 'should find optional docs dependency');
+    assert.equal(sphinx.version, '6.0');
+  });
+
+  it('extracts [tool.poetry.dependencies]', () => {
+    const fp = writeFile('pyproject.toml', `
+[tool.poetry]
+name = "myapp"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+django = "^4.2"
+celery = "~5.3.1"
+`);
+    const deps = parsePyprojectToml(fp);
+    assert.ok(deps.every(d => d.ecosystem === 'pypi'));
+    assert.ok(!deps.some(d => d.name === 'python'), 'should skip python itself');
+
+    const django = deps.find(d => d.name === 'django');
+    assert.ok(django, 'should find poetry dependency django');
+    assert.equal(django.version, '4.2');
+
+    const celery = deps.find(d => d.name === 'celery');
+    assert.ok(celery, 'should find poetry dependency celery');
+    assert.equal(celery.version, '5.3.1');
+  });
+
+  it('deduplicates across sections', () => {
+    const fp = writeFile('pyproject.toml', `
+[project]
+name = "myapp"
+dependencies = [
+  "requests>=2.31.0",
+]
+
+[project.optional-dependencies]
+all = [
+  "requests>=2.31.0",
+]
+`);
+    const deps = parsePyprojectToml(fp);
+    const requestsDeps = deps.filter(d => d.name === 'requests');
+    assert.equal(requestsDeps.length, 1, 'requests should appear only once');
   });
 });
 
