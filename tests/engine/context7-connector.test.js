@@ -42,12 +42,10 @@ describe('Context7Connector', () => {
       assert.equal(result.error, undefined);
     });
 
-    it('returns ok:false with helpful message when no key', () => {
+    it('returns ok:true even without API key (works without auth)', () => {
       const c = new Context7Connector({ apiKey: undefined });
       const result = c.checkAuth();
-      assert.equal(result.ok, false);
-      assert.ok(result.error.includes('CONTEXT7_API_KEY'));
-      assert.ok(result.error.includes('context7.com'));
+      assert.equal(result.ok, true);
     });
   });
 
