@@ -493,4 +493,71 @@ func main() {
       assert.equal(normalizePkgName('foo_bar/baz'), 'foo-bar-baz');
     });
   });
+
+  // ── readProjectName ─────────────────────────────────────────────────────────
+
+  describe('readProjectName', () => {
+    it('reads name from package.json', () => {
+      tmpDir = createTmpProject({
+        'package.json': JSON.stringify({ name: 'my-project', version: '1.0.0' }),
+      });
+      assert.equal(readProjectName(tmpDir), 'my-project');
+    });
+
+    it('reads name from pyproject.toml [project]', () => {
+      tmpDir = createTmpProject({
+        'pyproject.toml': '[project]\nname = "scrapy"\nversion = "2.11"',
+      });
+      assert.equal(readProjectName(tmpDir), 'scrapy');
+    });
+
+    it('reads name from Cargo.toml', () => {
+      tmpDir = createTmpProject({
+        'Cargo.toml': '[package]\nname = "my-crate"\nversion = "0.1.0"',
+      });
+      assert.equal(readProjectName(tmpDir), 'my-crate');
+    });
+
+    it('returns null when no manifest exists', () => {
+      tmpDir = createTmpProject({ 'src/main.rs': '' });
+      assert.equal(readProjectName(tmpDir), null);
+    });
+  });
+
+  // ── analyze: self-referencing dep exclusion ────────────────────────────────
+
+  describe('analyze (self-referencing dep exclusion)', () => {
+    it('excludes the project itself from affected deps', async () => {
+      tmpDir = createTmpProject({
+        'package.json': JSON.stringify({ name: 'scrapy', version: '2.11.0' }),
+        'src/index.js': `import { Spider } from 'scrapy';\n`,
+      });
+
+      const deps = [makeDep('scrapy', '2.11.0'), makeDep('next', '16.0.0')];
+      const analyzer = new ProjectAnalyzer({
+        gapDetector: new MockGapDetector(withGaps(deps)),
+      });
+      const result = await analyzer.analyze(tmpDir);
+
+      // scrapy should be excluded (self-reference), only next remains
+      const depNames = result.affected.map(a => a.dep.name);
+      assert.ok(!depNames.includes('scrapy'), 'self-referencing dep should be excluded');
+    });
+
+    it('still detects other deps when self-reference is excluded', async () => {
+      tmpDir = createTmpProject({
+        'package.json': JSON.stringify({ name: 'my-app', version: '1.0.0' }),
+        'src/app.ts': `import { cacheLife } from 'next/cache';\n`,
+      });
+
+      const deps = [makeDep('my-app', '1.0.0'), makeDep('next', '16.0.0')];
+      const analyzer = new ProjectAnalyzer({
+        gapDetector: new MockGapDetector(withGaps(deps)),
+      });
+      const result = await analyzer.analyze(tmpDir);
+
+      assert.equal(result.affected.length, 1);
+      assert.equal(result.affected[0].dep.name, 'next');
+    });
+  });
 });
