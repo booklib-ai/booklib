@@ -29,131 +29,131 @@
 
 ---
 
-## Why
+## The Problem
 
-AI agents are powerful — but they only know what's in their training data. They don't know your team's conventions, your architecture decisions, or the specific expert frameworks you follow. Every new session starts from zero.
+Your AI writes code using knowledge from its training data. Your project uses libraries released **after** that training cutoff. The result: hallucinated APIs, deprecated patterns, and code that doesn't work.
 
-Research from [ETH Zurich](https://arxiv.org/abs/2602.11988) confirms this is a real problem — giving agents unstructured context files actually **reduces** task success rates while increasing costs by 20%+. More context doesn't help. Structured, relevant context does.
+## What BookLib Does
 
-BookLib is a **local knowledge platform** built on this principle. It gives your AI agent persistent, structured knowledge that it can search and apply across every session.
-
----
-
-## Quick Start
+BookLib detects what your AI model doesn't know about your project and fixes it automatically.
 
 ```bash
 npm install -g @booklib/core
 booklib init
 ```
 
-The wizard handles everything — detecting your project, configuring your AI tools, building the search index, and setting up MCP. After that, just work.
+```
+Analyzing your project...
+
+  next@16.2.0 (model trained on v15):
+    src/app.ts         → cacheLife, after
+    src/middleware.ts   → unstable_rethrow
+
+  @stripe/stripe-js@5.0 (model trained on v4):
+    src/payments.ts    → confirmSetup (signature changed)
+
+  5 files affected, 6 post-training APIs in your code.
+  ✓ Current docs indexed — your AI is now up to date.
+```
+
+**Without BookLib:** AI uses deprecated `cacheTag()` from Next.js 15.
+**With BookLib:** AI uses current `cacheLife()` from Next.js 16.
 
 ---
 
 ## How It Works
 
-You don't type BookLib commands. Your agent does.
+### 1. Detect Knowledge Gaps
 
-> **You:** "Review this authentication module"
->
-> **Agent:** *calls `lookup` → finds auth principles → applies them with citations*
+Scans your dependencies across 8 package registries, checks publish dates against the model's training cutoff, then cross-references with your source code — not just "next@16 is new" but "your `src/app.ts` uses `cacheLife` which is a post-training API."
 
-> **You:** "Remember that we decided to use event sourcing for orders"
->
-> **Agent:** *calls `remember` → captures the insight → auto-links it to the order-service component and related knowledge*
+### 2. Resolve Automatically
 
-> **You:** "I'm going to build the order CRUD feature"
->
-> **Agent:** *calls `brief` → concept activation finds "order" + "CRUD" intersections in the knowledge graph → returns project decisions + expert patterns*
+For each gap, BookLib fetches current documentation:
 
-BookLib becomes part of how your agent thinks — not a tool you have to remember to use.
+1. **Context7** — instant, version-specific library docs
+2. **GitHub releases** — changelogs and migration guides
+3. **Manual** — suggests the right `booklib connect` command
 
----
+### 3. Protect Your Code
 
-## Core Features
+Watches for problems as your AI writes code:
 
-### Hybrid Search
+- **Import checking** — flags unknown APIs not in the index (11 languages)
+- **Decision contradictions** — warns when code violates team decisions
 
-Natural language queries find the most relevant knowledge across everything BookLib knows. The search pipeline combines keyword matching (BM25), semantic similarity (vector search), and cross-encoder reranking — then extracts individual actionable principles from the results.
+### 4. Capture Team Knowledge
 
-Results come back structured — not raw text dumps, but specific principles with source attribution:
+Your team's decisions live nowhere in public docs:
 
-```json
-{
-  "results": [
-    {
-      "principle": "Use stateless JWT with OncePerRequestFilter",
-      "source": "springboot-security",
-      "section": "core_principles"
-    }
-  ]
-}
+```
+booklib remember --title "use PaymentIntents not Charges" --type decision
+booklib connect notion database <db-id>
+booklib connect github discussions org/repo
 ```
 
-When nothing is relevant, BookLib says so — it never pollutes your agent's context with junk.
+---
 
-### Knowledge Graph
+## What Makes BookLib Different
 
-Capture insights as you work. BookLib stores them as searchable nodes and automatically connects them to your project components and related knowledge.
+Every AI coding tool uses the same models. Context7 gives them current docs. Code graph tools give them codebase structure. **BookLib is the only tool that detects knowledge gaps, resolves them automatically, and layers your team's engineering culture on top.**
 
-The **auto-linker** runs every time you capture knowledge:
-- Mentions "orders" in the title → automatically links to the `order-service` component
-- Semantically similar to an existing note → creates a `see-also` edge
-- No manual `connect` calls needed for common cases
-
-### Multi-Dimensional Graph Search
-
-When your query involves multiple concepts — like "build order CRUD feature" — BookLib activates separate regions of the knowledge graph for each concept ("order", "CRUD", "feature"), then finds nodes at the **intersection**. Knowledge that connects multiple concepts surfaces first.
-
-This means your agent finds the specific insight that's about CRUD patterns specifically for the order domain — not generic CRUD advice and not generic order information.
-
-### MCP Integration
-
-BookLib exposes its capabilities as MCP tools that your agent calls directly:
-
-| Tool | When the agent calls it |
-|------|----------------------|
-| `lookup` | Before reviewing code, answering best-practices questions, or suggesting patterns |
-| `review_file` | When asked for deep code review of a specific file |
-| `brief` | At task start — combines expert knowledge + project decisions + component context |
-| `remember` | When the user discovers a pattern or makes a decision worth preserving |
-| `recalled` | When the user asks "what have I captured?" |
-| `connect` | When two concepts are related and should be linked |
-| `save_progress` | When handing off to another agent or ending a session |
-
-Works with Claude Code, Cursor, Copilot (VS Code), Gemini CLI, Codex, Windsurf, Roo Code, Goose, Zed, and Continue. Config files generated automatically for tools without MCP.
-
-### Processing Modes
-
-Choose how BookLib processes search results:
-
-| Mode | What it does | Cost |
-|------|-------------|------|
-| **Fast** (default) | Threshold filtering + principle extraction. Instant. | Free |
-| **Local** | Stricter relevance filtering using score distribution. | Free |
-| **API** | External LLM reasons about relevance and synthesizes results. Best quality. | ~$0.001/query |
-
-Set during `booklib init` or in `booklib.config.json`.
-
-### Health System
-
-`booklib doctor` diagnoses problems — too many skills installed, oversized config files, missing search index, stale knowledge — and `booklib doctor --cure` fixes them.
-
-### Runs Locally
-
-Everything on your machine. No cloud, no API keys needed (API mode is optional), no data leaving your laptop. The embedding model (~25 MB) runs on CPU.
+| Layer | Tool | What it knows |
+|-------|------|--------------|
+| Documentation | Context7 | Current library APIs |
+| Code structure | lsp-mcp, CodeGraphContext | Functions, types, dependencies |
+| **Knowledge** | **BookLib** | Post-training gaps, team decisions, expert principles |
 
 ---
 
-## Works for Any Domain
+## Features
 
-Programming, product management, UI design, data visualization, system architecture, technical writing, research — any field where structured expert knowledge improves your agent's output.
+| Feature | What it does |
+|---------|-------------|
+| **Gap Detection** | Scans deps across 8 registries, finds post-training packages |
+| **Project Analysis** | Cross-references gaps with source code — shows affected files and APIs |
+| **Auto-Resolution** | Fetches current docs via Context7, GitHub, or web connectors |
+| **Import Checking** | Flags unknown APIs in 11 languages |
+| **Decision Checking** | Detects when code contradicts captured team decisions |
+| **Knowledge Graph** | Stores insights, decisions, patterns with auto-linking |
+| **Source Connectors** | GitHub, Notion, local files, web docs, Obsidian vaults |
+| **Source Detection** | Recognizes 12 content types (OpenAPI, Gherkin, SpecKit, ADRs, etc.) |
+| **GPU Acceleration** | Auto-detects CoreML/DirectML/CUDA for fast indexing |
+| **Multi-tool** | Claude, Cursor, Copilot, Gemini, Codex, Windsurf, 12+ tools via MCP |
 
 ---
 
-## Available Knowledge
+## Quick Reference
 
-BookLib ships with curated knowledge sets covering programming, architecture, design, product, and more. Browse them in the [`skills/`](./skills/) directory or search with `booklib search`.
+```bash
+booklib init                          # guided setup
+booklib analyze                       # show affected files and APIs
+booklib gaps                          # find post-training dependencies
+booklib resolve-gaps                  # auto-fix gaps via Context7/GitHub
+booklib check-imports <file>          # check import coverage
+booklib check-decisions <file>        # check for contradictions
+booklib search "query"                # search knowledge
+booklib connect <source>              # add knowledge source
+booklib connect github releases org/repo
+booklib connect notion page <id>
+booklib doctor                        # health check
+```
+
+---
+
+## Works Alongside
+
+BookLib is the knowledge layer. Code context tools complement it via MCP:
+
+- **Context7** — library docs (auto-used by gap resolver)
+- **lsp-mcp** — type info, go-to-definition
+- **CodeGraphContext** — code dependency graphs
+
+---
+
+## Runs Locally
+
+Everything on your machine. No cloud, no API keys required. GPU auto-detected for fast indexing. Zero data leaves your laptop.
 
 ---
 
