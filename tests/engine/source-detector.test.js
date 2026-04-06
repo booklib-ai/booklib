@@ -597,4 +597,72 @@ describe('detectSourceType', () => {
     const result = detectSourceType(tmpDir);
     assert.equal(result.type, 'project-docs');
   });
+
+  it('does not misclassify non-English docs/ directory as framework-docs (BUG 10)', () => {
+    // Simulate a project docs/ directory with Ukrainian content containing
+    // code blocks and import statements — high-weight framework-docs patterns.
+    // Without the docs/ dir signal, framework-docs wins (166 vs 83).
+    const docsDir = path.join(tmpDir, 'docs');
+    fs.mkdirSync(docsDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(docsDir, 'architecture.md'),
+      [
+        '# Архітектура системи',
+        '',
+        '## Огляд',
+        'Система побудована на мікросервісній архітектурі.',
+        '',
+        '## Приклад коду',
+        '```typescript',
+        "import { Controller } from '@nestjs/common';",
+        "import { AuthService } from './auth.service';",
+        "import { JwtStrategy } from './jwt.strategy';",
+        '```',
+        '',
+        '## Конфігурація',
+        '```json',
+        '{ "database": "postgresql", "port": 5432 }',
+        '```',
+        '',
+        '```typescript',
+        "import { Module } from '@nestjs/common';",
+        "import { ConfigModule } from '@nestjs/config';",
+        '```',
+        '',
+        'Запустити: `npm install` та `npm run start`',
+      ].join('\n')
+    );
+
+    const result = detectSourceType(docsDir);
+    assert.notEqual(result.type, 'framework-docs',
+      `docs/ with non-English content should not be framework-docs (score: ${result.scores['framework-docs']})`
+    );
+    assert.equal(result.type, 'project-docs',
+      `docs/ directory should be detected as project-docs, got ${result.type}`
+    );
+  });
+
+  it('detects project-docs from doc/ directory name', () => {
+    const docDir = path.join(tmpDir, 'doc');
+    fs.mkdirSync(docDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(docDir, 'guide.md'),
+      [
+        '# Development Guide',
+        '',
+        '```bash',
+        'npm install',
+        '```',
+        '',
+        '```javascript',
+        "import express from 'express';",
+        '```',
+      ].join('\n')
+    );
+
+    const result = detectSourceType(docDir);
+    assert.notEqual(result.type, 'framework-docs',
+      `doc/ directory should not be framework-docs`
+    );
+  });
 });
