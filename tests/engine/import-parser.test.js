@@ -66,6 +66,11 @@ describe('extractPackageName', () => {
     assert.equal(extractPackageName('io.ktor.server.application', 'kotlin'), 'io.ktor.server');
   });
 
+  it('handles PHP namespace to Composer format', () => {
+    assert.equal(extractPackageName('Illuminate\\Support', 'php'), 'illuminate/support');
+    assert.equal(extractPackageName('Symfony\\Component', 'php'), 'symfony/component');
+  });
+
   it('passes through for other languages', () => {
     assert.equal(extractPackageName('flask', 'python'), 'flask');
     assert.equal(extractPackageName('serde', 'rust'), 'serde');
@@ -219,11 +224,32 @@ describe('parseImports — Ruby', () => {
 });
 
 describe('parseImports — PHP', () => {
-  it('parses use statement', () => {
+  it('captures two namespace segments and normalizes to Composer format', () => {
     const code = `use Illuminate\\Support\\Facades\\DB;`;
     const result = parseImports(code, 'php');
     assert.equal(result.length, 1);
-    assert.equal(result[0].module, 'Illuminate');
+    assert.equal(result[0].module, 'illuminate/support');
+  });
+
+  it('deduplicates same top-level package from multiple use statements', () => {
+    const code = [
+      'use Illuminate\\Support\\Facades\\DB;',
+      'use Illuminate\\Support\\Facades\\Cache;',
+    ].join('\n');
+    const result = parseImports(code, 'php');
+    assert.equal(result.length, 1);
+    assert.equal(result[0].module, 'illuminate/support');
+  });
+
+  it('handles different PHP packages in same file', () => {
+    const code = [
+      'use Illuminate\\Support\\Facades\\DB;',
+      'use Symfony\\Component\\HttpFoundation\\Request;',
+    ].join('\n');
+    const result = parseImports(code, 'php');
+    assert.equal(result.length, 2);
+    assert.equal(result[0].module, 'illuminate/support');
+    assert.equal(result[1].module, 'symfony/component');
   });
 });
 

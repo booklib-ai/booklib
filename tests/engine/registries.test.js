@@ -10,12 +10,15 @@ import {
   parsePyprojectToml,
   parsePomXml,
   parseBuildGradle,
+  parseVersionCatalog,
   parseCargoToml,
   parseGemfile,
   parseGoMod,
   parseCsproj,
   parseComposerJson,
   parsePubspecYaml,
+  parsePackageSwift,
+  parseDirectoryPackagesProps,
   scanDependencies,
 } from '../../lib/engine/registries.js';
 
@@ -31,6 +34,8 @@ afterEach(() => {
 
 function writeFile(name, content) {
   const filePath = path.join(tmpDir, name);
+  const dir = path.dirname(filePath);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(filePath, content);
   return filePath;
 }
@@ -150,6 +155,248 @@ dependencies {
     const boot = deps.find(d => d.name === 'org.springframework.boot:spring-boot-starter');
     assert.equal(boot.version, '3.1.0');
     assert.equal(boot.ecosystem, 'maven');
+  });
+});
+
+describe('parseVersionCatalog', () => {
+  it('resolves version.ref from [versions] section', () => {
+    const fp = writeFile('gradle/libs.versions.toml', `
+[versions]
+kotlin = "1.9.22"
+ktor = "2.3.7"
+
+[libraries]
+kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
+ktor-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
+`);
+    const deps = parseVersionCatalog(fp);
+    assert.equal(deps.length, 2);
+    assert.ok(deps.every(d => d.ecosystem === 'maven'));
+
+    const stdlib = deps.find(d => d.name === 'org.jetbrains.kotlin:kotlin-stdlib');
+    assert.ok(stdlib, 'should find kotlin-stdlib');
+    assert.equal(stdlib.version, '1.9.22');
+
+    const ktor = deps.find(d => d.name === 'io.ktor:ktor-server-core');
+    assert.ok(ktor, 'should find ktor-server-core');
+    assert.equal(ktor.version, '2.3.7');
+  });
+
+  it('handles inline version without version.ref', () => {
+    const fp = writeFile('gradle/libs.versions.toml', `
+[versions]
+
+[libraries]
+guava = { module = "com.google.guava:guava", version = "32.1.2-jre" }
+`);
+    const deps = parseVersionCatalog(fp);
+    assert.equal(deps.length, 1);
+
+    const guava = deps.find(d => d.name === 'com.google.guava:guava');
+    assert.ok(guava, 'should find guava');
+    assert.equal(guava.version, '32.1.2-jre');
+    assert.equal(guava.ecosystem, 'maven');
+  });
+
+  it('falls back to latest when version.ref is missing from [versions]', () => {
+    const fp = writeFile('gradle/libs.versions.toml', `
+[versions]
+kotlin = "1.9.22"
+
+[libraries]
+mystery-lib = { module = "com.example:mystery", version.ref = "nonexistent" }
+`);
+    const deps = parseVersionCatalog(fp);
+    assert.equal(deps.length, 1);
+    assert.equal(deps[0].version, 'latest');
+  });
+
+  it('skips entries without a module field', () => {
+    const fp = writeFile('gradle/libs.versions.toml', `
+[versions]
+kotlin = "1.9.22"
+
+[libraries]
+kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
+some-plugin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+`);
+    const deps = parseVersionCatalog(fp);
+    assert.equal(deps.length, 1, 'should only parse entries with module field');
+  });
+
+  it('handles a realistic multi-dependency catalog', () => {
+    const fp = writeFile('gradle/libs.versions.toml', `
+[versions]
+kotlin = "1.9.22"
+ktor = "2.3.7"
+logback = "1.4.14"
+koin = "3.5.3"
+
+[libraries]
+kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
+ktor-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
+ktor-netty = { module = "io.ktor:ktor-server-netty", version.ref = "ktor" }
+ktor-content = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktor" }
+logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
+koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
+koin-ktor = { module = "io.insert-koin:koin-ktor", version.ref = "koin" }
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+`);
+    const deps = parseVersionCatalog(fp);
+    assert.equal(deps.length, 7);
+
+    // All ktor deps should share the same version
+    const ktorDeps = deps.filter(d => d.name.startsWith('io.ktor:'));
+    assert.equal(ktorDeps.length, 3);
+    assert.ok(ktorDeps.every(d => d.version === '2.3.7'));
+
+    // Koin deps should share version
+    const koinDeps = deps.filter(d => d.name.startsWith('io.insert-koin:'));
+    assert.equal(koinDeps.length, 2);
+    assert.ok(koinDeps.every(d => d.version === '3.5.3'));
+  });
+
+  it('returns empty array for catalog with no libraries', () => {
+    const fp = writeFile('gradle/libs.versions.toml', `
+[versions]
+kotlin = "1.9.22"
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+`);
+    const deps = parseVersionCatalog(fp);
+    assert.equal(deps.length, 0);
+  });
+});
+
+describe('parsePackageSwift', () => {
+  it('extracts packages from .package(url:, from:) entries', () => {
+    const content = `
+// swift-tools-version:5.9
+import PackageDescription
+
+let package = Package(
+    name: "MyApp",
+    dependencies: [
+        .package(url: "https://github.com/Alamofire/Alamofire.git", from: "5.8.0"),
+        .package(url: "https://github.com/apple/swift-argument-parser", from: "1.2.0"),
+    ]
+)
+`;
+    const filePath = writeFile('Package.swift', content);
+
+    const deps = parsePackageSwift(filePath);
+    assert.equal(deps.length, 2);
+    assert.equal(deps[0].name, 'Alamofire');
+    assert.equal(deps[0].version, '5.8.0');
+    assert.equal(deps[0].ecosystem, 'swift');
+    assert.equal(deps[1].name, 'swift-argument-parser');
+    assert.equal(deps[1].version, '1.2.0');
+    assert.equal(deps[1].ecosystem, 'swift');
+  });
+
+  it('strips .git suffix from URL', () => {
+    const content = `.package(url: "https://github.com/vapor/vapor.git", from: "4.0.0")`;
+    const filePath = writeFile('Package.swift', content);
+
+    const deps = parsePackageSwift(filePath);
+    assert.equal(deps.length, 1);
+    assert.equal(deps[0].name, 'vapor');
+  });
+
+  it('handles URL without .git suffix', () => {
+    const content = `.package(url: "https://github.com/pointfreeco/swift-composable-architecture", from: "1.5.0")`;
+    const filePath = writeFile('Package.swift', content);
+
+    const deps = parsePackageSwift(filePath);
+    assert.equal(deps.length, 1);
+    assert.equal(deps[0].name, 'swift-composable-architecture');
+    assert.equal(deps[0].version, '1.5.0');
+  });
+
+  it('returns empty for Package.swift with no dependencies', () => {
+    const content = `
+import PackageDescription
+let package = Package(name: "MyLib", targets: [])
+`;
+    const filePath = writeFile('Package.swift', content);
+
+    const deps = parsePackageSwift(filePath);
+    assert.equal(deps.length, 0);
+  });
+});
+
+describe('parseDirectoryPackagesProps', () => {
+  it('extracts PackageVersion entries from Directory.Packages.props', () => {
+    const content = `
+<Project>
+  <ItemGroup>
+    <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageVersion Include="Serilog" Version="3.1.1" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+  </ItemGroup>
+</Project>
+`;
+    const filePath = writeFile('Directory.Packages.props', content);
+
+    const deps = parseDirectoryPackagesProps(filePath);
+    assert.equal(deps.length, 3);
+    assert.equal(deps[0].name, 'Newtonsoft.Json');
+    assert.equal(deps[0].version, '13.0.3');
+    assert.equal(deps[0].ecosystem, 'nuget');
+    assert.equal(deps[1].name, 'Serilog');
+    assert.equal(deps[1].version, '3.1.1');
+    assert.equal(deps[2].name, 'Microsoft.Extensions.DependencyInjection');
+    assert.equal(deps[2].version, '8.0.0');
+  });
+
+  it('works with Directory.Build.props format', () => {
+    const content = `
+<Project>
+  <ItemGroup>
+    <PackageVersion Include="FluentAssertions" Version="6.12.0" />
+  </ItemGroup>
+</Project>
+`;
+    const filePath = writeFile('Directory.Build.props', content);
+
+    const deps = parseDirectoryPackagesProps(filePath);
+    assert.equal(deps.length, 1);
+    assert.equal(deps[0].name, 'FluentAssertions');
+    assert.equal(deps[0].version, '6.12.0');
+    assert.equal(deps[0].ecosystem, 'nuget');
+  });
+
+  it('returns empty when no PackageVersion entries exist', () => {
+    const content = `
+<Project>
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+  </PropertyGroup>
+</Project>
+`;
+    const filePath = writeFile('Directory.Packages.props', content);
+
+    const deps = parseDirectoryPackagesProps(filePath);
+    assert.equal(deps.length, 0);
+  });
+
+  it('does not confuse PackageReference with PackageVersion', () => {
+    const content = `
+<Project>
+  <ItemGroup>
+    <PackageReference Include="ShouldBeIgnored" Version="1.0.0" />
+    <PackageVersion Include="ShouldBeFound" Version="2.0.0" />
+  </ItemGroup>
+</Project>
+`;
+    const filePath = writeFile('Directory.Packages.props', content);
+
+    const deps = parseDirectoryPackagesProps(filePath);
+    assert.equal(deps.length, 1);
+    assert.equal(deps[0].name, 'ShouldBeFound');
   });
 });
 
@@ -563,5 +810,87 @@ describe('scanDependencies', () => {
     const deps = scanDependencies(tmpDir);
     // Each manifest has 1 dep, capped at 20 manifests
     assert.ok(deps.length <= 20, `should find at most 20 deps, found ${deps.length}`);
+  });
+
+  it('finds gradle/libs.versions.toml via recursive scan', () => {
+    writeFile('gradle/libs.versions.toml', `
+[versions]
+ktor = "2.3.7"
+
+[libraries]
+ktor-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
+ktor-netty = { module = "io.ktor:ktor-server-netty", version.ref = "ktor" }
+`);
+
+    const deps = scanDependencies(tmpDir);
+    assert.equal(deps.length, 2);
+    assert.ok(deps.every(d => d.ecosystem === 'maven'));
+    assert.ok(deps.some(d => d.name === 'io.ktor:ktor-server-core'));
+    assert.ok(deps.some(d => d.name === 'io.ktor:ktor-server-netty'));
+  });
+
+  it('combines gradle version catalog with build.gradle deps', () => {
+    writeFile('gradle/libs.versions.toml', `
+[versions]
+ktor = "2.3.7"
+
+[libraries]
+ktor-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
+`);
+    writeFile('build.gradle.kts', `
+dependencies {
+    implementation 'com.google.guava:guava:32.1.2-jre'
+}
+`);
+
+    const deps = scanDependencies(tmpDir);
+    assert.ok(deps.some(d => d.name === 'io.ktor:ktor-server-core' && d.version === '2.3.7'),
+      'should find version catalog dep');
+    assert.ok(deps.some(d => d.name === 'com.google.guava:guava' && d.version === '32.1.2-jre'),
+      'should find build.gradle dep');
+  });
+
+  it('discovers Package.swift and parses swift deps', () => {
+    const content = `.package(url: "https://github.com/vapor/vapor.git", from: "4.89.0")`;
+    fs.writeFileSync(path.join(tmpDir, 'Package.swift'), content);
+
+    const deps = scanDependencies(tmpDir);
+    const swiftDep = deps.find(d => d.ecosystem === 'swift');
+    assert.ok(swiftDep, 'should find a swift dependency');
+    assert.equal(swiftDep.name, 'vapor');
+    assert.equal(swiftDep.version, '4.89.0');
+  });
+
+  it('discovers Directory.Packages.props and parses nuget deps', () => {
+    const content = `<Project><ItemGroup><PackageVersion Include="Dapper" Version="2.1.28" /></ItemGroup></Project>`;
+    fs.writeFileSync(path.join(tmpDir, 'Directory.Packages.props'), content);
+
+    const deps = scanDependencies(tmpDir);
+    const nugetDep = deps.find(d => d.name === 'Dapper');
+    assert.ok(nugetDep, 'should find Dapper via Directory.Packages.props');
+    assert.equal(nugetDep.version, '2.1.28');
+    assert.equal(nugetDep.ecosystem, 'nuget');
+  });
+
+  it('discovers Directory.Build.props and parses nuget deps', () => {
+    const content = `<Project><ItemGroup><PackageVersion Include="xunit" Version="2.7.0" /></ItemGroup></Project>`;
+    fs.writeFileSync(path.join(tmpDir, 'Directory.Build.props'), content);
+
+    const deps = scanDependencies(tmpDir);
+    const nugetDep = deps.find(d => d.name === 'xunit');
+    assert.ok(nugetDep, 'should find xunit via Directory.Build.props');
+    assert.equal(nugetDep.version, '2.7.0');
+    assert.equal(nugetDep.ecosystem, 'nuget');
+  });
+
+  it('deduplicates nuget deps from .csproj and Directory.Packages.props', () => {
+    fs.writeFileSync(path.join(tmpDir, 'Directory.Packages.props'),
+      `<Project><ItemGroup><PackageVersion Include="Newtonsoft.Json" Version="13.0.3" /></ItemGroup></Project>`);
+    fs.writeFileSync(path.join(tmpDir, 'MyApp.csproj'),
+      `<Project><ItemGroup><PackageReference Include="Newtonsoft.Json" Version="13.0.3" /></ItemGroup></Project>`);
+
+    const deps = scanDependencies(tmpDir);
+    const jsonDeps = deps.filter(d => d.name === 'Newtonsoft.Json');
+    assert.equal(jsonDeps.length, 1, 'should deduplicate across manifest types');
   });
 });
