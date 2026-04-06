@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, rmSync, existsSync, readFileSync } from 'node:fs';
+import { mkdtempSync, rmSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path, { join } from 'node:path';
 import {
@@ -114,6 +114,32 @@ test('loadEdges returns all edges from graph.jsonl', () => {
 test('loadEdges returns empty array when file missing', () => {
   const dir = tmpDir();
   const edges = loadEdges({ graphFile: join(dir, 'missing.jsonl') });
+  assert.deepEqual(edges, []);
+  rmSync(dir, { recursive: true });
+});
+
+test('loadEdges skips corrupt lines and returns valid edges', () => {
+  const dir = tmpDir();
+  const graphFile = join(dir, 'graph.jsonl');
+  const content = [
+    JSON.stringify({ from: 'a', to: 'b', type: 'see-also', weight: 1.0 }),
+    '{invalid json',
+    JSON.stringify({ from: 'c', to: 'd', type: 'extends', weight: 0.8 }),
+    '{truncated',
+  ].join('\n');
+  writeFileSync(graphFile, content);
+  const edges = loadEdges({ graphFile });
+  assert.equal(edges.length, 2);
+  assert.equal(edges[0].from, 'a');
+  assert.equal(edges[1].from, 'c');
+  rmSync(dir, { recursive: true });
+});
+
+test('loadEdges handles file with only corrupt lines', () => {
+  const dir = tmpDir();
+  const graphFile = join(dir, 'graph.jsonl');
+  writeFileSync(graphFile, '{bad\n{also bad\n');
+  const edges = loadEdges({ graphFile });
   assert.deepEqual(edges, []);
   rmSync(dir, { recursive: true });
 });
