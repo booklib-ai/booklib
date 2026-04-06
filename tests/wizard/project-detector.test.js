@@ -86,6 +86,48 @@ test('detects frameworks from both root and subdirectory (monorepo)', () => {
   assert.ok(result.frameworks.includes('FastAPI'), `Expected FastAPI, got: ${result.frameworks}`);
 });
 
+test('detects php from composer.json', () => {
+  const dir = tmp();
+  writeFileSync(join(dir, 'composer.json'), JSON.stringify({
+    require: { 'php': '>=8.1' }
+  }));
+  const result = detect(dir);
+  assert.ok(result.languages.includes('php'), `Expected php in languages, got: ${result.languages}`);
+  assert.ok(result.signals.includes('composer.json'), `Expected composer.json in signals, got: ${result.signals}`);
+  rmSync(dir, { recursive: true });
+});
+
+test('detects php from .php file extension', () => {
+  const dir = tmp();
+  writeFileSync(join(dir, 'index.php'), '<?php echo "hello"; ?>');
+  const result = detect(dir);
+  assert.ok(result.languages.includes('php'), `Expected php in languages, got: ${result.languages}`);
+  rmSync(dir, { recursive: true });
+});
+
+test('detects Laravel framework from composer.json', () => {
+  const dir = tmp();
+  writeFileSync(join(dir, 'composer.json'), JSON.stringify({
+    require: { 'php': '>=8.1', 'laravel/framework': '^11.0' }
+  }));
+  const result = detect(dir);
+  assert.ok(result.languages.includes('php'), `Expected php in languages, got: ${result.languages}`);
+  assert.ok(result.frameworks.includes('Laravel'), `Expected Laravel in frameworks, got: ${result.frameworks}`);
+  rmSync(dir, { recursive: true });
+});
+
+test('detects SvelteKit from package.json', () => {
+  const dir = tmp();
+  writeFileSync(join(dir, 'package.json'), JSON.stringify({
+    devDependencies: { '@sveltejs/kit': '^2', svelte: '^4' }
+  }));
+  writeFileSync(join(dir, 'app.js'), '');
+  const result = detect(dir);
+  assert.ok(result.frameworks.includes('SvelteKit'), `Expected SvelteKit in frameworks, got: ${result.frameworks}`);
+  assert.ok(result.frameworks.includes('Svelte'), `Expected Svelte in frameworks, got: ${result.frameworks}`);
+  rmSync(dir, { recursive: true });
+});
+
 test('returns empty for empty dir', () => {
   const dir = tmp();
   const result = detect(dir);
