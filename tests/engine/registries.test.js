@@ -300,4 +300,108 @@ describe('scanDependencies', () => {
     const deps = scanDependencies(tmpDir);
     assert.equal(deps.length, 0);
   });
+
+  it('finds dependency files in subdirectories', () => {
+    fs.mkdirSync(path.join(tmpDir, 'frontend'), { recursive: true });
+    fs.writeFileSync(
+      path.join(tmpDir, 'frontend', 'package.json'),
+      JSON.stringify({ dependencies: { react: '^18.0.0' } })
+    );
+    fs.mkdirSync(path.join(tmpDir, 'scraper'), { recursive: true });
+    fs.writeFileSync(
+      path.join(tmpDir, 'scraper', 'requirements.txt'),
+      'scrapy==2.11.0\n'
+    );
+
+    const deps = scanDependencies(tmpDir);
+    assert.equal(deps.length, 2);
+    assert.ok(deps.some(d => d.name === 'react' && d.ecosystem === 'npm'));
+    assert.ok(deps.some(d => d.name === 'scrapy' && d.ecosystem === 'pypi'));
+  });
+
+  it('deduplicates deps from root and subdirectory', () => {
+    fs.writeFileSync(
+      path.join(tmpDir, 'package.json'),
+      JSON.stringify({ dependencies: { express: '^4.18.2' } })
+    );
+    fs.mkdirSync(path.join(tmpDir, 'services', 'api'), { recursive: true });
+    fs.writeFileSync(
+      path.join(tmpDir, 'services', 'api', 'package.json'),
+      JSON.stringify({ dependencies: { express: '^4.19.0', cors: '^2.8.5' } })
+    );
+
+    const deps = scanDependencies(tmpDir);
+    const expressDeps = deps.filter(d => d.name === 'express');
+    assert.equal(expressDeps.length, 1, 'express should appear only once');
+    assert.equal(expressDeps[0].version, '4.18.2', 'root version should win');
+    assert.ok(deps.some(d => d.name === 'cors'), 'unique subdirectory dep should be included');
+  });
+
+  it('skips node_modules and other excluded dirs', () => {
+    fs.mkdirSync(path.join(tmpDir, 'node_modules', 'express'), { recursive: true });
+    fs.writeFileSync(
+      path.join(tmpDir, 'node_modules', 'express', 'package.json'),
+      JSON.stringify({ dependencies: { 'body-parser': '^1.0.0' } })
+    );
+    fs.mkdirSync(path.join(tmpDir, 'dist'), { recursive: true });
+    fs.writeFileSync(
+      path.join(tmpDir, 'dist', 'package.json'),
+      JSON.stringify({ dependencies: { leftpad: '^1.0.0' } })
+    );
+
+    const deps = scanDependencies(tmpDir);
+    assert.equal(deps.length, 0, 'should not find deps inside excluded dirs');
+  });
+
+  it('does not scan beyond depth 3', () => {
+    // depth 4: root/a/b/c/d/package.json
+    const deepDir = path.join(tmpDir, 'a', 'b', 'c', 'd');
+    fs.mkdirSync(deepDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(deepDir, 'package.json'),
+      JSON.stringify({ dependencies: { 'too-deep': '^1.0.0' } })
+    );
+    // depth 3: root/a/b/c/package.json (should be found)
+    fs.writeFileSync(
+      path.join(tmpDir, 'a', 'b', 'c', 'package.json'),
+      JSON.stringify({ dependencies: { 'just-right': '^1.0.0' } })
+    );
+
+    const deps = scanDependencies(tmpDir);
+    assert.ok(deps.some(d => d.name === 'just-right'), 'depth 3 should be found');
+    assert.ok(!deps.some(d => d.name === 'too-deep'), 'depth 4 should be skipped');
+  });
+
+  it('finds .csproj files in subdirectories', () => {
+    fs.mkdirSync(path.join(tmpDir, 'src', 'WebApi'), { recursive: true });
+    fs.writeFileSync(
+      path.join(tmpDir, 'src', 'WebApi', 'WebApi.csproj'),
+      `<Project Sdk="Microsoft.NET.Sdk">
+      <ItemGroup>
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+      </ItemGroup>
+    </Project>`
+    );
+
+    const deps = scanDependencies(tmpDir);
+    assert.equal(deps.length, 1);
+    assert.equal(deps[0].name, 'Newtonsoft.Json');
+    assert.equal(deps[0].ecosystem, 'nuget');
+  });
+
+  it('caps manifest file discovery at 20', () => {
+    // Create 25 subdirs each with a package.json
+    for (let i = 0; i < 25; i++) {
+      const dir = path.join(tmpDir, `pkg-${String(i).padStart(2, '0')}`);
+      fs.mkdirSync(dir, { recursive: true });
+      fs.writeFileSync(
+        path.join(dir, 'package.json'),
+        JSON.stringify({ dependencies: { [`dep-${i}`]: '1.0.0' } })
+      );
+    }
+
+    const deps = scanDependencies(tmpDir);
+    // Each manifest has 1 dep, capped at 20 manifests
+    assert.ok(deps.length <= 20, `should find at most 20 deps, found ${deps.length}`);
+  });
 });

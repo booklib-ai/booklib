@@ -2082,8 +2082,11 @@ case 'rules': {
           }
         }
 
-        const ecoList = gaps.ecosystems.length > 0 ? gaps.ecosystems.join(', ') : 'none detected';
-        console.log(`\nScanned: ${gaps.totalDeps} dependencies across ${ecoList}`);
+        if (gaps.ecosystems.length > 0) {
+          console.log(`\nScanned: ${gaps.totalDeps} dependencies across ${gaps.ecosystems.join(', ')}`);
+        } else {
+          console.log('\nNo dependency ecosystems detected.');
+        }
       } catch (err) {
         console.error(`Gap detection failed: ${err.message}`);
         process.exit(1);
@@ -2139,6 +2142,41 @@ case 'rules': {
       }
 
       console.log(`\nResolved: ${resolvedResults.length}/${gaps.postTraining.length}`);
+      break;
+    }
+
+    case 'analyze': {
+      const { ProjectAnalyzer } = await import('../lib/engine/project-analyzer.js');
+      console.log('Analyzing project...\n');
+      try {
+        const analyzer = new ProjectAnalyzer();
+        const result = await analyzer.analyze(process.cwd());
+
+        if (result.affected.length === 0) {
+          console.log('No post-training APIs detected in your code.');
+          break;
+        }
+
+        // Group by dep
+        const byDep = new Map();
+        for (const entry of result.affected) {
+          const key = entry.dep.name;
+          if (!byDep.has(key)) byDep.set(key, { dep: entry.dep, files: [] });
+          byDep.get(key).files.push({ file: entry.file, apis: entry.apis });
+        }
+
+        for (const [, { dep, files }] of byDep) {
+          console.log(`\n${dep.name}@${dep.version} (post-training):`);
+          for (const { file, apis } of files) {
+            console.log(`  ${file} \u2192 ${apis.join(', ')}`);
+          }
+        }
+
+        console.log(`\n${result.totalFiles} file(s), ${result.totalApis} post-training API(s).`);
+      } catch (err) {
+        console.error(`Analysis failed: ${err.message}`);
+        process.exit(1);
+      }
       break;
     }
 
@@ -2236,6 +2274,7 @@ CORE:
   booklib scan [dir] [--docs]                    Project-wide heatmap
   booklib gaps                                   Detect post-training deps & uncaptured docs
   booklib resolve-gaps                           Auto-resolve gaps via Context7/GitHub/manual
+  booklib analyze                                Show which APIs in your code have post-training gaps
   booklib check-imports <file>                   Check if file imports are covered by BookLib
   booklib check-decisions <file>                 Check if code contradicts captured team decisions
   booklib capture --title "<title>" [--type insight] [--tags t1,t2] [--links "skill:edge-type,...]"
@@ -2319,6 +2358,7 @@ EVERYDAY USE:
   booklib scan                           Project-wide code quality heatmap
   booklib gaps                           Detect post-training deps & uncaptured docs
   booklib resolve-gaps                   Auto-resolve gaps via Context7/GitHub
+  booklib analyze                        Show which APIs have post-training gaps
   booklib check-imports <file>           Check if file imports are covered by BookLib
   booklib check-decisions <file>         Check if code contradicts team decisions
   booklib capture --title "<title>" [--type insight] [--tags t1,t2] [--links "skill:edge-type,...]"

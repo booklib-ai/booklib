@@ -46,16 +46,17 @@ describe('getSynthesisPrompt', () => {
 });
 
 describe('SYNTHESIS_TEMPLATES', () => {
-  it('has all 12 template types', () => {
+  it('has all 13 template types', () => {
     const expected = [
       'framework-docs', 'api-reference', 'release-notes', 'spec',
       'team-decision', 'tutorial', 'wiki',
       'sdd-spec', 'api-spec', 'bdd-spec', 'architecture', 'pkm',
+      'project-docs',
     ];
     for (const key of expected) {
       assert.ok(key in SYNTHESIS_TEMPLATES, `missing template: ${key}`);
     }
-    assert.equal(Object.keys(SYNTHESIS_TEMPLATES).length, 12);
+    assert.equal(Object.keys(SYNTHESIS_TEMPLATES).length, 13);
   });
 
   it('all templates contain "Only include what\'s IN the search results"', () => {

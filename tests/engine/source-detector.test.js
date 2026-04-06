@@ -264,6 +264,7 @@ describe('detectSourceType', () => {
       'api-spec',
       'bdd-spec',
       'architecture',
+      'project-docs',
       'pkm',
     ];
 
@@ -495,5 +496,105 @@ describe('detectSourceType', () => {
 
     const result = detectSourceType(tmpDir);
     assert.equal(result.type, 'architecture');
+  });
+
+  it('detects sdd-spec when target directory IS a signal directory', () => {
+    // BUG 9 regression: self-check on path.basename(dirPath)
+    const specifyDir = path.join(tmpDir, '.specify');
+    fs.mkdirSync(specifyDir, { recursive: true });
+    fs.mkdirSync(path.join(specifyDir, 'memory'));
+    fs.mkdirSync(path.join(specifyDir, 'scripts'));
+    fs.mkdirSync(path.join(specifyDir, 'templates'));
+    fs.writeFileSync(
+      path.join(specifyDir, 'constitution.md'),
+      [
+        '# Project Constitution',
+        '',
+        'GOAL: Build the authentication system',
+        'ASSUMPTIONS: PostgreSQL available',
+      ].join('\n')
+    );
+
+    const result = detectSourceType(specifyDir);
+    assert.equal(result.type, 'sdd-spec');
+  });
+
+  it('does not classify project docs with code examples as framework-docs', () => {
+    // BUG 10 regression: negative signals penalize framework-docs
+    fs.writeFileSync(
+      path.join(tmpDir, 'auth-design.md'),
+      [
+        '# Authentication Design',
+        '',
+        '## Context',
+        'We need OAuth 2.0 for the API gateway.',
+        '',
+        '## Decision',
+        'Use Passport.js with JWT strategy.',
+        '',
+        '## Consequences',
+        '- Need refresh token rotation',
+        '- Must handle token expiry',
+        '',
+        '## Acceptance Criteria',
+        '- User can log in with email/password',
+        '- Token refreshes automatically',
+        '',
+        '## Implementation',
+        '```typescript',
+        "import { Strategy } from 'passport-jwt';",
+        "import { AuthService } from './auth.service';",
+        '```',
+        '',
+        '```typescript',
+        "import { JwtModule } from '@nestjs/jwt';",
+        "import { ConfigService } from '@nestjs/config';",
+        '```',
+        '',
+        '**Status:** Accepted',
+        '',
+        'Sprint 4 backlog item. See epic AUTH-100.',
+      ].join('\n')
+    );
+
+    const result = detectSourceType(tmpDir);
+    assert.notEqual(result.type, 'framework-docs',
+      `expected anything but framework-docs, got ${result.type} (score: ${result.scores['framework-docs']})`
+    );
+    assert.ok(
+      ['team-decision', 'project-docs'].includes(result.type),
+      `expected team-decision or project-docs, got ${result.type}`
+    );
+  });
+
+  it('detects project-docs from internal documentation with code and spec terms', () => {
+    fs.writeFileSync(
+      path.join(tmpDir, 'api-guidelines.md'),
+      [
+        '# API Guidelines',
+        '',
+        '## User Stories',
+        '- As a developer, I want consistent error responses',
+        '- As a developer, I want pagination on all list endpoints',
+        '',
+        '## Implementation Plan',
+        '',
+        '```typescript',
+        "import { Controller, Get } from '@nestjs/common';",
+        "import { PaginationDto } from './dto/pagination.dto';",
+        '```',
+        '',
+        '```typescript',
+        "import { ApiResponse } from './types';",
+        '// TODO: migrate to v2 response format',
+        '```',
+        '',
+        'We need to refactor the error handling middleware.',
+        'The sprint 5 backlog includes this work.',
+      ].join('\n')
+    );
+
+    const result = detectSourceType(tmpDir);
+    assert.equal(result.type, 'project-docs');
   });
 });
