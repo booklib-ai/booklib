@@ -43,6 +43,49 @@ test('detects fastapi framework', () => {
   rmSync(dir, { recursive: true });
 });
 
+test('detects Next.js from subdirectory package.json (monorepo)', () => {
+  const dir = tmp();
+  mkdirSync(join(dir, 'frontend'));
+  writeFileSync(join(dir, 'frontend', 'package.json'), JSON.stringify({
+    dependencies: { next: '^14', react: '^18' }
+  }));
+  writeFileSync(join(dir, 'frontend', 'index.js'), '');
+  const result = detect(dir);
+  assert.ok(result.frameworks.includes('Next.js'), `Expected Next.js in frameworks, got: ${result.frameworks}`);
+  assert.ok(result.frameworks.includes('React'), `Expected React in frameworks, got: ${result.frameworks}`);
+});
+
+test('detects FastAPI from subdirectory requirements.txt (monorepo)', () => {
+  const dir = tmp();
+  mkdirSync(join(dir, 'scraper'));
+  writeFileSync(join(dir, 'scraper', 'requirements.txt'), 'fastapi==0.100\nuvicorn');
+  const result = detect(dir);
+  assert.ok(result.languages.includes('python'), `Expected python in languages, got: ${result.languages}`);
+  assert.ok(result.frameworks.includes('FastAPI'), `Expected FastAPI in frameworks, got: ${result.frameworks}`);
+  assert.ok(result.signals.includes('scraper/requirements.txt'), `Expected scraper/requirements.txt in signals, got: ${result.signals}`);
+});
+
+test('detects frameworks from both root and subdirectory (monorepo)', () => {
+  const dir = tmp();
+  // Root has Express
+  writeFileSync(join(dir, 'package.json'), JSON.stringify({
+    dependencies: { express: '^4' }
+  }));
+  writeFileSync(join(dir, 'server.js'), '');
+  // Subdirectory has Next.js
+  mkdirSync(join(dir, 'frontend'));
+  writeFileSync(join(dir, 'frontend', 'package.json'), JSON.stringify({
+    dependencies: { next: '^14', react: '^18' }
+  }));
+  // Subdirectory has FastAPI
+  mkdirSync(join(dir, 'scraper'));
+  writeFileSync(join(dir, 'scraper', 'requirements.txt'), 'fastapi==0.100\nuvicorn');
+  const result = detect(dir);
+  assert.ok(result.frameworks.includes('Express'), `Expected Express, got: ${result.frameworks}`);
+  assert.ok(result.frameworks.includes('Next.js'), `Expected Next.js, got: ${result.frameworks}`);
+  assert.ok(result.frameworks.includes('FastAPI'), `Expected FastAPI, got: ${result.frameworks}`);
+});
+
 test('returns empty for empty dir', () => {
   const dir = tmp();
   const result = detect(dir);
