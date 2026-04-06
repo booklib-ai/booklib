@@ -2091,6 +2091,57 @@ case 'rules': {
       break;
     }
 
+    case 'resolve-gaps': {
+      const { GapDetector } = await import('../lib/engine/gap-detector.js');
+      const { GapResolver } = await import('../lib/engine/gap-resolver.js');
+
+      console.log('Scanning for gaps...');
+      const detector = new GapDetector();
+      const gaps = await detector.detect(process.cwd());
+
+      if (gaps.postTraining.length === 0) {
+        console.log('No post-training dependencies detected.');
+        break;
+      }
+
+      console.log(`Found ${gaps.postTraining.length} post-training dep(s). Resolving...\n`);
+
+      const resolver = new GapResolver();
+      const results = await resolver.resolveAll(gaps.postTraining, ({ dep, result }) => {
+        const icon = result.resolved ? '\u2713' : '\u2717';
+        console.log(`  ${icon} ${dep.name}@${dep.version} \u2014 ${result.source} (${result.pageCount} pages)`);
+      });
+
+      // Index resolved sources
+      const resolvedResults = results.filter(r => r.result.resolved);
+      for (const { result } of resolvedResults) {
+        try {
+          const { SourceManager } = await import('../lib/engine/source-manager.js');
+          const booklibDir = path.join(process.cwd(), '.booklib');
+          const mgr = new SourceManager(booklibDir);
+          const { detectSourceType } = await import('../lib/engine/source-detector.js');
+          const detected = detectSourceType(result.outputDir);
+          mgr.registerSource({ name: result.sourceName, sourcePath: result.outputDir, type: detected.type });
+
+          const indexer = new BookLibIndexer();
+          await indexer.indexDirectory(result.outputDir, false, { sourceName: result.sourceName, quiet: true });
+        } catch (err) {
+          console.warn(`  Warning: ${result.sourceName}: ${err.message}`);
+        }
+      }
+
+      // Show suggestions for unresolved
+      const unresolved = results.filter(r => !r.result.resolved);
+      for (const { dep, result } of unresolved) {
+        if (result.suggestion) {
+          console.log(`\n  ${dep.name}@${dep.version} \u2014 not resolved\n    \u2192 ${result.suggestion}`);
+        }
+      }
+
+      console.log(`\nResolved: ${resolvedResults.length}/${gaps.postTraining.length}`);
+      break;
+    }
+
     case 'check-decisions': {
       const filePath = args[1];
       if (!filePath) {
@@ -2184,6 +2235,7 @@ CORE:
   booklib audit <skill> <file>                   Deep-audit a file against a skill
   booklib scan [dir] [--docs]                    Project-wide heatmap
   booklib gaps                                   Detect post-training deps & uncaptured docs
+  booklib resolve-gaps                           Auto-resolve gaps via Context7/GitHub/manual
   booklib check-imports <file>                   Check if file imports are covered by BookLib
   booklib check-decisions <file>                 Check if code contradicts captured team decisions
   booklib capture --title "<title>" [--type insight] [--tags t1,t2] [--links "skill:edge-type,...]"
@@ -2266,6 +2318,7 @@ EVERYDAY USE:
   booklib audit <skill> <file>           Get a review prompt for a file
   booklib scan                           Project-wide code quality heatmap
   booklib gaps                           Detect post-training deps & uncaptured docs
+  booklib resolve-gaps                   Auto-resolve gaps via Context7/GitHub
   booklib check-imports <file>           Check if file imports are covered by BookLib
   booklib check-decisions <file>         Check if code contradicts team decisions
   booklib capture --title "<title>" [--type insight] [--tags t1,t2] [--links "skill:edge-type,...]"
