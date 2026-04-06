@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 
-import { ProjectAnalyzer, findSourceFiles, extractApiNames, normalizePkgName } from '../../lib/engine/project-analyzer.js';
+import { ProjectAnalyzer, findSourceFiles, extractApiNames, normalizePkgName, readProjectName } from '../../lib/engine/project-analyzer.js';
 
 /** Mock GapDetector that returns predefined results without network calls. */
 class MockGapDetector {
@@ -297,6 +297,30 @@ func main() {
       const result = extractApiNames(code, 'rails', 'ruby');
       assert.deepEqual(result, ['rails']);
     });
+
+    it('extracts PHP use statement (last segment)', () => {
+      const code = `use Illuminate\\Support\\Facades\\DB;`;
+      const result = extractApiNames(code, 'Illuminate\\Support\\Facades', 'php');
+      assert.deepEqual(result, ['DB']);
+    });
+
+    it('extracts PHP use with alias', () => {
+      const code = `use App\\Models\\User as UserModel;`;
+      const result = extractApiNames(code, 'App\\Models', 'php');
+      assert.deepEqual(result, ['UserModel']);
+    });
+
+    it('extracts PHP grouped use', () => {
+      const code = `use App\\Models\\{User, Post, Comment};`;
+      const result = extractApiNames(code, 'App\\Models', 'php');
+      assert.deepEqual(result, ['User', 'Post', 'Comment']);
+    });
+
+    it('extracts PHP grouped use with alias', () => {
+      const code = `use App\\Models\\{User as U, Post};`;
+      const result = extractApiNames(code, 'App\\Models', 'php');
+      assert.deepEqual(result, ['U', 'Post']);
+    });
   });
 
   // ── findSourceFiles ─────────────────────────────────────────────────────────
@@ -396,6 +420,77 @@ func main() {
 
       assert.equal(result.affected.length, 1);
       assert.equal(result.affected[0].dep.name, 'tokio-tungstenite');
+    });
+  });
+
+  // ── analyze: Maven/Gradle colon-separated deps ──────────────────────────────
+
+  describe('analyze (Maven/Gradle dep matching)', () => {
+    it('matches Maven dep to Java import via artifactId', async () => {
+      tmpDir = createTmpProject({
+        'src/Main.java': `import com.google.gson.Gson;\n`,
+      });
+
+      const dep = makeDep('com.google.code.gson:gson', '2.12.0');
+      dep.ecosystem = 'maven';
+      const analyzer = new ProjectAnalyzer({
+        gapDetector: new MockGapDetector(withGaps([dep])),
+      });
+      const result = await analyzer.analyze(tmpDir);
+
+      assert.equal(result.affected.length, 1);
+      assert.equal(result.affected[0].dep.name, 'com.google.code.gson:gson');
+      assert.deepEqual(result.affected[0].apis, ['Gson']);
+    });
+
+    it('matches Maven dep to Kotlin import when groupId matches import prefix', async () => {
+      tmpDir = createTmpProject({
+        'src/App.kt': `import com.squareup.moshi.Moshi\n`,
+      });
+
+      // groupId com.squareup.moshi matches the 3-segment import prefix
+      const dep = makeDep('com.squareup.moshi:moshi', '1.16.0');
+      dep.ecosystem = 'maven';
+      const analyzer = new ProjectAnalyzer({
+        gapDetector: new MockGapDetector(withGaps([dep])),
+      });
+      const result = await analyzer.analyze(tmpDir);
+
+      assert.equal(result.affected.length, 1);
+      assert.equal(result.affected[0].dep.name, 'com.squareup.moshi:moshi');
+      assert.deepEqual(result.affected[0].apis, ['Moshi']);
+    });
+  });
+
+  // ── analyze: Ruby slash-to-hyphen normalization ─────────────────────────────
+
+  describe('analyze (Ruby slash/hyphen normalization)', () => {
+    it('matches Ruby require with slashes to gem with hyphens', async () => {
+      tmpDir = createTmpProject({
+        'app.rb': `require 'dry/types'\n`,
+      });
+
+      const dep = makeDep('dry-types', '1.8.0');
+      dep.ecosystem = 'rubygems';
+      const analyzer = new ProjectAnalyzer({
+        gapDetector: new MockGapDetector(withGaps([dep])),
+      });
+      const result = await analyzer.analyze(tmpDir);
+
+      assert.equal(result.affected.length, 1);
+      assert.equal(result.affected[0].dep.name, 'dry-types');
+    });
+  });
+
+  // ── normalizePkgName: slash normalization ───────────────────────────────────
+
+  describe('normalizePkgName (slash normalization)', () => {
+    it('normalizes slashes to hyphens for Ruby requires', () => {
+      assert.equal(normalizePkgName('dry/types'), 'dry-types');
+    });
+
+    it('normalizes mixed separators', () => {
+      assert.equal(normalizePkgName('foo_bar/baz'), 'foo-bar-baz');
     });
   });
 });
