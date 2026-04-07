@@ -9,6 +9,17 @@
       ]
     }
   ],
+  "PreToolUse": [
+    {
+      "matcher": "Edit|Write",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "node \"${BOOKLIB_ROOT}/hooks/pretooluse-inject.mjs\""
+        }
+      ]
+    }
+  ],
   "PostToolUse": [
     {
       "matcher": "WebFetch|WebSearch",
@@ -20,11 +31,11 @@
       ]
     },
     {
-      "matcher": "Write|Edit",
+      "matcher": "Edit|Write",
       "hooks": [
         {
           "type": "command",
-          "command": "node \"${BOOKLIB_ROOT}/hooks/posttooluse-imports.mjs\""
+          "command": "node \"${BOOKLIB_ROOT}/hooks/posttooluse-contradict.mjs\""
         }
       ]
     }
