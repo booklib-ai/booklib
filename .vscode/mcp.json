@@ -1,0 +1,8 @@
+{
+  "servers": {
+    "booklib": {
+      "command": "booklib-mcp",
+      "args": []
+    }
+  }
+}

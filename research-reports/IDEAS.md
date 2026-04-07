@@ -91,3 +91,46 @@
 **Summary:** Cross-encoder reranking with similarity-based early exit — terminate forward pass when intermediate layers already provide confident ranking. Peer-reviewed at SIGIR. But: PyTorch/GPU only, no ONNX path, and BookLib has no cross-encoder yet. Long-term backlog item.
 **Work estimate:** 2-3 weeks (including prerequisite cross-encoder work) | **Files:** `lib/engine/reranker.js` (new), `lib/engine/searcher.js`
 **Note:** Blocked on Spec 2 cross-encoder implementation. Current impl is PyTorch+GPU only — would need custom ONNX layer-by-layer export for transformers.js. Defer until hybrid pipeline is stable.
+
+### [2026-04-07] Qwen3-Embedding-0.6B as high-quality embedding model option
+**Status:** 🆕 New | **Source:** [arxiv:2506.05176](https://arxiv.org/abs/2506.05176) (Alibaba, June 2025) + [ONNX model](https://huggingface.co/onnx-community/Qwen3-Embedding-0.6B-ONNX) | **Priority:** P2 | **Spec:** 2
+**Summary:** Integrate Qwen3-Embedding-0.6B-ONNX as an optional embedding provider alongside all-MiniLM-L6-v2. Confirmed compatible with @huggingface/transformers via ONNX. Significantly outperforms all-MiniLM-L6-v2 on code retrieval benchmarks. 0.6B params (~1.2GB) is larger — opt-in via `booklib config set model qwen3-0.6b` with lazy download.
+**Work estimate:** 1-2 days | **Files:** `lib/engine/embedding-provider.js`, `lib/engine/indexer.js`, `lib/engine/searcher.js`, `bin/cli.js`
+**Acceptance criteria:**
+- `embedding-provider.js` supports model selection (miniLM default, qwen3 optional)
+- `booklib config set model qwen3-0.6b` switches embedding model
+- First use triggers lazy download with progress bar
+- Re-index required after model switch (with clear user prompt)
+- Benchmark: retrieval quality improvement over all-MiniLM-L6-v2
+- Benchmark: cold-start time and per-query latency on CPU
+**Note:** Depends on Transformers.js v4 upgrade. The paired Qwen3-Reranker-0.6B does NOT yet have ONNX/Transformers.js support — monitor only.
+
+### [2026-04-07] Align skill format with agentskills.io spec + register on marketplaces
+**Status:** 🔥 Hot | **Source:** [agentskills.io/specification](https://agentskills.io/specification) + [Anthropic spec](https://github.com/anthropics/skills/blob/main/spec/agent-skills-spec.md) | **Priority:** P2 | **Spec:** 1
+**Summary:** Audit SKILL.md format against the agentskills.io specification. Generate `.well-known/agent-skills.json` endpoint. Submit curated skills to SkillsMP and skills.sh marketplaces for discoverability. The Agent Skills spec is now supported by VS Code (Copilot), Claude Code, Cursor, Codex/ChatGPT — format compliance is table stakes.
+**Work estimate:** 0.5-1 day | **Files:** `bin/cli.js` (build-wellknown), skill metadata, docs
+**Acceptance criteria:**
+- All 22 bundled skills audited against agentskills.io field requirements
+- Format divergences fixed (if any)
+- `booklib build-wellknown` generates `agent-skills.json` alongside `server-card.json`
+- Skills submitted to SkillsMP and skills.sh
+- README mentions Agent Skills specification compatibility
+**Note:** Complementary to MCP Server Cards idea (2026-03-31). Both `.well-known` files should be generated together.
+
+### [2026-04-07] GraphAnchor iterative graph indexing pattern for Spec 3
+**Status:** 📋 Backlog | **Source:** [arxiv:2601.16462](https://arxiv.org/abs/2601.16462) (NEUIR, Jan 2026) | **Priority:** P3 | **Spec:** 3
+**Summary:** Reference GraphAnchor's principle of incremental graph expansion for Spec 3's knowledge graph design. Graphs as evolving indices rather than static representations — aligns with BookLib's append-only JSONL edge storage. Apply to `booklib capture` (expand graph incrementally on new content) but NOT to runtime search (keep <500ms target).
+**Work estimate:** Design reference only until Spec 3 begins | **Files:** `lib/engine/graph.js`, `lib/engine/capture.js`
+**Acceptance criteria:**
+- Spec 3 design doc references GraphAnchor's incremental indexing approach
+- `booklib capture` expands graph incrementally (entity extraction on new content only)
+- Graph edges are append-only, not reconstructed on each capture
+**Note:** The paper's runtime iterative expansion is NOT applicable to BookLib (requires LLM-in-the-loop, breaks <500ms target). Only the offline indexing pattern is relevant.
+
+### [2026-04-07] RACG survey — eval harness design reference
+**Status:** 📋 Backlog | **Source:** [arxiv:2510.04905](https://arxiv.org/abs/2510.04905) (v2 Jan 2026) | **Priority:** P3 | **Spec:** 2
+**Summary:** Mine the RACG survey's evaluation protocols and retrieval modality comparisons to inform Spec 2's benchmark eval harness design. Extract which chunk formats and context structures work best for repo-level code generation. Design input only — no code changes.
+**Work estimate:** 2-4 hours reading | **Files:** `benchmark/` design docs
+**Acceptance criteria:**
+- Spec 2 eval harness references survey methodology
+- Chunk format decisions informed by survey findings
