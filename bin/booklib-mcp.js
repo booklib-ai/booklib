@@ -26,6 +26,8 @@ import { autoLink } from '../lib/engine/auto-linker.js';
 import { buildGraphContext } from '../lib/engine/graph-injector.js';
 import { graphActivatedSearch } from '../lib/engine/graph-search.js';
 import { extractFromResults } from '../lib/engine/principle-extractor.js';
+import { prioritizeLookupResults } from '../lib/engine/lookup-priority.js';
+import { ContextMapBuilder } from '../lib/engine/context-map.js';
 
 const { skillsPath } = resolveBookLibPaths();
 const searcher = new BookLibSearcher();
@@ -49,7 +51,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
     tools: [
       {
         name: "lookup",
-        description: "Check BookLib when working with project-specific APIs, team decisions, or dependencies that may have changed since your training. BookLib knows what you don't. Skip for standard patterns you already know.",
+        description: "Check BookLib when working with project-specific APIs, team decisions, or post-training dependencies. Prioritizes: (1) post-training corrections, (2) team knowledge, (3) expert skills. Skip for standard patterns you already know.",
         inputSchema: {
           type: "object",
           properties: {
@@ -235,6 +237,30 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             return true;
           });
 
+        // Check context-map for post-training gap matches before generic search
+        let contextMapHits = [];
+        try {
+          const mapPath = path.join(process.cwd(), '.booklib', 'context-map.json');
+          const map = ContextMapBuilder.load(mapPath);
+          if (map?.items?.length) {
+            const queryLower = args.query.toLowerCase();
+            contextMapHits = map.items.filter(item =>
+              item.type === 'post-training' &&
+              item.importTriggers.some(t => queryLower.includes(t.toLowerCase()))
+            ).map(item => ({
+              text: item.injection?.correction ?? item.id,
+              score: 1.0,
+              metadata: { nodeKind: 'context-map', source: item.source, type: item.type },
+            }));
+          }
+        } catch { /* context map not available */ }
+
+        // Prioritize: gap results first, then team knowledge, then skill results
+        const gapResults = contextMapHits;
+        const teamResults = filtered.filter(r => r.metadata?.nodeKind === 'knowledge');
+        const nicheResults = filtered.filter(r => r.metadata?.nodeKind !== 'knowledge');
+        const prioritized = prioritizeLookupResults({ gapResults, teamResults, nicheResults });
+
         // Read config for reasoning mode + ollama model
         let reasoningMode = 'fast';
         let ollamaModel = 'phi3';
@@ -248,11 +274,11 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         } catch { /* use default */ }
 
         // Try graph-activated search for multi-concept queries
-        const graphResult = graphActivatedSearch(args.query, filtered);
+        const graphResult = graphActivatedSearch(args.query, prioritized);
 
         if (graphResult.activated && graphResult.graphResults.length > 0) {
           const limit = args.limit ?? 3;
-          const textPrinciples = extractFromResults(filtered, limit);
+          const textPrinciples = extractFromResults(prioritized, limit);
           // Skills first, graph context appended — never replace skill results
           const allPrinciples = [
             ...textPrinciples.slice(0, limit),
@@ -269,9 +295,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           }, null, 2) }] };
         }
 
-        const sourceType = detectResultSourceType(filtered);
+        const sourceType = detectResultSourceType(prioritized);
 
-        const structured = await processResults(args.query, filtered, reasoningMode, {
+        const structured = await processResults(args.query, prioritized, reasoningMode, {
           maxPrinciples: args.limit ?? 3,
           file: args.file,
           sourceType,
