@@ -160,10 +160,10 @@ describe('ContextMapBuilder', () => {
     const entry = map.items[0];
     assert.equal(entry.id, 'rule-1');
     assert.equal(entry.source, 'decisions');
-    assert.ok(Array.isArray(entry.codeTerms));
-    assert.ok(Array.isArray(entry.filePatterns));
-    assert.ok(Array.isArray(entry.importTriggers));
-    assert.ok(Array.isArray(entry.functionPatterns));
+    assert.ok(Array.isArray(entry.match.codeTerms));
+    assert.ok(Array.isArray(entry.match.filePatterns));
+    assert.ok(Array.isArray(entry.match.importTriggers));
+    assert.ok(Array.isArray(entry.match.functionPatterns));
     assert.ok(entry.injection);
     assert.ok(entry.injection.constraint);
   });
@@ -179,7 +179,7 @@ describe('ContextMapBuilder', () => {
     const entry = map.items[0];
     assert.equal(entry.id, 'gap:fresh-pkg');
     assert.equal(entry.type, 'post-training');
-    assert.deepStrictEqual(entry.importTriggers, ['fresh-pkg']);
+    assert.deepStrictEqual(entry.match.importTriggers, ['fresh-pkg']);
     assert.ok(entry.injection.correction.includes('fresh-pkg@2.0.0'));
     assert.ok(entry.injection.correction.includes('2026-01-15'));
   });
@@ -229,7 +229,7 @@ describe('ContextMapBuilder', () => {
     const map = await builder.buildFromKnowledge([
       { id: 'f1', text: 'Validate all stripe webhook signatures' },
     ]);
-    assert.deepStrictEqual(map.items[0].functionPatterns, []);
+    assert.deepStrictEqual(map.items[0].match.functionPatterns, []);
   });
 
   it('api mode with mocked _callLLM populates functionPatterns', async () => {
@@ -245,8 +245,8 @@ describe('ContextMapBuilder', () => {
     ]);
 
     const entry = map.items[0];
-    assert.deepStrictEqual(entry.functionPatterns, ['handlePayment', 'processRefund']);
-    assert.ok(entry.importTriggers.includes('stripe'));
+    assert.deepStrictEqual(entry.match.functionPatterns, ['handlePayment', 'processRefund']);
+    assert.ok(entry.match.importTriggers.includes('stripe'));
   });
 });
 
@@ -258,30 +258,36 @@ describe('ContextMapMatcher', () => {
       id: 'stripe-rule',
       source: 'decisions',
       type: 'decision',
-      codeTerms: ['payment', 'charge'],
-      filePatterns: ['**/api/**'],
-      importTriggers: ['stripe'],
-      functionPatterns: ['handlePayment'],
+      match: {
+        codeTerms: ['payment', 'charge'],
+        filePatterns: ['**/api/**'],
+        importTriggers: ['stripe'],
+        functionPatterns: ['handlePayment'],
+      },
       injection: { correction: null, constraint: 'Do not use Charges API. Use PaymentIntents.', example: null },
     },
     {
       id: 'zod-rule',
       source: 'decisions',
       type: 'decision',
-      codeTerms: ['validation', 'schema'],
-      filePatterns: ['**/api/**', '**/schema*/**'],
-      importTriggers: ['zod'],
-      functionPatterns: [],
+      match: {
+        codeTerms: ['validation', 'schema'],
+        filePatterns: ['**/api/**', '**/schema*/**'],
+        importTriggers: ['zod'],
+        functionPatterns: [],
+      },
       injection: { correction: null, constraint: 'Always validate with zod', example: null },
     },
     {
       id: 'auth-rule',
       source: 'decisions',
       type: 'decision',
-      codeTerms: ['authenticate', 'token'],
-      filePatterns: ['**/auth/**', '**/middleware/**'],
-      importTriggers: ['passport'],
-      functionPatterns: ['verifyToken'],
+      match: {
+        codeTerms: ['authenticate', 'token'],
+        filePatterns: ['**/auth/**', '**/middleware/**'],
+        importTriggers: ['passport'],
+        functionPatterns: ['verifyToken'],
+      },
       injection: { correction: null, constraint: 'Use passport for auth', example: null },
     },
   ];
@@ -342,10 +348,12 @@ describe('ContextMapMatcher', () => {
       id: `item-${i}`,
       source: 'test',
       type: 'decision',
-      codeTerms: ['shared'],
-      filePatterns: ['**'],
-      importTriggers: [],
-      functionPatterns: [],
+      match: {
+        codeTerms: ['shared'],
+        filePatterns: ['**'],
+        importTriggers: [],
+        functionPatterns: [],
+      },
       injection: { correction: null, constraint: 'some rule', example: null },
     }));
 
@@ -386,10 +394,12 @@ describe('ContextMapMatcher', () => {
       id: 'gap:new-pkg',
       source: 'gap-detector',
       type: 'post-training',
-      codeTerms: [],
-      filePatterns: ['**'],
-      importTriggers: ['new-pkg'],
-      functionPatterns: [],
+      match: {
+        codeTerms: [],
+        filePatterns: ['**'],
+        importTriggers: ['new-pkg'],
+        functionPatterns: [],
+      },
       injection: { correction: 'new-pkg@1.0.0. Post-training.', constraint: null, example: null },
     };
 
