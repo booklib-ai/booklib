@@ -23,10 +23,12 @@ const prebuiltMap = {
       id: 'gap:my-lib',
       source: 'gap-detector',
       type: 'post-training',
-      codeTerms: [],
-      filePatterns: ['**'],
-      importTriggers: ['my-lib'],
-      functionPatterns: [],
+      match: {
+        codeTerms: [],
+        filePatterns: ['**'],
+        importTriggers: ['my-lib'],
+        functionPatterns: [],
+      },
       injection: {
         correction: 'my-lib@3.0.0 (published 2026-03-01). Post-training.',
         constraint: null,
@@ -37,10 +39,12 @@ const prebuiltMap = {
       id: 'team-no-legacy',
       source: 'team-decisions',
       type: 'decision',
-      codeTerms: ['payment', 'billing'],
-      filePatterns: ['**/api/**'],
-      importTriggers: [],
-      functionPatterns: ['legacyMethod'],
+      match: {
+        codeTerms: ['payment', 'billing'],
+        filePatterns: ['**/api/**'],
+        importTriggers: [],
+        functionPatterns: ['legacyMethod'],
+      },
       injection: {
         correction: null,
         constraint: 'Do not use legacyMethod for payments. Use newPaymentFlow instead.',
