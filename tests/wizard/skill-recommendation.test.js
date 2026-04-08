@@ -228,6 +228,25 @@ describe('Progress bar: throttle prevents line spam during indexing', () => {
     assert.ok(last.includes('100%'), 'final render should show 100%');
   });
 
+  it('should show "Saving" message after progress reaches 100% so user knows work continues', () => {
+    const messages = [];
+
+    // Simulate the full onProgress + onStatus flow from the wizard
+    function onProgress({ current, total }) {
+      messages.push(`Indexing docs/ 100% (${current}/${total} chunks)`);
+    }
+    function onStatus(phase) {
+      if (phase === 'saving') messages.push('Saving docs/ index...');
+    }
+
+    onProgress({ current: 1368, total: 1368 });
+    onStatus('saving');
+
+    assert.equal(messages.length, 2);
+    assert.ok(messages[0].includes('100%'), 'should show completed progress');
+    assert.ok(messages[1].includes('Saving'), 'should transition to saving message');
+  });
+
   it('should not suppress any updates when spaced 500ms+ apart', () => {
     const calls = [];
     let lastProgressUpdate = 0;
