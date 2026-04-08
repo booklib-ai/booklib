@@ -164,6 +164,57 @@ describe('Skill recommendation: overload reset flow', () => {
   });
 });
 
+describe('Progress bar: throttle prevents line spam during indexing', () => {
+  it('should suppress updates within 500ms window but always allow final update', () => {
+    const calls = [];
+    let lastProgressUpdate = 0;
+
+    // Simulate the throttle logic from wizard/index.js onProgress callback
+    function onProgress({ current, total }, now) {
+      if (now - lastProgressUpdate < 500 && current < total) return;
+      lastProgressUpdate = now;
+      calls.push({ current, total });
+    }
+
+    // t=1000: first call fires (1000 - 0 >= 500)
+    onProgress({ current: 32, total: 1368 }, 1000);
+    // t=1100ms: suppressed (within 500ms window)
+    onProgress({ current: 64, total: 1368 }, 1100);
+    // t=1200ms: suppressed
+    onProgress({ current: 96, total: 1368 }, 1200);
+    // t=1500ms: fires (500ms since last)
+    onProgress({ current: 128, total: 1368 }, 1500);
+    // t=1600ms: suppressed
+    onProgress({ current: 160, total: 1368 }, 1600);
+    // t=1700ms: final update (current === total) always fires despite throttle
+    onProgress({ current: 1368, total: 1368 }, 1700);
+
+    assert.equal(calls.length, 3, 'should fire 3 times: initial, 500ms, and final');
+    assert.deepEqual(calls[0], { current: 32, total: 1368 });
+    assert.deepEqual(calls[1], { current: 128, total: 1368 });
+    assert.deepEqual(calls[2], { current: 1368, total: 1368 });
+  });
+
+  it('should not suppress any updates when spaced 500ms+ apart', () => {
+    const calls = [];
+    let lastProgressUpdate = 0;
+
+    function onProgress({ current, total }, now) {
+      if (now - lastProgressUpdate < 500 && current < total) return;
+      lastProgressUpdate = now;
+      calls.push(current);
+    }
+
+    onProgress({ current: 100, total: 500 }, 1000);
+    onProgress({ current: 200, total: 500 }, 1500);
+    onProgress({ current: 300, total: 500 }, 2000);
+    onProgress({ current: 400, total: 500 }, 2500);
+    onProgress({ current: 500, total: 500 }, 3000);
+
+    assert.equal(calls.length, 5, 'all updates should fire when 500ms apart');
+  });
+});
+
 describe('Skill recommendation: label simplification', () => {
   it('should show "recommended" or nothing — no source labels', () => {
     const isRecommended = true;
