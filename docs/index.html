@@ -479,7 +479,7 @@
     <div class="demo-grid">
       <div>
         <h2 class="section-title" style="margin-bottom: var(--space-4);">How it works</h2>
-        <p style="color: var(--text-dim); font-size: var(--text-lg); margin-bottom: var(--space-6);">BookLib integrates with your AI agent via <strong>MCP</strong> — the agent calls BookLib tools directly when it needs knowledge. No commands to remember, no context dumps. The agent asks, BookLib answers with structured, relevant principles.</p>
+        <p style="color: var(--text-dim); font-size: var(--text-lg); margin-bottom: var(--space-6);">BookLib detects what your AI doesn't know, fixes it automatically, and delivers context via <strong>MCP</strong> and runtime hooks. No commands to remember — knowledge flows to your AI as it writes code.</p>
 
         <div style="background: var(--primary-dim); border-left: 4px solid var(--primary); padding: var(--space-4); border-radius: 4px; margin-bottom: var(--space-6);">
           <p style="font-size: var(--text-sm); font-weight: 600; color: #fff;">Structured, not dumped</p>
@@ -487,11 +487,12 @@
         </div>
 
         <ul style="color: var(--text-dim); list-style: none; display: flex; flex-direction: column; gap: var(--space-3);">
-          <li style="display: flex; gap: var(--space-3);"><span style="color: var(--primary); font-weight: 800;">✔</span> MCP integration — works with Claude Code, Cursor, Copilot, Gemini, and more</li>
+          <li style="display: flex; gap: var(--space-3);"><span style="color: var(--primary); font-weight: 800;">✔</span> Post-training gap detection — 10 ecosystems, cross-referenced with source code</li>
+          <li style="display: flex; gap: var(--space-3);"><span style="color: var(--primary); font-weight: 800;">✔</span> Runtime injection — PreToolUse/PostToolUse hooks powered by context maps</li>
+          <li style="display: flex; gap: var(--space-3);"><span style="color: var(--primary); font-weight: 800;">✔</span> Auto-resolution — Context7, GitHub releases, web docs fetched automatically</li>
           <li style="display: flex; gap: var(--space-3);"><span style="color: var(--primary); font-weight: 800;">✔</span> Hybrid search — BM25 + vector + cross-encoder reranking</li>
-          <li style="display: flex; gap: var(--space-3);"><span style="color: var(--primary); font-weight: 800;">✔</span> Knowledge graph with auto-linking</li>
-          <li style="display: flex; gap: var(--space-3);"><span style="color: var(--primary); font-weight: 800;">✔</span> Multi-dimensional graph search — finds concept intersections</li>
-          <li style="display: flex; gap: var(--space-3);"><span style="color: var(--primary); font-weight: 800;">✔</span> Works beyond code — product, writing, strategy, design</li>
+          <li style="display: flex; gap: var(--space-3);"><span style="color: var(--primary); font-weight: 800;">✔</span> Processing modes — fast (BM25), local (Ollama), or cloud AI</li>
+          <li style="display: flex; gap: var(--space-3);"><span style="color: var(--primary); font-weight: 800;">✔</span> 14 AI tools — Claude, Cursor, Copilot, Gemini, Codex, Windsurf, and more</li>
         </ul>
       </div>
       <div class="terminal">
