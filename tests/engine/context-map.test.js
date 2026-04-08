@@ -301,22 +301,35 @@ describe('ContextMapMatcher', () => {
     assert.ok(results[0]._strength >= 4);
   });
 
-  it('matches by filePatterns', () => {
+  it('filePattern alone is below team threshold — needs additional signal', () => {
     const matcher = new ContextMapMatcher(sampleItems);
     const results = matcher.match('src/auth/login.js', 'someCode()', []);
-
     const authMatch = results.find(r => r.id === 'auth-rule');
-    assert.ok(authMatch, 'should match auth-rule via filePattern');
-    assert.ok(authMatch._strength >= 1);
+    assert.equal(authMatch, undefined, 'filePattern alone (strength 1) should not match team knowledge');
   });
 
-  it('matches by codeTerms in code block', () => {
+  it('filePattern + codeTerm together matches team knowledge', () => {
+    const matcher = new ContextMapMatcher(sampleItems);
+    // auth-rule has filePatterns: ['**/auth/**'] and codeTerms: ['authenticate', 'token']
+    const results = matcher.match('src/auth/login.js', 'const token = authenticate(user)', []);
+    const authMatch = results.find(r => r.id === 'auth-rule');
+    assert.ok(authMatch, 'filePattern + codeTerm (strength 3) should match');
+    assert.ok(authMatch._strength >= 3);
+  });
+
+  it('codeTerm alone is below team threshold — needs additional signal', () => {
     const matcher = new ContextMapMatcher(sampleItems);
     const results = matcher.match('src/utils/helper.js', 'const validation = schema.parse(input)', []);
-
     const zodMatch = results.find(r => r.id === 'zod-rule');
-    assert.ok(zodMatch, 'should match zod-rule via codeTerms');
-    assert.ok(zodMatch._strength >= 2);
+    assert.equal(zodMatch, undefined, 'codeTerm alone (strength 2) should not match team knowledge');
+  });
+
+  it('codeTerm + filePattern together matches team knowledge', () => {
+    const matcher = new ContextMapMatcher(sampleItems);
+    // zod-rule has filePatterns: ['**/api/**', '**/schema*/**'] and codeTerms: ['validation', 'schema']
+    const results = matcher.match('src/api/validate.js', 'const validation = schema.parse(input)', []);
+    const zodMatch = results.find(r => r.id === 'zod-rule');
+    assert.ok(zodMatch, 'codeTerm + filePattern should match');
   });
 
   it('returns empty for unrelated file', () => {
@@ -413,5 +426,111 @@ describe('ContextMapMatcher', () => {
     const withImport = matcher.match('src/any/file.js', 'some code', ['new-pkg']);
     assert.equal(withImport.length, 1);
     assert.equal(withImport[0].id, 'gap:new-pkg');
+  });
+});
+
+// ── Regression tests for specific bug fixes ────────────────────────────────
+
+describe('subpath import matching (fix: next matches next/navigation)', () => {
+  it('matches trigger "next" against import "next/navigation"', () => {
+    const items = [{
+      id: 'gap:next', type: 'post-training',
+      match: { importTriggers: ['next'], codeTerms: [], filePatterns: ['**'], functionPatterns: [] },
+      injection: { correction: 'next@14 post-training', constraint: null, example: null },
+    }];
+    const matcher = new ContextMapMatcher(items);
+    const result = matcher.match('src/page.tsx', '', ['next/navigation']);
+    assert.ok(result.length >= 1, 'should match subpath import next/navigation against trigger next');
+    assert.equal(result[0].id, 'gap:next');
+  });
+
+  it('matches trigger "@supabase/supabase-js" against import "@supabase/supabase-js/dist/module"', () => {
+    const items = [{
+      id: 'gap:supabase', type: 'post-training',
+      match: { importTriggers: ['@supabase/supabase-js'], codeTerms: [], filePatterns: ['**'], functionPatterns: [] },
+      injection: { correction: 'supabase post-training', constraint: null, example: null },
+    }];
+    const matcher = new ContextMapMatcher(items);
+    const result = matcher.match('src/db.ts', '', ['@supabase/supabase-js/dist/module']);
+    assert.ok(result.length >= 1, 'should match scoped package subpath');
+  });
+
+  it('does not match trigger "next" against import "nextauth"', () => {
+    const items = [{
+      id: 'gap:next', type: 'post-training',
+      match: { importTriggers: ['next'], codeTerms: [], filePatterns: ['**'], functionPatterns: [] },
+      injection: { correction: 'next post-training', constraint: null, example: null },
+    }];
+    const matcher = new ContextMapMatcher(items);
+    const result = matcher.match('src/auth.ts', '', ['nextauth']);
+    assert.equal(result.length, 0, 'nextauth should NOT match trigger next — different package');
+  });
+});
+
+describe('team knowledge minimum strength (fix: broad codeTerms no longer leak)', () => {
+  it('team decision with only codeTerm match (strength 2) does not inject', () => {
+    const items = [{
+      id: 'team-1', type: 'decision',
+      match: { codeTerms: ['api'], filePatterns: [], importTriggers: [], functionPatterns: [] },
+      injection: { correction: null, constraint: 'Use REST conventions', example: null },
+    }];
+    const matcher = new ContextMapMatcher(items);
+    const result = matcher.match('src/components/Header.tsx', 'some api call', []);
+    assert.equal(result.length, 0, 'single codeTerm match should not inject team knowledge');
+  });
+
+  it('team decision with codeTerm + filePattern match (strength 3) does inject', () => {
+    const items = [{
+      id: 'team-2', type: 'decision',
+      match: { codeTerms: ['isochrone'], filePatterns: ['**/api/**'], importTriggers: [], functionPatterns: [] },
+      injection: { correction: null, constraint: 'Feature gate paid APIs', example: null },
+    }];
+    const matcher = new ContextMapMatcher(items);
+    const result = matcher.match('src/api/isochrone/route.ts', 'const isochrone = await fetch()', []);
+    assert.ok(result.length >= 1, 'codeTerm + filePattern should be strong enough');
+  });
+
+  it('post-training item with only codeTerm match still injects (lower threshold)', () => {
+    const items = [{
+      id: 'gap:pkg', type: 'post-training',
+      match: { codeTerms: [], filePatterns: ['**'], importTriggers: ['my-pkg'], functionPatterns: [] },
+      injection: { correction: 'my-pkg post-training', constraint: null, example: null },
+    }];
+    const matcher = new ContextMapMatcher(items);
+    const result = matcher.match('src/any.ts', '', ['my-pkg']);
+    assert.ok(result.length >= 1, 'post-training should inject with import trigger alone');
+  });
+});
+
+describe('project-scoped context map (fix: global knowledge does not auto-inject)', () => {
+  it('buildFromKnowledge wraps keywords in match object', async () => {
+    const builder = new ContextMapBuilder({ processingMode: 'fast' });
+    const map = await builder.buildFromKnowledge([
+      { id: 'test', text: 'Use stripe PaymentIntents API', source: 'test', type: 'decision' },
+    ]);
+    const item = map.items[0];
+    assert.ok(item.match, 'item should have match property');
+    assert.ok(Array.isArray(item.match.codeTerms), 'match.codeTerms should be array');
+    assert.ok(Array.isArray(item.match.importTriggers), 'match.importTriggers should be array');
+    assert.ok(item.match.importTriggers.includes('stripe'), 'should extract stripe as import trigger');
+  });
+
+  it('buildFromGaps wraps in match object with importTriggers', async () => {
+    const builder = new ContextMapBuilder({ processingMode: 'fast' });
+    const map = await builder.buildFromGaps([
+      { name: 'next', version: '16.0.0', ecosystem: 'npm', publishDate: new Date('2026-01-01') },
+    ]);
+    const item = map.items[0];
+    assert.ok(item.match, 'gap item should have match property');
+    assert.ok(item.match.importTriggers.includes('next'), 'should have package as import trigger');
+    assert.equal(item.type, 'post-training');
+  });
+});
+
+describe('extractDecisions skips template files', () => {
+  it('extractKeywords still works on real decision text', () => {
+    const result = extractKeywords('Every feature MUST work out of the box. Default polling MUST be 30 seconds.');
+    assert.ok(result.codeTerms.includes('feature'), 'should extract feature');
+    assert.ok(result.codeTerms.includes('polling'), 'should extract polling');
   });
 });
