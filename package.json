@@ -1,7 +1,7 @@
 {
   "name": "@booklib/core",
   "version": "2.0.0",
-  "description": "Knowledge bookkeeping for AI agents — expert skills, hybrid search, knowledge graph, MCP tools",
+  "description": "Detects AI knowledge gaps in your codebase and fixes them — post-training API detection, team knowledge, and runtime context injection via MCP for Claude, Cursor, Copilot, and 10+ AI coding tools",
   "author": "Stanislav Zhuravel <zhuravelstas@gmail.com>",
   "bin": {
     "skills": "bin/skills.cjs",
@@ -21,15 +21,20 @@
     "LICENSE"
   ],
   "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "ai-coding",
+    "ai-agent",
+    "context-engineering",
     "claude",
     "claude-code",
-    "ai",
-    "skills",
-    "agent-skills",
-    "mcp",
-    "rag",
+    "cursor",
+    "copilot",
+    "codex",
     "knowledge-graph",
-    "code-review"
+    "rag",
+    "code-review",
+    "ai-context"
   ],
   "license": "MIT",
   "homepage": "https://booklib-ai.github.io/booklib/",
