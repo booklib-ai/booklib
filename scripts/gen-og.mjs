@@ -98,12 +98,13 @@ const HTML = `<!DOCTYPE html>
 <div class="left">
   <div class="org">booklib-ai / skills</div>
   <h1>Skills</h1>
-  <p class="tagline">Expert knowledge from 22 canonical programming books — packaged as AI agent skills.</p>
+  <p class="tagline">Expert knowledge from 24 canonical programming books — packaged as AI agent skills.</p>
   <div class="pills">
-    <span class="pill">22 skills</span>
-    <span class="pill">Claude Code</span>
-    <span class="pill">Cursor</span>
-    <span class="pill">Copilot</span>
+    <span class="pill">24 skills</span>
+    <span class="pill">760 tests</span>
+    <span class="pill">10 ecosystems</span>
+    <span class="pill">14 AI tools</span>
+    <span class="pill">v2.1.0</span>
   </div>
 </div>
 
@@ -133,7 +134,7 @@ try {
 const browser = await puppeteer.default.launch({ headless: true });
 const page = await browser.newPage();
 await page.setViewport({ width: 1200, height: 630, deviceScaleFactor: 2 });
-await page.setContent(HTML, { waitUntil: "networkidle0" });
+await page.setContent(HTML, { waitUntil: "domcontentloaded" });
 const buf = await page.screenshot({ type: "png" });
 await browser.close();
 
