@@ -195,6 +195,39 @@ describe('Progress bar: throttle prevents line spam during indexing', () => {
     assert.deepEqual(calls[2], { current: 1368, total: 1368 });
   });
 
+  it('should render progress as a single line so spinner updates in-place', () => {
+    // The progress bar is passed to clack's s.message() which overwrites the
+    // current spinner line. If the string contains newlines, it breaks into
+    // multiple terminal lines and creates the "line spam" effect.
+    function renderProgressLine({ current, total, docPath, elapsed }) {
+      const pct = Math.round((current / total) * 100);
+      const barWidth = 20;
+      const filled = Math.round((current / total) * barWidth);
+      const bar = '\u2588'.repeat(filled) + '\u2591'.repeat(barWidth - filled);
+      return `Indexing ${docPath} ${bar} ${pct}% (${current}/${total} chunks, ${elapsed}s)`;
+    }
+
+    const snapshots = [
+      { current: 200, total: 1368, docPath: 'docs/', elapsed: '1' },
+      { current: 684, total: 1368, docPath: 'docs/', elapsed: '5' },
+      { current: 1368, total: 1368, docPath: 'docs/', elapsed: '9' },
+    ];
+
+    for (const snap of snapshots) {
+      const line = renderProgressLine(snap);
+      assert.ok(!line.includes('\n'), `progress output must be single line, got: ${line}`);
+      assert.ok(line.includes('Indexing'), 'should contain action label');
+      assert.ok(line.includes('\u2588'), 'should contain filled bar segments');
+      assert.ok(line.includes(`${snap.current}/${snap.total}`), 'should show current/total');
+    }
+
+    // Successive renders should differ (proving in-place update changes content)
+    const first = renderProgressLine(snapshots[0]);
+    const last = renderProgressLine(snapshots[2]);
+    assert.notEqual(first, last, 'progress should change between updates');
+    assert.ok(last.includes('100%'), 'final render should show 100%');
+  });
+
   it('should not suppress any updates when spaced 500ms+ apart', () => {
     const calls = [];
     let lastProgressUpdate = 0;
