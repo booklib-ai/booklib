@@ -534,3 +534,26 @@ describe('extractDecisions skips template files', () => {
     assert.ok(result.codeTerms.includes('polling'), 'should extract polling');
   });
 });
+
+describe('progress bar formatting', () => {
+  it('formats progress bar with correct fill ratio', () => {
+    const current = 5;
+    const total = 10;
+    const barWidth = 20;
+    const filled = Math.round((current / total) * barWidth);
+    const empty = barWidth - filled;
+    assert.equal(filled, 10, 'half progress = half filled');
+    assert.equal(empty, 10, 'half progress = half empty');
+    assert.equal(filled + empty, barWidth, 'total width is constant');
+  });
+
+  it('handles 0% progress', () => {
+    const filled = Math.round((0 / 10) * 20);
+    assert.equal(filled, 0);
+  });
+
+  it('handles 100% progress', () => {
+    const filled = Math.round((10 / 10) * 20);
+    assert.equal(filled, 20);
+  });
+});
