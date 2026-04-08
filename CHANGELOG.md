@@ -5,6 +5,65 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2026-04-08
+
+### Added
+- **Runtime micro-injection system** — PreToolUse/PostToolUse hooks inject 3-10 lines of context before/after code edits based on a pre-computed context map
+- **Context map** — maps knowledge items to code scopes via filePatterns, codeTerms, importTriggers, functionPatterns; built during `booklib init`
+- **PostToolUse contradiction detection** — checks written code against team constraints in real-time
+- **Processing modes** — fast (BM25-only), local (Ollama), API (cloud LLM) with wizard setup
+- **Local AI via Ollama** — real model reasoning with auto-detection and wizard setup help
+- **Context7 connector** — auto-resolves post-training knowledge gaps via Context7 API
+- **GitHub connector** — indexes releases, wiki, and discussions
+- **Notion connector** — indexes pages, databases, and search results
+- **Knowledge gap detection** — scans deps across 8 registries, checks publish dates against model training cutoff
+- **Gap resolution chain** — Context7 → GitHub → manual suggestion, fully automated
+- **Unknown import detection** — flags imports not covered by BookLib knowledge
+- **Team decision contradiction detection** — checks code against captured team rules
+- **Source management** — `booklib connect`, `booklib disconnect`, `booklib sources` for doc sources
+- **Web connector** — scrapes documentation URLs into markdown for indexing
+- **Local connector** — file watching with filters and incremental updates
+- **Source type auto-detection** — heuristics identify PKM vaults, SDD specs, API docs
+- **Pre-built index support** — instant setup via `@booklib/index` package (~93 MB)
+- **Sprint workflow** — `/sprint` command with 18 personas, 4 rings, and self-correcting loops
+- **XML principle extraction** — splits chunks into individual actionable principles
+- **Structured MCP responses** — returns principles with context, not raw chunks
+- **MCP priority lookup** — most relevant tool fires first
+- **Auto-linker** — connects knowledge nodes to matching skills automatically
+- **Universal markdown splitter** — atomic chunking with parent/sibling metadata
+- **Sibling expansion** — pulls missing chunks when >=50% of siblings match a query
+- **Relevance threshold** — reranker filters truly irrelevant results
+- **GPU auto-detection** — batch embedding for faster indexing
+- **Colored progress bar** — cyan/gray bar with elapsed time during doc indexing
+- **Navigation legend** — colorful key hints on all interactive prompts (↑↓ navigate · space toggle · enter submit)
+- **Friendly spinner messages** — "Picking the best skills for your stack..." instead of dry technical text
+- **Auto-gitignore** — wizard adds derived BookLib files to .gitignore during init
+- **`npm test` script** — `node --test` runs 760 tests
+- **CI test gating** — tests run on every PR, push to main, and before npm publish
+
+### Fixed
+- **Batch vectra insert** — single disk write instead of 1368 individual read-modify-write cycles; save phase drops from 30s+ to <1s
+- **Corrupt index recovery** — truncated index.json is detected and rebuilt instead of crashing
+- **EBADF in tests** — CoreML fd2 redirect broke process.stderr permanently; replaced with clean console.warn + OS_ACTIVITY_MODE suppression
+- **Scoped npm names** — `@types/react-dom` no longer crashes Context7 source registration
+- **Progress bar line spam** — 500ms throttle prevents spinner from creating new lines
+- **Saving phase UX** — spinner shows "Almost there, saving..." after progress hits 100%
+- **Doc pre-selection** — all detected doc sources pre-selected in wizard (opt-out instead of opt-in)
+- **Skill recommendation** — search query includes frameworks, language fallback always merges, pre-select only recommended skills, simplified labels
+- **List indentation** — post-training deps and other lists visually nested under headers
+- **12-language ecosystem support** — parsers for pubspec.yaml, Cargo.toml dev/build deps, pyproject.toml optional/Poetry, Package.swift, Directory.Packages.props, composer.json
+- **Monorepo detection** — scans subdirectory manifests for frameworks
+- **Self-referencing dep exclusion** — project's own package name filtered from gap detection
+- **BM25 incremental append** — uses `bm25.add()` instead of rebuilding entire index
+- **Template file filtering** — spec-template.md rules no longer treated as real decisions
+- **Project-scoped context map** — global knowledge never auto-injects into project hooks
+
+### Changed
+- **760 tests** across 60 files (up from 62 tests in 2.0.0)
+- **MCP tools renamed** — lookup, review_file, brief, remember, recalled, connect, save_progress
+- **Package renamed** to `@booklib/core` (from `booklib`)
+- **Wizard flow** — gap detection, doc indexing, context map building integrated into init
+
 ## [2.0.0] - 2026-04-01
 
 ### Breaking
