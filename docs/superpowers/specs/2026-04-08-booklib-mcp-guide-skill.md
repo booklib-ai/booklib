@@ -40,27 +40,38 @@ Description: 139 chars (under 250 truncation threshold).
 | Tool | When to call | Key params |
 |------|-------------|------------|
 | `lookup` | Before working with unfamiliar APIs or post-training deps | `query` (required), `file`, `limit` |
-| `review_file` | User asks for deep code review of a specific file | `skill_name`, `file_path` |
+| `review` | User asks for deep code review of a specific file | `skill_name`, `file_path` |
 | `brief` | Starting a new task or switching context (call once, not per edit) | `task`, `file` |
 | `remember` | User says "remember this", "capture", or makes a team decision | `title`, `type`, `tags` |
 | `recalled` | User asks "what did we capture?" or wants to see saved knowledge | `type_filter` |
 | `connect` | Two knowledge nodes are related, user wants to link them | `from`, `to`, `type` |
-| `save_progress` | Handing off to another agent or ending a long session | `goal`, `next`, `progress` |
-| `check_imports` | After writing code that uses unfamiliar or new APIs | `file_path` |
-| `check_decisions` | After writing code that touches architecture or API choices | `file_path` |
+| `save` | Handing off to another agent or ending a long session | `goal`, `next`, `progress` |
+| `verify` | After writing code that uses unfamiliar or new APIs | `file_path` |
+| `guard` | After writing code that touches architecture or API choices | `file_path` |
+
+### Renames from 2.0.0
+
+| Old name | New name | Reason |
+|----------|----------|--------|
+| `review_file` | `review` | "file" redundant — it's always a file |
+| `save_progress` | `save` | Simpler, matches agent intent |
+| `check_imports` | `verify` | Removes noise prefix, single word |
+| `check_decisions` | `guard` | Expresses protection intent |
+
+Old names kept as aliases in `booklib-mcp.js` for backward compatibility.
 
 **Section 2: Decision Tree**
 
 ```
 Need current docs for a post-training library  → lookup
-Need a full expert review of a file            → review_file
+Need a full expert review of a file            → review
 Starting a new task, need context              → brief
 User wants to save a decision or insight       → remember
 User asks "what have we captured?"             → recalled
 Want to link two pieces of knowledge           → connect
-Code uses unknown imports                      → check_imports
-Code might violate team rules                  → check_decisions
-Ending session or handing off                  → save_progress
+Code uses unknown imports                      → verify
+Code might violate team rules                  → guard
+Ending session or handing off                  → save
 ```
 
 **Section 3: Common Workflows**
@@ -68,10 +79,10 @@ Ending session or handing off                  → save_progress
 Three concrete sequences:
 
 1. **Gap detection → resolution:**
-   `check_imports` on file → finds unknown API → `lookup` with the library name → use returned docs to write correct code
+   `verify` on file → finds unknown API → `lookup` with the library name → use returned docs to write correct code
 
 2. **Team knowledge enforcement:**
-   Write code → `check_decisions` on file → see contradictions → fix → commit
+   Write code → `guard` on file → see contradictions → fix → commit
 
 3. **Context briefing:**
    `brief` with task + file path → read expert + team knowledge → implement → `remember` any new decisions made during the work
@@ -80,7 +91,7 @@ Three concrete sequences:
 
 - Don't call `lookup` for standard language features you already know (React hooks, Python builtins, Go stdlib)
 - Don't call `brief` on every edit — once per task switch is enough
-- Don't call `check_imports` on standard library imports
+- Don't call `verify` on standard library imports
 - Don't call `remember` for ephemeral observations — only durable decisions, patterns, and insights
 - Don't use aggressive trigger language in tool descriptions — causes overtriggering on Claude 4.6
 
@@ -138,7 +149,7 @@ These use the same `<!-- booklib-standards-start/end -->` markers and get the sa
 
 ## What This Does NOT Change
 
-- `bin/booklib-mcp.js` — tool definitions stay as-is (already correct)
+- `bin/booklib-mcp.js` — tool names renamed (review_file→review, save_progress→save, check_imports→verify, check_decisions→guard), old names kept as aliases
 - `lib/mcp-config-writer.js` — MCP registration stays as-is
 - `hooks/` — hook files stay as-is
 - `lib/project-initializer.js` — uses `renderInstinctBlock()` which we update
