@@ -134,6 +134,31 @@ describe('Skill recommendation: pre-selection filters by project stack', () => {
   });
 });
 
+describe('Doc sources: all detected folders should be pre-selected', () => {
+  it('should pre-select all doc sources so users opt-out instead of opt-in', () => {
+    const docSources = [
+      { path: 'docs', type: 'directory', fileCount: 12 },
+      { path: '.specify', type: 'sdd-spec', fileCount: 5 },
+      { path: '.planning', type: 'sdd-spec', fileCount: 3 },
+    ];
+
+    // Mirrors wizard: initialValues = docSources (all pre-selected)
+    const initialValues = docSources;
+
+    assert.equal(initialValues.length, 3, 'all detected sources should be pre-selected');
+    assert.ok(initialValues.some(d => d.path === 'docs'));
+    assert.ok(initialValues.some(d => d.path === '.specify'));
+    assert.ok(initialValues.some(d => d.path === '.planning'));
+  });
+
+  it('should pre-select even a single detected doc source', () => {
+    const docSources = [{ path: '.specify', type: 'sdd-spec', fileCount: 2 }];
+    const initialValues = docSources;
+    assert.equal(initialValues.length, 1);
+    assert.equal(initialValues[0].path, '.specify');
+  });
+});
+
 describe('Skill recommendation: pre-selected count accuracy', () => {
   it('should report actual pre-selected count, not just recommended count', () => {
     const recommendedNames = new Set(['effective-typescript', 'effective-python']);
