@@ -3,7 +3,7 @@
 **What it does:** Local knowledge platform. 25 skills + hybrid search (BM25 + semantic + graph). Zero cloud.
 
 **How it integrates:**
-- Claude Code: `search_skills`, `audit_content`, `create_note` (MCP)
+- Claude Code: `lookup`, `review_file`, `remember`, `check_imports`, `check_decisions` (MCP)
 - Copilot/Gemini: CLI via `node bin/booklib.js`
 - Auto-loaded in `.claude/CLAUDE.md`
 

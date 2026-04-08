@@ -59,10 +59,12 @@ javascript (Node.js >= 18, ES modules)
 
 ## BookLib
 BookLib MCP tools are available for code quality guidance.
-- Before answering best-practices questions → search_skills
-- When reviewing or writing code → search_skills for relevant principles
-- When user says "remember/note/capture this" → create_note
-- For deep file review against a skill → audit_content
+- Before answering best-practices questions → lookup
+- When reviewing or writing code → lookup for relevant principles
+- When user says "remember/note/capture this" → remember
+- For deep file review against a skill → review_file
+- When checking if imports are covered → check_imports
+- When checking code against team decisions → check_decisions
 - When code quality issues accumulate → suggest running `booklib doctor`
 
 ## Active Skills

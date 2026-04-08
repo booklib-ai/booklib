@@ -20,7 +20,7 @@
 - `lookup`: Search skills before giving best-practices advice
 - `brief`: Get expert briefing + architecture context before code work
 - `remember`: Capture insights when user says "take a note"
-- `audit_content`: Deep file review against specific skill
+- `review_file`: Deep file review against specific skill
 - `check_imports`: Verify new code doesn't import post-May-2025 packages
 - `check_decisions`: Detect code that contradicts team decisions
 
