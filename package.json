@@ -23,6 +23,9 @@
     "type": "git",
     "url": "git+https://github.com/booklib-ai/booklib.git"
   },
+  "scripts": {
+    "test": "node --test 'tests/**/*.test.js'"
+  },
   "engines": {
     "node": ">=18"
   },

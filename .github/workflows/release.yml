@@ -21,6 +21,9 @@ jobs:
       - name: Install dependencies
         run: npm install --ignore-scripts
 
+      - name: Run tests
+        run: npm test
+
       - name: Set version from tag
         run: |
           TAG_VERSION=${GITHUB_REF_NAME#v}
