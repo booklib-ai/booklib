@@ -2,7 +2,7 @@
   "name": "@booklib/core",
   "version": "2.0.0",
   "description": "Knowledge bookkeeping for AI agents — expert skills, hybrid search, knowledge graph, MCP tools",
-  "author": "BookLib Contributors <hello@booklib.ai>",
+  "author": "Stanislav Zhuravel <zhuravelstas@gmail.com>",
   "bin": {
     "skills": "bin/skills.cjs",
     "booklib": "bin/booklib.js",
