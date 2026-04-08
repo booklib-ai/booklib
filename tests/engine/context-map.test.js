@@ -557,3 +557,19 @@ describe('progress bar formatting', () => {
     assert.equal(filled, 20);
   });
 });
+
+
+describe('progress bar uses picocolors for clack compatibility', () => {
+  it('picocolors is importable and has cyan and gray functions', async () => {
+    const pc = await import('picocolors');
+    assert.equal(typeof pc.default.cyan, 'function', 'picocolors should export cyan');
+    assert.equal(typeof pc.default.gray, 'function', 'picocolors should export gray');
+  });
+
+  it('bar string contains block characters regardless of color support', async () => {
+    const pc = await import('picocolors');
+    const bar = pc.default.cyan('████') + pc.default.gray('░░░░');
+    assert.ok(bar.includes('████'), 'should contain filled blocks');
+    assert.ok(bar.includes('░░░░'), 'should contain empty blocks');
+  });
+});
