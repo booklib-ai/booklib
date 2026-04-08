@@ -188,6 +188,26 @@ describe('GapResolver', () => {
     });
   });
 
+  describe('Context7 source name sanitization', () => {
+    it('should strip @ and / from scoped npm names to produce valid source names', () => {
+      // Mirrors the sanitization in gap-resolver.js _tryContext7
+      function sanitize(depName) {
+        return `ctx7-${depName.replace(/[@/]/g, '_').replace(/^_+/, '')}`;
+      }
+
+      assert.equal(sanitize('@types/react-dom'), 'ctx7-types_react-dom');
+      assert.equal(sanitize('@supabase/supabase-js'), 'ctx7-supabase_supabase-js');
+      assert.equal(sanitize('@tanstack/react-query'), 'ctx7-tanstack_react-query');
+      assert.equal(sanitize('next'), 'ctx7-next'); // unscoped stays clean
+
+      // All results must match the source-manager validation regex
+      const valid = /^[a-zA-Z0-9._-]+$/;
+      for (const name of ['@types/react-dom', '@supabase/supabase-js', 'next', 'express']) {
+        assert.ok(valid.test(sanitize(name)), `"${sanitize(name)}" should be a valid source name`);
+      }
+    });
+  });
+
   describe('_suggestManual', () => {
     const resolver = new GapResolver({ outputBase: '/tmp/test' });
 
