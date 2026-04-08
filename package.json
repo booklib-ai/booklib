@@ -2,12 +2,24 @@
   "name": "@booklib/core",
   "version": "2.0.0",
   "description": "Knowledge bookkeeping for AI agents — expert skills, hybrid search, knowledge graph, MCP tools",
+  "author": "BookLib Contributors <hello@booklib.ai>",
   "bin": {
     "skills": "bin/skills.cjs",
     "booklib": "bin/booklib.js",
     "booklib-mcp": "bin/booklib-mcp.js"
   },
   "type": "module",
+  "files": [
+    "bin/",
+    "lib/",
+    "hooks/",
+    "skills/",
+    "community/",
+    "commands/",
+    "agents/",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
   "keywords": [
     "claude",
     "claude-code",
@@ -15,7 +27,9 @@
     "skills",
     "agent-skills",
     "mcp",
-    "rag"
+    "rag",
+    "knowledge-graph",
+    "code-review"
   ],
   "license": "MIT",
   "homepage": "https://booklib-ai.github.io/booklib/",
