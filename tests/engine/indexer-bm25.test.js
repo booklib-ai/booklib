@@ -35,6 +35,46 @@ Test content for corrupt index recovery.
   });
 });
 
+describe('BookLibIndexer uses batch vectra insert (single disk write)', () => {
+  it('should call beginUpdate/endUpdate once, not per-item insertItem', async () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'booklib-batch-'));
+    const indexDir = path.join(tmpDir, 'index');
+    const skillsDir = path.join(tmpDir, 'skills');
+    const testSkillDir = path.join(skillsDir, 'test-skill');
+    fs.mkdirSync(testSkillDir, { recursive: true });
+    fs.writeFileSync(path.join(testSkillDir, 'SKILL.md'), `---
+name: test-skill
+tags: [test]
+---
+
+## Section A
+First chunk of content about testing.
+
+## Section B
+Second chunk of content about assertions.
+
+## Section C
+Third chunk of content about mocking.
+`);
+
+    const indexer = new BookLibIndexer(indexDir);
+
+    // Spy on beginUpdate/endUpdate to count disk writes
+    let beginCount = 0;
+    let endCount = 0;
+    const origBegin = indexer.index.beginUpdate.bind(indexer.index);
+    const origEnd = indexer.index.endUpdate.bind(indexer.index);
+    indexer.index.beginUpdate = async () => { beginCount++; return origBegin(); };
+    indexer.index.endUpdate = async () => { endCount++; return origEnd(); };
+
+    const result = await indexer.indexDirectory(skillsDir, true, { quiet: true });
+
+    assert.ok(result.chunks >= 3, `should have at least 3 chunks, got ${result.chunks}`);
+    assert.equal(beginCount, 1, 'beginUpdate should be called exactly once (batch)');
+    assert.equal(endCount, 1, 'endUpdate should be called exactly once (batch)');
+  });
+});
+
 describe('BookLibIndexer BM25 co-build', () => {
   it('creates bm25.json alongside vectra index after indexDirectory', async () => {
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'booklib-indexer-'));
