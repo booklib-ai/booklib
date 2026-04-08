@@ -16,15 +16,9 @@
 
 ## What Depends on AI Decision
 
-**MCP tools require explicit AI invocation** — BookLib cannot force calls:
-- `lookup`: Search skills before giving best-practices advice
-- `brief`: Get expert briefing + architecture context before code work
-- `remember`: Capture insights when user says "take a note"
-- `review_file`: Deep file review against specific skill
-- `check_imports`: Verify new code doesn't import post-May-2025 packages
-- `check_decisions`: Detect code that contradicts team decisions
-
-Tools work across Cursor, VS Code, Gemini, and Claude Code (no Copilot support).
+BookLib integrates via MCP. Run `booklib init` to register.
+Tools: lookup, review, remember, verify, guard.
+See skills/booklib-mcp-guide/SKILL.md for usage guide.
 
 ## What Doesn't Fire in Other Editors
 
