@@ -6,6 +6,35 @@ import fs from 'node:fs';
 import { BookLibIndexer } from '../../lib/engine/indexer.js';
 import { BM25Index } from '../../lib/engine/bm25-index.js';
 
+describe('BookLibIndexer recovers from corrupt vectra index.json', () => {
+  it('should delete and recreate index when index.json is truncated JSON', async () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'booklib-corrupt-'));
+    const indexDir = path.join(tmpDir, 'index');
+    const skillsDir = path.join(tmpDir, 'skills');
+    const testSkillDir = path.join(skillsDir, 'test-skill');
+    fs.mkdirSync(indexDir, { recursive: true });
+    fs.mkdirSync(testSkillDir, { recursive: true });
+    fs.writeFileSync(path.join(testSkillDir, 'SKILL.md'), `---
+name: test-skill
+tags: [test]
+---
+Test content for corrupt index recovery.
+`);
+
+    // Write a truncated JSON file to simulate the crash the user saw
+    fs.writeFileSync(path.join(indexDir, 'index.json'), '{"version":1,"items":[{"id":"abc","metadata":{}', 'utf8');
+
+    const indexer = new BookLibIndexer(indexDir);
+    // Should not throw — should recover by deleting and recreating
+    const result = await indexer.indexDirectory(skillsDir, false, { quiet: true });
+    assert.ok(result.chunks > 0, 'should index successfully after recovery');
+
+    // Verify the new index.json is valid
+    const newIndex = fs.readFileSync(path.join(indexDir, 'index.json'), 'utf8');
+    assert.doesNotThrow(() => JSON.parse(newIndex), 'rebuilt index.json should be valid JSON');
+  });
+});
+
 describe('BookLibIndexer BM25 co-build', () => {
   it('creates bm25.json alongside vectra index after indexDirectory', async () => {
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'booklib-indexer-'));
