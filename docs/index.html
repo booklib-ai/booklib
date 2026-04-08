@@ -770,17 +770,18 @@
 
   // Demo Animation
   const demoLines = [
-    { type: 'cmd', text: 'booklib context "write a compelling investor update"' },
-    { type: 'output', text: '🔎 Searching 22 bundled + 258 community skills...' },
-    { type: 'output', text: '→ Matched: <span class="highlight">investor-materials</span> · <span class="highlight">article-writing</span>' },
-    { type: 'system', text: '# From Investor Materials:' },
-    { type: 'output', text: '  Lead with traction, not vision. Open with your top metric.' },
-    { type: 'system', text: '# From Article Writing:' },
-    { type: 'output', text: '  Write to one reader. Specificity builds trust at scale.' },
+    { type: 'cmd', text: 'booklib analyze' },
+    { type: 'output', text: 'Analyzing project...' },
     { type: 'output', text: '' },
-    { type: 'cmd', text: 'booklib scan --docs docs/' },
-    { type: 'output', text: '✓ 14 .md files · 2 violations · 86% healthy' },
-    { type: 'system', text: '--- WISDOM HEATMAP COMPLETE ---' }
+    { type: 'system', text: 'ai@6.0.116 (post-training):' },
+    { type: 'output', text: '  app/api/chat/route.ts → <span class="highlight">streamText</span>, <span class="highlight">createUIMessageStreamResponse</span>' },
+    { type: 'output', text: '  lib/ai/providers.ts → <span class="highlight">customProvider</span>, <span class="highlight">gateway</span>' },
+    { type: 'output', text: '' },
+    { type: 'system', text: 'react@19.0.1 (post-training):' },
+    { type: 'output', text: '  app/login/page.tsx → <span class="highlight">useActionState</span>' },
+    { type: 'output', text: '  components/chat/artifact.tsx → <span class="highlight">memo</span>, <span class="highlight">useCallback</span>' },
+    { type: 'output', text: '' },
+    { type: 'output', text: '158 file(s), 274 post-training API(s).' }
   ];
 
   function runDemo() {
