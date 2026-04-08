@@ -37,7 +37,7 @@ const handoff = new BookLibHandoff();
 const server = new Server(
   {
     name: "booklib-engine",
-    version: "1.2.0",
+    version: "2.0.0",
   },
   {
     capabilities: {
@@ -51,17 +51,17 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
     tools: [
       {
         name: "lookup",
-        description: "Check BookLib when working with project-specific APIs, team decisions, or post-training dependencies. Prioritizes: (1) post-training corrections, (2) team knowledge, (3) expert skills. Skip for standard patterns you already know.",
+        description: "Search BookLib for post-training API docs, team decisions, or expert knowledge. Prioritizes gap corrections, then team knowledge, then skills. Skip for standard patterns you already know.",
         inputSchema: {
           type: "object",
           properties: {
             query: {
               type: "string",
-              description: "Task description + domain (e.g., 'error handling in kotlin coroutines')",
+              description: "What you need to know (e.g., 'supabase auth session handling')",
             },
             file: {
               type: "string",
-              description: "Optional: path to the file being worked on — provides language/domain context without reading content",
+              description: "Path to the file being worked on — adds language and component context",
             },
             limit: {
               type: "number",
@@ -70,61 +70,43 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             source: {
               type: "string",
               enum: ["all", "skills", "knowledge"],
-              description: "Filter by source: 'all' (default), 'skills' (expert knowledge only), or 'knowledge' (personal insights only)",
+              description: "Filter: 'all' (default), 'skills' (expert only), 'knowledge' (team/personal only)",
             },
           },
           required: ["query"],
         },
       },
       {
-        name: "review_file",
-        description: "Use when the user asks for deep code review or quality analysis of a specific file. Audits against a named skill's principles and returns structured findings.",
+        name: "review",
+        description: "Deep code review of a file against a named skill's principles. Returns structured findings with source citations.",
         inputSchema: {
           type: "object",
           properties: {
             skill_name: {
               type: "string",
-              description: "The name of the skill to use (e.g., 'effective-kotlin', 'clean-code-reviewer')",
+              description: "Skill to review against (e.g., 'effective-kotlin', 'clean-code-reviewer')",
             },
             file_path: {
               type: "string",
-              description: "The path to the file to review.",
+              description: "Path to the file to review",
             },
           },
           required: ["skill_name", "file_path"],
         },
       },
       {
-        name: "brief",
-        description: "Use at task start or when switching context. Combines expert knowledge + personal insights + project component context into one briefing. Call once when starting a task, not repeatedly.",
-        inputSchema: {
-          type: "object",
-          properties: {
-            task: {
-              type: "string",
-              description: "The task description (e.g. 'implement JWT refresh token rotation')",
-            },
-            file: {
-              type: "string",
-              description: "Optional: path to the file being edited — enables component-level context from knowledge graph",
-            },
-          },
-          required: ["task"],
-        },
-      },
-      {
         name: "remember",
-        description: "Use when the user discovers a useful pattern, says 'remember this', 'take a note', or 'capture this insight'. Also when the user makes a decision worth preserving ('we decided to...', 'from now on...'). Creates a searchable knowledge node.",
+        description: "Capture a team decision, pattern, or insight as a searchable knowledge node. Use when the user says 'remember this', makes a decision, or discovers something worth preserving.",
         inputSchema: {
           type: "object",
           properties: {
             title: {
               type: "string",
-              description: "Short descriptive title (e.g. 'JWT refresh token strategy')",
+              description: "Short descriptive title (e.g., 'use PaymentIntents not Charges')",
             },
             content: {
               type: "string",
-              description: "Detailed description (markdown supported). Leave empty to create a stub.",
+              description: "Detailed description in markdown. Leave empty for a stub.",
             },
             type: {
               type: "string",
@@ -133,69 +115,19 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             },
             tags: {
               type: "string",
-              description: "Comma-separated tags for categorization",
+              description: "Comma-separated tags",
             },
             links: {
               type: "string",
-              description: "Link targets — 'target:edge-type' pairs, e.g. 'auth:applies-to,security:see-also'",
+              description: "Link targets as 'target:edge-type' pairs (e.g., 'auth:applies-to')",
             },
           },
           required: ["title"],
         },
       },
       {
-        name: "recalled",
-        description: "Use when the user asks 'what have I captured?' or wants to see saved knowledge. Lists all notes, insights, and research nodes.",
-        inputSchema: {
-          type: "object",
-          properties: {
-            type_filter: {
-              type: "string",
-              description: "Optional: filter by type ('insight', 'decision', 'pattern', 'note', 'research')",
-            },
-          },
-        },
-      },
-      {
-        name: "connect",
-        description: "Use when the user says two concepts are related or wants to connect knowledge. Creates a typed relationship (see-also, applies-to, extends, etc.).",
-        inputSchema: {
-          type: "object",
-          properties: {
-            from: {
-              type: "string",
-              description: "Source node — exact ID or partial title (e.g. 'JWT strategy')",
-            },
-            to: {
-              type: "string",
-              description: "Target node — exact ID or partial title (e.g. 'auth')",
-            },
-            type: {
-              type: "string",
-              enum: EDGE_TYPES,
-              description: "Edge type",
-            },
-          },
-          required: ["from", "to", "type"],
-        },
-      },
-      {
-        name: "save_progress",
-        description: "Use when handing off to another agent or ending a long session. Saves progress, goals, and next steps so another agent can resume.",
-        inputSchema: {
-          type: "object",
-          properties: {
-            goal: { type: "string", description: "The ultimate objective of the session" },
-            next: { type: "string", description: "The immediate next task for whoever resumes" },
-            progress: { type: "string", description: "What has been achieved so far" },
-            name: { type: "string", description: "Optional session name (defaults to git branch)" },
-          },
-          required: ["goal", "next"],
-        },
-      },
-      {
-        name: "check_imports",
-        description: "Check if a file's imports are covered by BookLib's index. Use after writing code that uses unfamiliar APIs.",
+        name: "verify",
+        description: "Check if a file's imports are covered by BookLib's index. Flags unknown post-training APIs that may need current docs.",
         inputSchema: {
           type: "object",
           properties: {
@@ -206,8 +138,8 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         },
       },
       {
-        name: "check_decisions",
-        description: "Check if code contradicts captured team decisions. Use after writing code that touches architecture or API choices.",
+        name: "guard",
+        description: "Check if code contradicts captured team decisions. Use after writing code that touches architecture, API choices, or team conventions.",
         inputSchema: {
           type: "object",
           properties: {
@@ -308,6 +240,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         return { content: [{ type: "text", text: JSON.stringify(structured, null, 2) }] };
       }
 
+      case "review":
       case "review_file":
       case "audit_content": {
         const skillPath = path.join(skillsPath, args.skill_name);
@@ -315,6 +248,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         return { content: [{ type: "text", text: auditReport }] };
       }
 
+      // brief: demoted from MCP tool list but still works as alias → lookup with file context
       case "brief":
       case "get_context": {
         const builder = new ContextBuilder();
@@ -406,6 +340,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         }, null, 2) }] };
       }
 
+      // recalled: demoted from MCP tool list but still works as alias
       case "recalled":
       case "list_nodes": {
         const { nodesDir } = resolveKnowledgePaths();
@@ -425,6 +360,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         return { content: [{ type: "text", text: JSON.stringify(nodes, null, 2) }] };
       }
 
+      // connect: demoted from MCP tool list but still works as alias
       case "connect":
       case "link_nodes": {
         const fromId = resolveNodeRef(args.from);
@@ -443,12 +379,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         return { content: [{ type: "text", text: `Edge created: ${fromId} --[${args.type}]--> ${toId}` }] };
       }
 
+      case "save":
       case "save_progress":
       case "save_session_state": {
         handoff.saveState(args);
         return { content: [{ type: "text", text: `Session state saved successfully for ${args.name || 'current branch'}.` }] };
       }
 
+      case "verify":
       case "check_imports": {
         const { ImportChecker } = await import('../lib/engine/import-checker.js');
 
@@ -483,6 +421,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         return { content: [{ type: "text", text: JSON.stringify(summary, null, 2) }] };
       }
 
+      case "guard":
       case "check_decisions": {
         const { DecisionChecker } = await import('../lib/engine/decision-checker.js');
         const checker = new DecisionChecker({ searcher });

@@ -21,13 +21,11 @@ javascript
 ## BookLib Agent Behaviors
 ## BookLib
 BookLib MCP tools are available for code quality guidance.
-- Before answering best-practices questions → lookup
-- When reviewing or writing code → lookup for relevant principles
-- When user says "remember/note/capture this" → remember
-- For deep file review against a skill → review_file
-- When checking if imports are covered → check_imports
-- When checking code against team decisions → check_decisions
-- When code quality issues accumulate → suggest running `booklib doctor`
+- When working with unfamiliar APIs or post-training deps → lookup
+- When user says "remember/capture this" → remember
+- After writing code with new imports → verify
+- After touching architecture or API choices → guard
+- For full tool reference → booklib search "booklib mcp tools"
 
 ## Active Skills
 | Skill | Focus | Tags |

@@ -6,7 +6,9 @@ test('MCP-capable tool gets MCP tool names', () => {
   const block = renderInstinctBlock('claude');
   assert.ok(block.includes('lookup'), 'should reference MCP tool name');
   assert.ok(block.includes('remember'), 'should reference remember');
-  assert.ok(!block.includes('booklib search'), 'should not reference CLI command');
+  assert.ok(block.includes('verify'), 'should reference verify tool');
+  assert.ok(block.includes('guard'), 'should reference guard tool');
+  assert.ok(block.includes('booklib search "booklib mcp tools"'), 'should point to skill for full reference');
 });
 
 test('non-MCP tool gets CLI commands', () => {
