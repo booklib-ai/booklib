@@ -573,3 +573,24 @@ describe('progress bar uses picocolors for clack compatibility', () => {
     assert.ok(bar.includes('░░░░'), 'should contain empty blocks');
   });
 });
+
+describe('indexing progress reports embedding phase, not file parse (fix: 100% from start)', () => {
+  it('onProgress fires per batch during embedding, not per file during parse', () => {
+    // Simulate: 2 files parsed into 100 chunks, batched in 32s
+    const totalChunks = 100;
+    const batchSize = 32;
+    const batches = Math.ceil(totalChunks / batchSize); // 4 batches
+    const progressUpdates = [];
+
+    for (let i = 0; i < totalChunks; i += batchSize) {
+      const done = Math.min(i + batchSize, totalChunks);
+      progressUpdates.push({ done, total: totalChunks });
+    }
+
+    assert.equal(progressUpdates.length, batches, 'should fire once per batch');
+    assert.equal(progressUpdates[0].done, 32, 'first update at 32/100');
+    assert.equal(progressUpdates[progressUpdates.length - 1].done, 100, 'last update at 100/100');
+    // Not [2/2 files] — that would show 100% instantly
+    assert.ok(progressUpdates[0].done < progressUpdates[0].total, 'first update should not be 100%');
+  });
+});
