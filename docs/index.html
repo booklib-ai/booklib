@@ -575,6 +575,7 @@
     { name: "system-design-interview",book: "System Design Interview",              author: "Alex Xu",                isbn: "9798664653403", desc: "Scaling, estimation, load balancing, caching, and sharding.", profiles: ["architecture"] },
     { name: "using-asyncio-python",   book: "Using Asyncio in Python",              author: "Caleb Hattingh",         isbn: "9781492075325", desc: "Coroutines, event loop, tasks, and signal handling.", profiles: ["python"] },
     { name: "web-scraping-python",    book: "Web Scraping with Python",             author: "Ryan Mitchell",          isbn: "9781491985564", desc: "BeautifulSoup, Scrapy, Selenium, and data storage.", profiles: ["python"] },
+    { name: "writing-plans",          book: "Writing Plans",                        author: "booklib-ai",             isbn: null,            desc: "Prose quality checks for markdown documents — specs, PRDs, user stories, plans.", profiles: ["writer"] },
   ];
 
   const AGENTS = [
@@ -607,6 +608,11 @@
     { id: "data", name: "Data" },
     { id: "ui", name: "UI/UX" },
     { id: "lean", name: "Lean/Strategy" },
+    { id: "product", name: "Product" },
+    { id: "writer", name: "Writing" },
+    { id: "strategist", name: "Strategy" },
+    { id: "designer", name: "Design" },
+    { id: "legal", name: "Legal" },
   ];
 
   const state = { filter: 'all', search: '' };
@@ -675,7 +681,7 @@
         </div>
       `;
       card.onclick = () => {
-        const cmd = `booklib fetch ${skill.name}`;
+        const cmd = `booklib install ${skill.name}`;
         document.getElementById('main-cmd').textContent = cmd;
         
         // Ch 4 Attention: Focal highlighting
