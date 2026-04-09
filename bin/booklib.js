@@ -2344,47 +2344,33 @@ SWARM / MULTI-AGENT:
 `);
       } else {
         console.log(`
-BookLib — AI Agent Skill Library
+BookLib v3.0.0 — Context engineering for AI coding assistants
 
-QUICK START (new project):
-  1. booklib init              → guided setup for this project
-  2. booklib index             → build the search index
-  3. booklib search "<query>"  → find relevant skills and patterns
+QUICK START:
+  booklib init                           Guided setup — detects stack, registers MCP, builds index
+  booklib analyze                        Show which APIs your AI doesn't know about
 
 EVERYDAY USE:
-  booklib search "<query>"               Find skills matching your task
-  booklib context "<task>"               Cross-skill context for your AI
-  booklib audit <skill> <file>           Get a review prompt for a file
-  booklib scan                           Project-wide code quality heatmap
-  booklib gaps                           Detect post-training deps & uncaptured docs
-  booklib resolve-gaps                   Auto-resolve gaps via Context7/GitHub
-  booklib analyze                        Show which APIs have post-training gaps
-  booklib check-imports <file>           Check if file imports are covered by BookLib
-  booklib check-decisions <file>         Check if code contradicts team decisions
-  booklib capture --title "<title>" [--type insight] [--tags t1,t2] [--links "skill:edge-type,...]"
-  booklib benchmark                      Run retrieval quality benchmark (MRR/Recall/NDCG)
-  booklib doctor                         Check skill health & usage
+  booklib gaps                           Detect post-training dependencies
+  booklib resolve-gaps                   Auto-resolve via Context7/GitHub
+  booklib analyze                        Show affected files and post-training APIs
+  booklib search "<query>"               Search skills and knowledge
+  booklib check-imports <file>           Flag unknown APIs (11 languages)
+  booklib check-decisions <file>         Check code against team decisions
+  booklib doctor                         Health check for skills and config
+
+KNOWLEDGE:
+  booklib capture --title "<t>"          Save a team decision or insight
+  booklib note "<title>"                 Create a note (pipe or editor)
+  booklib connect <path>                 Index local documentation
+  booklib connect github releases <repo> Index GitHub changelogs
+  booklib connect notion database <id>   Index Notion pages
+  booklib sources                        List connected sources
 
 SKILLS:
-  booklib init [--reset]                 Set up BookLib for this project (--reset to re-run from scratch)
-  booklib rules list                     See available language rule sets
-  booklib rules install <lang>           Add rules to .cursor/rules/
-  booklib rules install <lang> --global  Add rules to ~/.claude/CLAUDE.md
-  booklib install <skill-name>            Install a skill
-  booklib fetch <skill-name>             (deprecated) Use: booklib install
+  booklib install <skill-name>           Install a skill
   booklib discover                       Browse the community skill catalog
-
-SOURCES:
-  booklib connect <path>                 Connect a documentation source
-  booklib connect github <type> <repo>   Index GitHub releases/wiki/discussions
-  booklib connect notion <type> <id>     Index Notion pages/databases/search
-  booklib sources                        List connected sources
-  booklib disconnect <name>              Remove a source
-
-KNOWLEDGE GRAPH:
-  booklib note "<title>"                 Save a note (pipe or type content)
-  booklib dictate                        Speak/type rough thoughts → structured note
-  booklib context "<task>" --file <f>   Include file-component context
+  booklib index                          Rebuild the search index
 
   booklib --help --all                   Show all commands including advanced
 
