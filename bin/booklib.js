@@ -325,6 +325,7 @@ async function main() {
       break;
     }
 
+    case 'review':
     case 'audit': {
       const auditor = new BookLibAuditor();
       const skillName = args[1];
@@ -1487,7 +1488,7 @@ case 'rules': {
       }
       console.log('');
       console.log('  booklib rules install <lang>           → add to .cursor/rules/');
-      console.log('  booklib rules install <lang> --global  → add to ~/.claude/CLAUDE.md');
+      console.log('  booklib rules install <lang> --global  → add to global agent config');
       console.log('');
       break;
     }
@@ -1567,12 +1568,13 @@ case 'rules': {
     default:
       console.log('\n  booklib rules list                          — show available rule sets');
       console.log('  booklib rules install <lang>                — install to .cursor/rules/');
-      console.log('  booklib rules install <lang> --global       — install to ~/.claude/CLAUDE.md');
+      console.log('  booklib rules install <lang> --global       — install to global agent config');
       console.log('  booklib rules status                        — show installed rules + sizes\n');
   }
   break;
 }
 
+    case 'remember':
     case 'capture': {
       const title = parseFlag(args, 'title');
       const type = parseFlag(args, 'type') ?? 'insight';
@@ -2094,6 +2096,7 @@ case 'rules': {
       break;
     }
 
+    case 'fix':
     case 'resolve-gaps': {
       const { GapDetector } = await import('../lib/engine/gap-detector.js');
       const { GapResolver } = await import('../lib/engine/gap-resolver.js');
@@ -2180,6 +2183,7 @@ case 'rules': {
       break;
     }
 
+    case 'guard':
     case 'check-decisions': {
       const filePath = args[1];
       if (!filePath) {
@@ -2211,6 +2215,7 @@ case 'rules': {
       break;
     }
 
+    case 'verify':
     case 'check-imports': {
       const filePath = args[1];
       if (!filePath) {
@@ -2352,15 +2357,15 @@ QUICK START:
 
 EVERYDAY USE:
   booklib gaps                           Detect post-training dependencies
-  booklib resolve-gaps                   Auto-resolve via Context7/GitHub
+  booklib fix                            Auto-resolve gaps via Context7/GitHub
   booklib analyze                        Show affected files and post-training APIs
   booklib search "<query>"               Search skills and knowledge
-  booklib check-imports <file>           Flag unknown APIs (11 languages)
-  booklib check-decisions <file>         Check code against team decisions
+  booklib verify <file>                  Flag unknown APIs (11 languages)
+  booklib guard <file>                   Check code against team decisions
   booklib doctor                         Health check for skills and config
 
 KNOWLEDGE:
-  booklib capture --title "<t>"          Save a team decision or insight
+  booklib remember --title "<t>"         Save a team decision or insight
   booklib note "<title>"                 Create a note (pipe or editor)
   booklib connect <path>                 Index local documentation
   booklib connect github releases <repo> Index GitHub changelogs
