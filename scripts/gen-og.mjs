@@ -96,9 +96,9 @@ const HTML = `<!DOCTYPE html>
 </head>
 <body>
 <div class="left">
-  <div class="org">booklib-ai / skills</div>
-  <h1>Skills</h1>
-  <p class="tagline">Expert knowledge from 24 canonical programming books — packaged as AI agent skills.</p>
+  <div class="org">booklib-ai / booklib</div>
+  <h1>BookLib</h1>
+  <p class="tagline">Context engineering for AI coding assistants. Detects knowledge gaps, fixes them via MCP.</p>
   <div class="pills">
     <span class="pill">24 skills</span>
     <span class="pill">760 tests</span>
