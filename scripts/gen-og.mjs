@@ -104,7 +104,7 @@ const HTML = `<!DOCTYPE html>
     <span class="pill">760 tests</span>
     <span class="pill">10 ecosystems</span>
     <span class="pill">14 AI tools</span>
-    <span class="pill">v2.1.0</span>
+    <span class="pill">v3.0.0</span>
   </div>
 </div>
 
