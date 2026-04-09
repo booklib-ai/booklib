@@ -22,7 +22,6 @@ import { BookLibHandoff } from '../lib/engine/handoff.js';
 import { BookLibAuditor } from '../lib/engine/auditor.js';
 import { BookLibRegistrySearcher } from '../lib/registry-searcher.js';
 import { BookLibInstaller } from '../lib/installer.js';
-import { BookLibSynthesizer } from '../lib/engine/synthesizer.js';
 import { BookLibScanner } from '../lib/engine/scanner.js';
 import { BookLibSessionCoordinator } from '../lib/engine/session-coordinator.js';
 import { BookLibSessionManager } from '../lib/engine/session-manager.js';
