@@ -505,10 +505,6 @@ async function main() {
         history.slice(0, 5).forEach(v => {
           console.log(`  Version ${v.version}: ${v.timestamp}`);
         });
-      } else if (subCmd === 'encrypt') {
-        const result = mgr.encryptSession(args[2]);
-        if (result.error) console.error(result.error);
-        else console.log(`🔒 Encrypted: ${result.encrypted}`);
       }
       break;
     }
