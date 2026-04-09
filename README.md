@@ -119,7 +119,7 @@ PreToolUse and PostToolUse hooks inject context as your AI writes code:
 
 ### 4. Capture Team Knowledge
 
-Your team's decisions live nowhere in public docs:
+Your team's decisions live nowhere in public docs. BookLib auto-detects project documentation — specs, ADRs, architecture docs — and indexes them alongside your team decisions.
 
 ```bash
 booklib capture --title "use PaymentIntents not Charges" --type decision
@@ -141,7 +141,8 @@ booklib connect github discussions org/repo
 | **Import Checking** | Flags unknown APIs in JS/TS, Python, Go, Rust, Java, Kotlin, Ruby, PHP, C#, Swift, Dart |
 | **Decision Checking** | Detects when code contradicts captured team rules |
 | **Knowledge Graph** | Nodes, typed edges, auto-linking, BFS traversal |
-| **Source Connectors** | GitHub, Notion, Context7, local files, web docs |
+| **Source Connectors** | GitHub, Notion, Context7, local files, web docs, SDD specs (.specify, .planning, .kiro) |
+| **Source Detection** | Auto-detects 12 content types: OpenAPI, ADRs, Gherkin, project docs, and more |
 | **Hybrid Search** | BM25 + vector search + Reciprocal Rank Fusion + cross-encoder reranking |
 | **22 Expert Skills** | Distilled from Effective Java, Clean Code, DDD, and 19 more canonical books |
 
