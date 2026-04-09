@@ -28,6 +28,8 @@
 
 Your AI writes code using knowledge from its training data. Your project uses libraries released **after** that cutoff. The result: hallucinated APIs, deprecated patterns, and code that doesn't compile.
 
+Your team's decisions — use PaymentIntents, not Charges; always wrap API responses; never useEffect for data fetching — exist nowhere in the AI's training data. The code it generates is idiomatic React or idiomatic Node — just not idiomatic *yours*.
+
 When we asked Claude to write code for `botid` (published 2026-03-03, post-training):
 
 > *"I can't verify the botid package's actual API. **I won't output code for a package whose API I can't verify.** Guessing function names and signatures would likely give you broken code."*
