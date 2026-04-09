@@ -1,25 +1,27 @@
 ---
 name: booklib-skills
 description: >
-  BookLib — curated skills from canonical programming books. Covers Kotlin,
-  Python, Java, TypeScript, Rust, architecture, DDD, data-intensive systems,
-  UI design, and more. Install individual skills via npx skillsadd booklib-ai/booklib/<name>.
-version: "1.0"
+  BookLib — context engineering for AI coding assistants. 23 expert skills
+  plus post-training gap detection, MCP tools, and runtime context injection.
+  Install with: npm install -g @booklib/core && booklib init
+version: "3.0"
 license: MIT
-tags: [books, knowledge, all-languages, architecture, best-practices]
+tags: [mcp, ai-coding, knowledge-graph, context-engineering, best-practices]
 ---
 
 # BookLib Skills
 
-Book knowledge distilled into structured AI skills. Install any skill with:
+Expert knowledge from canonical books, delivered via MCP. Install with:
 
-```
-npx skillsadd booklib-ai/booklib/<skill-name>
+```bash
+npm install -g @booklib/core
+booklib install <skill-name>
 ```
 
-## Available Skills
+## Available Skills (23)
 
 - **animation-at-work**: Apply web animation principles from Animation at Work by Rachel Nabors. Covers human perception of motion, 12 principles
+- **booklib-mcp-guide**: Reference for BookLib MCP tools. Covers when to call each tool, parameters, common workflows, and anti-patterns for AI c
 - **clean-code-reviewer**: Reviews code against Robert C. Martin's Clean Code principles. Use when users share code for review, ask for refactoring
 - **data-intensive-patterns**: Generate and review data-intensive application code using patterns from Martin Kleppmann's "Designing Data-Intensive App
 - **data-pipelines**: Apply Data Pipelines Pocket Reference practices (James Densmore). Covers Infrastructure (Ch 1-2: warehouses, lakes, clou
@@ -42,8 +44,11 @@ npx skillsadd booklib-ai/booklib/<skill-name>
 - **using-asyncio-python**: Apply Using Asyncio in Python practices (Caleb Hattingh). Covers Introducing Asyncio (Ch 1: what it is, I/O-bound concur
 - **web-scraping-python**: Apply Web Scraping with Python practices (Ryan Mitchell). Covers First Scrapers (Ch 1: urllib, BeautifulSoup), HTML Pars
 
-## Install Everything
+## Full Platform
 
 ```bash
-npm install -g @booklib/skills && booklib init
+npm install -g @booklib/core
+booklib init
 ```
+
+Includes: gap detection, MCP server (5 tools), runtime hooks, hybrid search, knowledge graph.
