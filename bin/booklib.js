@@ -391,10 +391,18 @@ async function main() {
     case 'save-state': {
       const handoff = new BookLibHandoff();
       const parsed = {};
-      args.slice(1).forEach(a => {
-        const [k, ...v] = a.replace('--', '').split('=');
-        if (k && v.length) parsed[k] = v.join('=');
-      });
+      const stateArgs = args.slice(1);
+      for (let i = 0; i < stateArgs.length; i++) {
+        const a = stateArgs[i];
+        if (!a.startsWith('--')) continue;
+        const stripped = a.replace(/^--/, '');
+        if (stripped.includes('=')) {
+          const [k, ...v] = stripped.split('=');
+          parsed[k] = v.join('=');
+        } else if (i + 1 < stateArgs.length && !stateArgs[i + 1].startsWith('--')) {
+          parsed[stripped] = stateArgs[++i];
+        }
+      }
       handoff.saveState(parsed);
       break;
     }
