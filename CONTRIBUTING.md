@@ -68,7 +68,7 @@ You are an expert in [domain] grounded in [Book Title] by [Author].
 `examples/before.md` — code or artifact that violates the book's principles.
 `examples/after.md` — the same thing improved by applying the skill.
 
-These power the `npx booklib demo <name>` command.
+These show how the skill transforms real code.
 
 ### 4. Add evals
 
@@ -97,11 +97,7 @@ Aim for 3–5 evals per skill covering:
 
 ### 5. Run evals and commit results
 
-```bash
-ANTHROPIC_API_KEY=your-key npx booklib eval <name>
-```
-
-This runs each eval **with and without** the skill and writes `evals/results.json`. Commit this file — it is how CI and readers verify the skill actually works.
+Run evals manually against your skill to verify it catches what it claims. Commit `evals/results.json` with your findings.
 
 **Quality thresholds** (calibrated to `claude-haiku-4-5` as judge):
 
@@ -131,156 +127,14 @@ PR checklist:
 - [ ] SKILL.md is under 500 lines
 - [ ] `examples/before.md` and `examples/after.md` exist
 - [ ] `evals/evals.json` has at least 3 test cases
-- [ ] `evals/results.json` committed (run `npx booklib eval <name>`)
+- [ ] `evals/results.json` committed with manual test results
 - [ ] Pass rate ≥ 80% and delta ≥ 20pp in results.json
-- [ ] README.md skills table updated
 
-## Adding an Agent
+## Adding an MCP Tool
 
-An agent is a multi-step autonomous reviewer that orchestrates one or more skills. If you are packaging a single book's principles, write a skill. If you need to combine multiple skills, detect code patterns to route between them, or run a full review pipeline across a whole codebase, write an agent.
+BookLib v3.0.0 delivers knowledge via MCP (5 tools: lookup, review, remember, verify, guard). The old `.claude/agents/` system is deprecated.
 
-| Write a skill when... | Write an agent when... |
-|-----------------------|------------------------|
-| You are packaging one book's principles | You need two or more skills applied together |
-| The logic is a single lens on code | You need routing logic (detect language → pick skill) |
-| Instructions fit in one SKILL.md | You need a multi-step process (diff → detect → review → output) |
-
-### 1. Create the file
-
-Agents live in a flat directory at the repo root:
-
-```
-agents/<agent-name>.md
-```
-
-The filename must be lowercase and hyphen-separated. It does not need a matching folder — unlike skills, agents have no `examples/` or `evals/` subdirectories.
-
-### 2. Write the frontmatter
-
-Every agent file starts with YAML frontmatter:
-
-```markdown
----
-name: agent-name
-description: >
-  When to invoke this agent and what it does. Include language names,
-  domain terms, and trigger conditions. Claude Code uses this field
-  for auto-invocation, so make it specific. Max 1024 characters.
-tools: ["Read", "Grep", "Glob", "Bash"]
-model: sonnet
----
-```
-
-**Required fields:**
-
-- `name` — lowercase, hyphens only, matches filename exactly (without `.md`)
-- `description` — used by Claude Code to decide when to invoke the agent automatically; include what it does, which skills it applies, and when to use it over alternatives
-- `tools` — list of Claude Code tools the agent may call; `["Read", "Grep", "Glob", "Bash"]` covers most reviewers
-- `model` — controls cost and capability (see model selection below)
-
-### 3. Write the body
-
-A good agent body has five parts:
-
-**Opening sentence** — one sentence identifying what the agent is, which books it draws from, and its scope.
-
-**Process** — numbered steps the agent follows every time it runs:
-
-1. **Get the scope** — how to determine what to review (e.g., `git diff HEAD`, specific files passed by the user, or a directory scan)
-2. **Detect signals** — bash commands or grep patterns that route to the right skill(s)
-3. **Apply skill(s)** — one `### Step N` section per skill, each with `HIGH`/`MEDIUM`/`LOW` focus areas
-4. **Output** — the standard output format
-
-**Detection table** — a Markdown table mapping code signals to skills:
-
-```markdown
-| Code contains | Apply |
-|---------------|-------|
-| `async def`, `await`, `asyncio` | `using-asyncio-python` |
-| `BeautifulSoup`, `scrapy` | `web-scraping-python` |
-| General Python | `effective-python` |
-```
-
-**Per-skill focus areas** — for each skill applied, list what to look for under `HIGH`, `MEDIUM`, and `LOW` headings. Pull these from the skills' own SKILL.md files, but trim to what is relevant for this agent's scope.
-
-**Output format** — end the body with the standard output block:
-
-```markdown
-### Step N — Output format
-
-​```
-**Skills applied:** `skill-name(s)`
-**Scope:** [files reviewed]
-
-### HIGH
-- `file:line` — finding
-
-### MEDIUM
-- `file:line` — finding
-
-### LOW
-- `file:line` — finding
-
-**Summary:** X HIGH, Y MEDIUM, Z LOW findings.
-​```
-```
-
-### 4. Choose the right model
-
-| Model | When to use |
-|-------|-------------|
-| `haiku` | Fast, cheap; use for simple or narrow tasks with a single skill and little routing logic |
-| `sonnet` | Default for most reviewers; handles multi-skill routing and structured output well |
-| `opus` | Only for architecture or reasoning-heavy agents where depth matters more than cost (e.g., `architecture-reviewer`) |
-
-When in doubt, use `sonnet`.
-
-### 5. Follow naming conventions
-
-| Pattern | Examples | Use for |
-|---------|----------|---------|
-| `<language>-reviewer` | `python-reviewer`, `jvm-reviewer`, `ts-reviewer` | Language-cluster agents combining all relevant skills for a language |
-| `<domain>-reviewer` | `architecture-reviewer`, `data-reviewer`, `ui-reviewer` | Domain-cluster agents cutting across languages |
-| Descriptive name | `booklib-reviewer` | Meta or router agents that don't fit a single language or domain |
-
-### 6. Installation
-
-Agents install to `.claude/agents/` alongside skills:
-
-```bash
-# Install one agent
-npx skills add booklib-ai/booklib --agent=python-reviewer
-
-# Install everything (skills + agents)
-npx skills add booklib-ai/booklib --all
-```
-
-Once installed, Claude Code reads the agent's `description` field and auto-invokes it when a matching request arrives — no slash command needed.
-
-### 7. No eval system (yet)
-
-There is no `evals/` system for agents. Instead:
-
-- Make the `description` accurate — it controls when the agent auto-invokes
-- Check that every `### Step N` section has a clear, testable action
-- Test manually: install the agent locally and run it against a real codebase
-
-### 8. Submit a PR
-
-```bash
-git checkout -b agent/agent-name
-git add agents/agent-name.md
-git commit -m "feat: add agent-name agent"
-gh pr create --title "feat: add agent-name agent" --body "..."
-```
-
-PR checklist:
-- [ ] Filename matches `name` in frontmatter
-- [ ] `description` is under 1024 characters and describes when to invoke it
-- [ ] `model` is appropriate for the agent's complexity
-- [ ] Process steps are numbered and each has a clear action
-- [ ] Detection table covers the signals the agent handles
-- [ ] Output format section matches the standard `HIGH`/`MEDIUM`/`LOW` format
+To contribute a new MCP tool or modify existing ones, see the developer guide in [AGENTS.md](./AGENTS.md) (coming in 3.0.1).
 
 ## Requesting a skill
 
