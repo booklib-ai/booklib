@@ -819,14 +819,17 @@
     visible.forEach(skill => {
       const card = document.createElement('div');
       card.className = 'skill-card';
-      const stars = skill.stars ? `★${skill.stars.toLocaleString()}` : '';
+      const stars = skill.stars ? `★ ${skill.stars.toLocaleString()}` : '';
       const langs = skill.languages?.length ? skill.languages.join(', ') : '';
       const repoLink = skill.repo ? `<a href="${skill.repo}" target="_blank" rel="noopener" style="font-size:0.7rem;color:var(--text-muted);font-family:var(--font-mono);margin-top:8px;display:inline-block;transition:color 0.2s" onmouseover="this.style.color='var(--accent-indigo)'" onmouseout="this.style.color='var(--text-muted)'">${skill.repo.replace('https://github.com/','')}</a>` : '';
+      // Generate a consistent color from skill name for the fallback cover
+      const hue = skill.name.split('').reduce((h, c) => h + c.charCodeAt(0), 0) % 360;
+      const coverBg = `hsl(${hue}, 35%, 18%)`;
       card.innerHTML = `
         <div class="skill-header">
-          <div class="book-cover"><div class="fb">${initials(skill.name)}</div></div>
+          <div class="book-cover" style="background:${coverBg}"><div class="fb" style="color:hsl(${hue},50%,65%)">${initials(skill.name)}</div></div>
           <div class="skill-info">
-            <div class="skill-tag">${skill.name}${stars ? ` <span style="color:var(--accent-green);font-weight:400">${stars}</span>` : ''}</div>
+            <div class="skill-tag">${skill.name}${stars ? ` <span style="color:var(--text-dim);font-size:0.75rem">${stars}</span>` : ''}</div>
             <div class="skill-book" style="font-size:0.85rem">${skill.desc || skill.name}</div>
             ${langs ? `<div class="skill-author">${langs}</div>` : ''}
             ${repoLink}
