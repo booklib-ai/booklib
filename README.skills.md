@@ -28,7 +28,7 @@ skills/
 ├── domain-driven-design/SKILL.md
 ├── refactoring-ui/SKILL.md
 ├── lean-startup/SKILL.md
-└── ... 18 more
+└── ... 17 more (23 total)
 ```
 
 ## Want the full platform?
@@ -42,7 +42,7 @@ booklib init
 
 **`@booklib/core`** includes everything in this package plus:
 - Hybrid search engine (BM25 + vector + cross-encoder reranking)
-- MCP server with 8 tools for 10 AI agents
+- MCP server with 5 tools for 14 AI coding assistants
 - Personal knowledge graph
 - Interactive setup wizard
 - Doctor diagnostics
