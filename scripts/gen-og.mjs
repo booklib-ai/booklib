@@ -22,104 +22,63 @@ const HTML = `<!DOCTYPE html>
     background: #0d0d1a;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 80px;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0 100px;
     position: relative;
   }
 
-  /* Left: text content */
-  .left { flex: 0 0 auto; max-width: 540px; z-index: 2; }
-
-  .org {
-    font-size: 22px; font-weight: 500; color: #6366f1;
-    letter-spacing: 0.04em; margin-bottom: 16px;
-    font-family: "SF Mono", "Fira Code", monospace;
-  }
-  h1 {
-    font-size: 72px; font-weight: 800; color: #f1f5f9;
-    line-height: 1; letter-spacing: -0.04em; margin-bottom: 20px;
-  }
-  .tagline {
-    font-size: 24px; color: #64748b; line-height: 1.4; margin-bottom: 40px;
-    max-width: 460px;
-  }
-  .pills { display: flex; gap: 12px; flex-wrap: wrap; }
-  .pill {
-    background: #161625; border: 1px solid #2d2d4a;
-    border-radius: 999px; padding: 8px 20px;
-    font-size: 15px; color: #a5b4fc; font-weight: 600;
-  }
-
-  /* Right: book grid */
-  .books {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 8px;
-    width: 420px;
-    flex-shrink: 0;
-    opacity: 0.92;
-  }
-  .book {
-    aspect-ratio: 2/3;
-    border-radius: 5px;
-    background: var(--c);
-    position: relative;
-    overflow: hidden;
-  }
-  .book::after {
+  /* Subtle gradient accent */
+  body::before {
     content: "";
-    position: absolute; inset: 0;
-    background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 60%);
-  }
-  /* Spine line */
-  .book::before {
-    content: "";
-    position: absolute; top: 0; bottom: 0; left: 8px;
-    width: 2px; background: rgba(0,0,0,0.2);
-  }
-
-  /* Fade edge on left side of book grid */
-  .books-wrap {
-    position: relative;
-    flex-shrink: 0;
-  }
-  .books-wrap::before {
-    content: "";
-    position: absolute; top: 0; bottom: 0; left: -60px;
-    width: 80px;
-    background: linear-gradient(to right, #0d0d1a, transparent);
-    z-index: 1;
+    position: absolute;
+    top: -100px; right: -100px;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%);
     pointer-events: none;
+  }
+
+  .logo {
+    width: 56px; height: 56px;
+    margin-bottom: 40px;
+    filter: brightness(0) invert(1);
+  }
+
+  .headline {
+    font-size: 52px;
+    font-weight: 800;
+    color: #f1f5f9;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+    margin-bottom: 20px;
+    max-width: 800px;
+  }
+
+  .punchline {
+    font-size: 44px;
+    font-weight: 700;
+    color: #6366f1;
+    line-height: 1.2;
+    margin-bottom: 48px;
+  }
+
+  .install {
+    font-family: "SF Mono", "Fira Code", "Consolas", monospace;
+    font-size: 20px;
+    color: #475569;
+    letter-spacing: 0.02em;
+  }
+
+  .install span {
+    color: #64748b;
   }
 </style>
 </head>
 <body>
-<div class="left">
-  <div class="org">booklib-ai / booklib</div>
-  <h1>BookLib</h1>
-  <p class="tagline">Context engineering for AI coding assistants. Detects knowledge gaps, fixes them via MCP.</p>
-  <div class="pills">
-    <span class="pill">24 skills</span>
-    <span class="pill">760 tests</span>
-    <span class="pill">10 ecosystems</span>
-    <span class="pill">14 AI tools</span>
-    <span class="pill">v3.0.0</span>
-  </div>
-</div>
-
-<div class="books-wrap">
-  <div class="books">
-    ${[
-      "#1e3a5f","#5f1e1e","#1e5f2a","#5f4a1e","#2a1e5f",
-      "#1e4d5f","#5f1e4a","#3d5f1e","#5f3d1e","#1e5f5f",
-      "#4a1e5f","#1e5f3d","#5f5f1e","#1e2a5f","#5f1e2a",
-      "#2a5f1e","#5f2a1e","#1e5f4a","#4a5f1e","#1e4a5f",
-      "#5f1e5f","#3d1e5f","#1e5f1e","#5f3d3d","#1e3d5f",
-      "#5f4d1e","#1e4d3d","#4d1e1e","#1e1e4d","#3d5f3d",
-    ].map(c => `<div class="book" style="--c:${c}"></div>`).join("")}
-  </div>
-</div>
+  <img class="logo" src="https://raw.githubusercontent.com/booklib-ai/booklib/main/assets/logo.svg" />
+  <div class="headline">Your AI doesn't know the APIs<br/>you shipped last month.</div>
+  <div class="punchline">BookLib fixes that.</div>
+  <div class="install"><span>$</span> npm install -g @booklib/core</div>
 </body>
 </html>`;
 
@@ -127,7 +86,6 @@ let puppeteer;
 try {
   puppeteer = await import("puppeteer");
 } catch {
-  // Try puppeteer-core as fallback
   puppeteer = await import("puppeteer-core");
 }
 
