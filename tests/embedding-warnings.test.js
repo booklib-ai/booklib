@@ -27,14 +27,20 @@ describe('CoreML warning suppression is global and permanent', () => {
       'otherwise warnings reappear on every search/embed call');
   });
 
-  it('OS_ACTIVITY_MODE is not restored/deleted after pipeline creation', () => {
-    // If we restore it, warnings come back during embedding calls
+  it('OS_ACTIVITY_MODE stays set for the process lifetime', () => {
+    // OS_ACTIVITY_MODE helps with some native logging but not all ONNX warnings.
+    // It must not be restored/deleted — that would let warnings back in.
     assert.ok(!source.includes("delete process.env.OS_ACTIVITY_MODE"),
-      'should not delete OS_ACTIVITY_MODE — it must stay for the process lifetime');
-
-    // Check there's no "origActivity" restore pattern
+      'should not delete OS_ACTIVITY_MODE');
     assert.ok(!source.includes("process.env.OS_ACTIVITY_MODE = origActivity"),
       'should not restore OS_ACTIVITY_MODE to original value');
+  });
+
+  it('does NOT use fd2 redirect — that breaks process.stderr permanently', () => {
+    assert.ok(!source.includes('closeSync(2)'),
+      'must not close fd 2 — breaks process.stderr for the rest of the process');
+    assert.ok(!source.includes("openSync('/dev/null'"),
+      'must not redirect fd 2 to /dev/null');
   });
 
   it('CoreML execution provider is still configured (GPU not disabled)', () => {
