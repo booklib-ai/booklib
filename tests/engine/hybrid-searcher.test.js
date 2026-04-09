@@ -38,16 +38,24 @@ ${skill.text}
 }
 
 describe('BookLibSearcher hybrid pipeline', () => {
-  it('returns results for a query with bm25.json present', async () => {
+  it('returns results for a query with bm25.json present', async (t) => {
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'booklib-hybrid-'));
     const indexDir = await buildTestIndex(tmpDir);
     const searcher = new BookLibSearcher(indexDir);
 
-    const results = await searcher.search('kotlin null safety', 3, 0);
-    assert.ok(results.length > 0, 'should return results');
-    assert.ok(results[0].score !== undefined);
-    assert.ok(results[0].text !== undefined);
-    assert.ok(results[0].metadata !== undefined);
+    try {
+      const results = await searcher.search('kotlin null safety', 3, 0);
+      assert.ok(results.length > 0, 'should return results');
+      assert.ok(results[0].score !== undefined);
+      assert.ok(results[0].text !== undefined);
+      assert.ok(results[0].metadata !== undefined);
+    } catch (err) {
+      if (err.message?.includes('Protobuf parsing failed') || err.message?.includes('Load model')) {
+        t.skip('Reranker model not available on CI');
+        return;
+      }
+      throw err;
+    }
   });
 
   it('falls back to vector search when bm25.json is missing', async () => {
@@ -62,13 +70,21 @@ describe('BookLibSearcher hybrid pipeline', () => {
     assert.ok(results.length > 0, 'should fall back to vector search');
   });
 
-  it('top result is relevant to query', async () => {
+  it('top result is relevant to query', async (t) => {
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'booklib-relevance-'));
     const indexDir = await buildTestIndex(tmpDir);
     const searcher = new BookLibSearcher(indexDir);
 
-    const results = await searcher.search('kotlin immutable data', 5, 0);
-    assert.ok(results.length > 0);
-    assert.strictEqual(results[0].metadata.name, 'effective-kotlin');
+    try {
+      const results = await searcher.search('kotlin immutable data', 5, 0);
+      assert.ok(results.length > 0);
+      assert.strictEqual(results[0].metadata.name, 'effective-kotlin');
+    } catch (err) {
+      if (err.message?.includes('Protobuf parsing failed') || err.message?.includes('Load model')) {
+        t.skip('Reranker model not available on CI');
+        return;
+      }
+      throw err;
+    }
   });
 });
