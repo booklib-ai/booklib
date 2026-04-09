@@ -1,0 +1,37 @@
+{
+  "evals": [
+    {
+      "id": "eval-01-lookup-trigger",
+      "prompt": "You are editing frontend/src/lib/supabase.ts which imports @supabase/supabase-js.\nThe file currently has:\n\nimport { createClient } from '@supabase/supabase-js'\n\nconst supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!\nconst supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!\n\nexport const supabase = createClient(supabaseUrl, supabaseKey)\n\nYou need to add user authentication with email/password sign-in.\nBefore writing auth code, what BookLib tool should you call and why?",
+      "expectations": [
+        "Should call lookup with a query about supabase auth",
+        "Should NOT call lookup for standard TypeScript features",
+        "Should mention that supabase may be post-training",
+        "Should wait for lookup results before writing auth code",
+        "Should use the results to write correct v2 auth patterns"
+      ]
+    },
+    {
+      "id": "eval-02-guard-trigger",
+      "prompt": "You just wrote a payment processing module at src/payments/charge.ts:\n\nimport Stripe from 'stripe'\n\nconst stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)\n\nexport async function processPayment(amount: number) {\n  const charge = await stripe.charges.create({\n    amount,\n    currency: 'usd',\n    source: 'tok_visa',\n  })\n  return charge\n}\n\nThe team previously decided to use PaymentIntents instead of Charges.\nWhat BookLib tool catches this violation and how does it work?",
+      "expectations": [
+        "Should mention the guard tool",
+        "Should explain guard checks code against team decisions",
+        "Should note the team decision about PaymentIntents",
+        "Should suggest fixing the code to use PaymentIntents",
+        "Should mention that guard runs automatically via PostToolUse hooks"
+      ]
+    },
+    {
+      "id": "eval-03-verify-trigger",
+      "prompt": "You added zod@3.25 to the project and wrote this validation module at src/lib/validate.ts:\n\nimport { z } from 'zod'\n\nexport const UserSchema = z.object({\n  name: z.string().min(1),\n  email: z.string().email(),\n  age: z.number().int().positive(),\n  role: z.enum(['admin', 'user', 'guest']),\n})\n\nexport type User = z.infer<typeof UserSchema>\n\nHow do you check if BookLib has documentation for this version of zod?\nWhat happens if zod@3.25 is a post-training library?",
+      "expectations": [
+        "Should mention the verify tool",
+        "Should explain verify checks if imports are in the BookLib index",
+        "Should note that zod@3.25 may be post-training",
+        "Should suggest running booklib verify on the file",
+        "Should mention that verify also runs automatically via hooks"
+      ]
+    }
+  ]
+}

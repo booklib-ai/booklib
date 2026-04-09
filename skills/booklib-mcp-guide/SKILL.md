@@ -3,7 +3,7 @@ name: booklib-mcp-guide
 version: "1.0"
 license: MIT
 tags: [meta, mcp, tools, agent-guide]
-description: "Reference for BookLib MCP tools. Covers when to call each tool, parameters, common workflows, and anti-patterns for AI coding agents."
+description: "Use when working with BookLib MCP tools. Reference for lookup, review, remember, verify, guard — parameters, workflows, and anti-patterns."
 ---
 
 # BookLib MCP Tool Guide
