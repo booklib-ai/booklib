@@ -549,14 +549,6 @@ async function main() {
       break;
     }
 
-    case 'hooks': {
-      const mgr = new BookLibSessionManager(process.cwd());
-      if (args[1] === 'install') {
-        const result = mgr.installGitHooks();
-        console.log(`✅ Installed hooks: ${result.installed.join(', ')}`);
-      }
-      break;
-    }
 
 
     case 'init': {
