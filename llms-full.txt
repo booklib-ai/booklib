@@ -1,8 +1,8 @@
 # BookLib Full Skill Catalog
 
-An open knowledge ecosystem for AI coding agents. Packages expert knowledge from canonical books as skills, with a discovery engine for community sources, semantic search, and orchestrator compatibility (obra/superpowers, ruflo).
+Context engineering tool for AI coding assistants. Detects post-training knowledge gaps, resolves them via MCP, and delivers expert knowledge from 23 bundled skills.
 
-This file contains detailed descriptions and triggers for every bundled skill, plus documentation of the discovery system and CLI commands, optimized for RAG retrieval.
+This file contains detailed descriptions and triggers for every bundled skill, optimized for RAG retrieval. For MCP tools and CLI commands, see llms.txt.
 
 ## Skill: animation-at-work
 **Description**: Apply web animation principles from Animation at Work by Rachel Nabors. Covers human perception of motion, 12 principles of animation, animation patterns (transitions, supplements, feedback, demonstrations, decorations), CSS transitions, CSS animations, Web Animations API, SVG/Canvas/WebGL, communicating animation with storyboards and motion comps, performance (composite-only properties, will-change, RAIL), accessibility (prefers- reduced-motion, vestibular disorders), and team workflow. Trigger on "animation", "transition", "CSS animation", "keyframe", "easing", "motion design", "web animation", "prefers-reduced-motion", "storyboard", "parallax", "loading animation", "hover effect", "micro-interaction".

@@ -1,70 +1,39 @@
-# BookLib Skills
+# BookLib
 
-An open knowledge ecosystem for AI coding agents. Packages expert knowledge from canonical programming books as skills, with a discovery engine for community sources, semantic search, automatic context injection, and compatibility with Claude Code orchestrators (obra/superpowers, ruflo).
+Context engineering tool for AI coding assistants. Detects post-training knowledge gaps in your dependencies, resolves them automatically, and delivers context via MCP to 14 AI tools.
 
-## Two Layers
+## What It Does
 
-**Bundled library**: 22 skills from canonical books, pre-indexed, ready to use.
-**Discovery ecosystem**: finds and fetches skills from GitHub repos, community registries, and npm packages (258+ discoverable).
+- Scans dependencies across 10 package ecosystems (npm, PyPI, Maven, Cargo, etc.)
+- Cross-references with source code to find exact files and APIs affected
+- Auto-resolves gaps via Context7, GitHub releases, web docs
+- Injects context at runtime via PreToolUse/PostToolUse hooks
+- Captures team decisions and enforces them via `guard` tool
+- 23 expert skills distilled from canonical books (Clean Code, DDD, Effective Java, etc.)
 
-## Core Commands
+## MCP Tools (5)
 
-- `booklib context "<task>"` — cross-skill context builder: searches all skills + knowledge graph, extracts relevant passages, compiles a sharp ready-to-use system prompt
-- `booklib context "<task>" --file <path>` — also injects graph context for the file's owning component
-- `booklib context "<task>" --prompt-only` — just the compiled prompt (pipe-friendly)
-- `booklib search "<query>"` — semantic search over skill content + knowledge nodes
-- `booklib fetch <skill>` — download and index a community skill
-- `booklib setup` — fetch all trusted skills at once
-- `booklib sync` — sync fetched skills to `~/.claude/skills/` for Skill tool / orchestrator access
-- `booklib audit <skill> <file>` — systematic file review against a skill
-- `booklib scan` — wisdom heatmap across the whole project
-- `booklib profile <role>` — skills by agent role (architect, reviewer, security, tester, ...)
-- `booklib swarm-config [trigger]` — skill map for swarm agent pipelines
-- `booklib init [--orchestrator=obra|ruflo]` — scaffold context files for all AI tools
-- `booklib save-state / resume / recover-auto` — session handoff between agents
+- lookup — search for post-training docs, team decisions, expert knowledge
+- review — deep code review against a named skill
+- remember — capture a team decision or insight
+- verify — check if imports are covered by the index
+- guard — check if code contradicts team decisions
 
-## Knowledge Graph Commands
+## CLI
 
-- `booklib note "<title>"` — create a note node (opens $EDITOR or reads stdin)
-- `booklib dictate` — type or dictate → AI structures + saves as a note
-- `booklib dictate --raw` — type or dictate → saved verbatim, no AI processing
-- `booklib save-chat --title "<title>"` — save current conversation as a knowledge node
-- `booklib save-chat --summarize` — AI extracts key decisions + findings → clean note
-- `booklib research "<topic>"` — create a research stub node
-- `booklib component add <name> "<glob>"` — define a project component node with path patterns
-- `booklib link <node1> <node2> --type <edge-type>` — add a typed edge between nodes
-- `booklib nodes list` — list all knowledge nodes
-- `booklib nodes show <id>` — view a specific node
+- booklib init — guided setup (detects stack, registers MCP, builds index)
+- booklib gaps — detect post-training dependencies
+- booklib fix — auto-resolve gaps via Context7/GitHub
+- booklib analyze — show affected files and APIs
+- booklib search — hybrid search (BM25 + vector + reranker)
 
-## Bundled Skills (22)
+## Install
 
-animation-at-work · clean-code-reviewer · data-intensive-patterns · data-pipelines · design-patterns · domain-driven-design · effective-java · effective-kotlin · effective-python · effective-typescript · kotlin-in-action · lean-startup · microservices-patterns · programming-with-rust · refactoring-ui · rust-in-action · skill-router · spring-boot-in-action · storytelling-with-data · system-design-interview · using-asyncio-python · web-scraping-python
+npm install -g @booklib/core
+booklib init
 
-## Discovery Sources (booklib.config.json)
+## Links
 
-- `registry` — bundled skills
-- `manifest` — JSON skill list at a URL or local path (community/registry.json ships 258 skills)
-- `github-skills-dir` — any GitHub repo with a `skills/` subdirectory (obra/superpowers, ruflo included)
-- `github-org` — all repos in a GitHub org
-- `npm-scope` — all packages in an npm scope
-
-## Orchestrator Compatibility
-
-After `booklib sync`, all fetched skills are available at `~/.claude/skills/<name>/SKILL.md`.
-Works with obra/superpowers (`/plugin install superpowers`) and ruflo (`npm install -g ruflo`).
-
-## Activation Mechanisms
-
-- **PreToolUse hook** — automatically injects relevant skill chunks when editing matching files (fine-grained)
-- **Skill tool** — full skill dump on demand, used by orchestrator subagents (coarse)
-- **Search** — semantic vector search returning the most relevant chunks
-
-## Technical
-
-- Format: Markdown with XML tags (`<core_principles>`, `<anti_patterns>`, `<framework>`)
-- Engine: local semantic RAG using `@xenova/transformers` + `vectra`
-- Knowledge Graph: nodes as `.md` files with YAML frontmatter; edges as append-only JSONL
-- Config: `booklib.config.json` (discovery sources), `.booklib/` (local state, gitignored)
-- Runtime deps: `@xenova/transformers`, `vectra`, `gray-matter`, `@modelcontextprotocol/sdk`, `minimatch`
-
-For full skill catalog, see [llms-full.txt](llms-full.txt).
+- Website: https://booklib-ai.github.io/booklib/
+- GitHub: https://github.com/booklib-ai/booklib
+- npm: https://www.npmjs.com/package/@booklib/core
