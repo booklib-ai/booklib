@@ -51,6 +51,7 @@
       line-height: 1.6;
       -webkit-font-smoothing: antialiased;
       overflow-x: hidden;
+      scroll-behavior: smooth;
     }
 
     /* Dot grid background */
@@ -85,7 +86,7 @@
     .hero-logo {
       width: 64px; height: 64px;
       margin: 0 auto 48px;
-      drop-shadow: 0 0 24px rgba(129,140,248,0.3);
+      filter: drop-shadow(0 0 24px rgba(129,140,248,0.3));
     }
 
     .hero h1 {
@@ -471,9 +472,55 @@
     .install-box { animation-delay: 0.3s; }
     .badges { animation-delay: 0.4s; }
     .demo-wrap { animation-delay: 0.5s; }
+
+    /* ─── Navbar ─── */
+    .navbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      padding: 12px 24px;
+      background: rgba(6, 11, 24, 0.8);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid transparent;
+      opacity: 0; transform: translateY(-100%);
+      transition: all 0.4s var(--ease);
+    }
+    .navbar.visible { opacity: 1; transform: translateY(0); border-bottom-color: var(--card-border); }
+    .nav-inner { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+    .nav-brand { font-family: var(--font-display); font-weight: 700; font-size: 0.95rem; color: var(--text-main); }
+    .nav-link { font-size: 0.85rem; color: var(--text-dim); transition: color 0.2s; }
+    .nav-link:hover { color: var(--text-main); }
+
+    /* ─── Scroll Progress ─── */
+    .scroll-progress {
+      position: fixed; top: 0; left: 0; height: 2px; z-index: 101;
+      background: linear-gradient(90deg, var(--accent-green), var(--accent-indigo));
+      width: 0%;
+      transition: width 0.1s linear;
+    }
+
+    /* ─── Card Shine ─── */
+    .bento-card .shine {
+      position: absolute; inset: 0;
+      background: radial-gradient(400px circle at var(--mx) var(--my), rgba(129,140,248,0.06), transparent 60%);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .bento-card:hover .shine { opacity: 1; }
+
+    /* ─── Section Reveals ─── */
+    .reveal-section { opacity: 0; transform: translateY(32px); transition: all 0.8s var(--ease); }
+    .reveal-section.visible { opacity: 1; transform: translateY(0); }
   </style>
 </head>
 <body>
+
+<nav class="navbar" id="navbar">
+  <div class="nav-inner">
+    <span class="nav-brand">BookLib</span>
+    <a href="https://github.com/booklib-ai/booklib" class="nav-link">GitHub</a>
+  </div>
+</nav>
+<div class="scroll-progress" id="scroll-progress"></div>
 
 <div class="container">
   <section class="hero">
@@ -498,8 +545,8 @@
     </div>
   </section>
 
-  <div class="section-label">Capabilities</div>
-  <h2 class="section-title">What It Does</h2>
+  <div class="section-label reveal-section">Capabilities</div>
+  <h2 class="section-title reveal-section">What It Does</h2>
   <div class="bento">
     <div class="bento-card">
       <div>
@@ -540,7 +587,7 @@
   </div>
 </div>
 
-<section class="how-section">
+<section class="how-section reveal-section">
   <div class="container">
     <div class="how-grid">
       <div>
@@ -576,8 +623,8 @@
 
 <div class="container">
   <div class="filters">
-    <div class="section-label">Library</div>
-    <h2 class="section-title" style="margin-bottom:12px">Explore Skills</h2>
+    <div class="section-label reveal-section">Library</div>
+    <h2 class="section-title reveal-section" style="margin-bottom:12px">Explore Skills</h2>
     <p style="color:var(--text-dim);margin-bottom:24px;font-size:0.95rem">Filter by profile or search for a specific book</p>
 
     <input type="text" class="search-box" id="search-input" placeholder="Search by name, book, or author..."/>
@@ -589,12 +636,12 @@
 
   <div class="skills-grid" id="skills-grid"></div>
 
-  <div class="section-label">Automation</div>
-  <h2 class="section-title">Reviewer Agents</h2>
+  <div class="section-label reveal-section">Automation</div>
+  <h2 class="section-title reveal-section">Reviewer Agents</h2>
   <div class="sub-grid" id="agents-grid"></div>
 
-  <div class="section-label">Standards</div>
-  <h2 class="section-title">Global Rules</h2>
+  <div class="section-label reveal-section">Standards</div>
+  <h2 class="section-title reveal-section">Global Rules</h2>
   <div class="sub-grid" id="rules-grid"></div>
 </div>
 
@@ -824,6 +871,35 @@
   renderAgents();
   renderRules();
   runDemo();
+
+  // Navbar visibility on scroll
+  window.addEventListener('scroll', () => {
+    document.getElementById('navbar').classList.toggle('visible', window.scrollY > 100);
+  });
+
+  // Scroll progress bar
+  window.addEventListener('scroll', () => {
+    const pct = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100;
+    document.getElementById('scroll-progress').style.width = pct + '%';
+  });
+
+  // Bento card shine effect
+  document.querySelectorAll('.bento-card').forEach(card => {
+    const shine = document.createElement('div');
+    shine.className = 'shine';
+    card.appendChild(shine);
+    card.addEventListener('mousemove', e => {
+      const r = card.getBoundingClientRect();
+      card.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+      card.style.setProperty('--my', (e.clientY - r.top) + 'px');
+    });
+  });
+
+  // Scroll-triggered section reveals
+  const revealObs = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); revealObs.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.reveal-section').forEach(el => revealObs.observe(el));
 </script>
 </body>
 </html>
