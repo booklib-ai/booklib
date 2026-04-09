@@ -536,6 +536,14 @@
 
   <div class="skills-grid" id="skills-grid"></div>
 
+  <h2 class="section-title reveal-section" style="margin-top:96px">Community Skills <span style="font-weight:400;font-size:0.85rem;color:var(--text-muted)" id="community-count"></span></h2>
+  <p style="color:var(--text-dim);margin-bottom:24px;font-size:0.95rem;margin-top:-36px">Open source skills from the community — GitHub repos, registries, and npm packages.</p>
+  <input type="text" class="search-box" id="community-search" placeholder="Search community skills..." style="margin-bottom:20px"/>
+  <div class="skills-grid" id="community-grid" style="margin-bottom:24px"></div>
+  <div style="text-align:center;margin-bottom:96px" id="community-more-wrap">
+    <button class="copy-btn" id="community-more" style="padding:10px 32px">Show more</button>
+  </div>
+
   <h2 class="section-title reveal-section">Reviewer Agents</h2>
   <div class="sub-grid" id="agents-grid"></div>
 
@@ -769,6 +777,82 @@
   renderAgents();
   renderRules();
   runDemo();
+
+  // ─── Community Skills Browser ───
+  let communitySkills = [];
+  let communityPage = 0;
+  const COMMUNITY_PAGE_SIZE = 12;
+  let communitySearch = '';
+
+  async function loadCommunitySkills() {
+    try {
+      const res = await fetch('community-skills.json');
+      communitySkills = await res.json();
+      document.getElementById('community-count').textContent = `(${communitySkills.length})`;
+      renderCommunitySkills();
+    } catch {
+      document.getElementById('community-count').textContent = '';
+      document.getElementById('community-grid').innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem">Community skills unavailable. Run <code>booklib discover</code> locally.</p>';
+      document.getElementById('community-more-wrap').style.display = 'none';
+    }
+  }
+
+  function renderCommunitySkills() {
+    const grid = document.getElementById('community-grid');
+    grid.innerHTML = '';
+
+    const filtered = communitySkills.filter(s => {
+      if (!communitySearch) return true;
+      const q = communitySearch.toLowerCase();
+      return s.name.toLowerCase().includes(q) || s.desc.toLowerCase().includes(q);
+    });
+
+    const visible = filtered.slice(0, (communityPage + 1) * COMMUNITY_PAGE_SIZE);
+    const hasMore = visible.length < filtered.length;
+
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach((e, i) => {
+        if (e.isIntersecting) { setTimeout(() => e.target.classList.add('reveal'), i * 30); obs.unobserve(e.target); }
+      });
+    }, { threshold: 0.1 });
+
+    visible.forEach(skill => {
+      const card = document.createElement('div');
+      card.className = 'skill-card';
+      const stars = skill.stars ? `★${skill.stars.toLocaleString()}` : '';
+      const langs = skill.languages?.length ? skill.languages.join(', ') : '';
+      card.innerHTML = `
+        <div class="skill-header">
+          <div class="book-cover"><div class="fb">${initials(skill.name)}</div></div>
+          <div class="skill-info">
+            <div class="skill-tag">${skill.name}${stars ? ` <span style="color:var(--accent-green);font-weight:400">${stars}</span>` : ''}</div>
+            <div class="skill-book" style="font-size:0.85rem">${skill.desc || skill.name}</div>
+            ${langs ? `<div class="skill-author">${langs}</div>` : ''}
+          </div>
+        </div>`;
+      card.onclick = () => {
+        document.getElementById('main-cmd').innerHTML = `<span class="dollar">$</span>booklib install ${skill.name}`;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      };
+      grid.appendChild(card);
+      obs.observe(card);
+    });
+
+    const moreBtn = document.getElementById('community-more-wrap');
+    moreBtn.style.display = hasMore ? '' : 'none';
+  }
+
+  document.getElementById('community-search').oninput = (e) => {
+    communitySearch = e.target.value;
+    communityPage = 0;
+    renderCommunitySkills();
+  };
+  document.getElementById('community-more').onclick = () => {
+    communityPage++;
+    renderCommunitySkills();
+  };
+
+  loadCommunitySkills();
 
   // Scroll-triggered section reveals
   const revealObs = new IntersectionObserver((entries) => {
