@@ -444,7 +444,15 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("BookLib Universal MCP Server running");
+
+  // Warm up embedding model at startup so CoreML native warnings fire NOW
+  // (to stderr, before any tool call) instead of polluting the first lookup response.
+  try {
+    const { createEmbeddingPipeline } = await import('../lib/engine/embedding-provider.js');
+    await createEmbeddingPipeline({ quiet: true });
+  } catch { /* non-fatal — model loads on first search if warmup fails */ }
+
+  console.error("BookLib MCP Server running");
 }
 
 main().catch(console.error);
