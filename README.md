@@ -91,7 +91,7 @@ The wizard detects your stack, configures MCP for your AI tools, and builds the 
 booklib analyze
 ```
 
-Full documentation at [booklib-ai.github.io/booklib](https://booklib-ai.github.io/booklib/).
+Website and skill browser at [booklib-ai.github.io/booklib](https://booklib-ai.github.io/booklib/).
 
 ---
 
