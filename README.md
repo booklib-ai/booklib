@@ -19,7 +19,7 @@
 </p>
 
 <p align="center">
-  760 tests &nbsp;·&nbsp; 22 expert skills &nbsp;·&nbsp; 10 ecosystems &nbsp;·&nbsp; 11 languages &nbsp;·&nbsp; 14 AI tools
+  767 tests &nbsp;·&nbsp; 23 expert skills &nbsp;·&nbsp; 10 ecosystems &nbsp;·&nbsp; 11 languages &nbsp;·&nbsp; 14 AI tools
 </p>
 
 ---
@@ -97,6 +97,8 @@ Website and skill browser at [booklib-ai.github.io/booklib](https://booklib-ai.g
 
 ## How It Works
 
+Most context tools wait for your AI to ask. BookLib detects gaps before coding starts and injects corrections as code is written.
+
 ### 1. Detect Knowledge Gaps
 
 Scans your dependencies across npm, PyPI, Maven, Crates.io, RubyGems, Go modules, Packagist, Pub, Swift, and NuGet. Checks publish dates against the model's training cutoff, then cross-references with your source code to find the exact files and APIs affected.
@@ -144,7 +146,7 @@ booklib connect github discussions org/repo
 | **Source Connectors** | GitHub, Notion, Context7, local files, web docs, SDD specs (.specify, .planning, .kiro) |
 | **Source Detection** | Auto-detects 12 content types: OpenAPI, ADRs, Gherkin, project docs, and more |
 | **Hybrid Search** | BM25 + vector search + Reciprocal Rank Fusion + cross-encoder reranking |
-| **22 Expert Skills** | Distilled from Effective Java, Clean Code, DDD, and 19 more canonical books |
+| **23 Expert Skills** | Distilled from Effective Java, Clean Code, DDD, and 20 more canonical books |
 
 ---
 
