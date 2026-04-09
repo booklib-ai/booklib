@@ -31,5 +31,10 @@ commands/
 # Internal research
 research-reports/
 
+# Benchmark working files (keep only ground-truth.json + run-eval.js)
+benchmark/*.md
+benchmark/order-processing*.js
+benchmark/devto-*.md
+
 # Caches
 .ruff_cache/
