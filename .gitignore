@@ -24,5 +24,12 @@ docs/product-*.md
 .kiro/
 .github/copilot-instructions.md
 
+# Legacy (replaced by MCP)
+agents/
+commands/
+
+# Internal research
+research-reports/
+
 # Caches
 .ruff_cache/
