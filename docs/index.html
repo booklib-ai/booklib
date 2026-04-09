@@ -821,6 +821,7 @@
       card.className = 'skill-card';
       const stars = skill.stars ? `★${skill.stars.toLocaleString()}` : '';
       const langs = skill.languages?.length ? skill.languages.join(', ') : '';
+      const repoLink = skill.repo ? `<a href="${skill.repo}" target="_blank" rel="noopener" style="font-size:0.7rem;color:var(--text-muted);font-family:var(--font-mono);margin-top:8px;display:inline-block;transition:color 0.2s" onmouseover="this.style.color='var(--accent-indigo)'" onmouseout="this.style.color='var(--text-muted)'">${skill.repo.replace('https://github.com/','')}</a>` : '';
       card.innerHTML = `
         <div class="skill-header">
           <div class="book-cover"><div class="fb">${initials(skill.name)}</div></div>
@@ -828,9 +829,11 @@
             <div class="skill-tag">${skill.name}${stars ? ` <span style="color:var(--accent-green);font-weight:400">${stars}</span>` : ''}</div>
             <div class="skill-book" style="font-size:0.85rem">${skill.desc || skill.name}</div>
             ${langs ? `<div class="skill-author">${langs}</div>` : ''}
+            ${repoLink}
           </div>
         </div>`;
-      card.onclick = () => {
+      card.onclick = (e) => {
+        if (e.target.tagName === 'A') return; // don't intercept repo link clicks
         document.getElementById('main-cmd').innerHTML = `<span class="dollar">$</span>booklib install ${skill.name}`;
         window.scrollTo({ top: 0, behavior: 'smooth' });
       };
