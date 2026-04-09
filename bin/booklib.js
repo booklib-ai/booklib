@@ -25,7 +25,6 @@ import { BookLibInstaller } from '../lib/installer.js';
 import { BookLibScanner } from '../lib/engine/scanner.js';
 import { BookLibSessionCoordinator } from '../lib/engine/session-coordinator.js';
 import { BookLibSessionManager } from '../lib/engine/session-manager.js';
-import { BookLibAIFeatures } from '../lib/engine/ai-features.js';
 import { resolveBookLibPaths } from '../lib/paths.js';
 import { SkillFetcher, RequiresConfirmationError, listInstalledSkillNames, countInstalledSlots } from '../lib/skill-fetcher.js';
 import { runWizard } from '../lib/wizard/index.js';
@@ -510,35 +509,6 @@ async function main() {
         const result = mgr.encryptSession(args[2]);
         if (result.error) console.error(result.error);
         else console.log(`🔒 Encrypted: ${result.encrypted}`);
-      } else if (subCmd === 'summarize') {
-        const ai = new BookLibAIFeatures(process.cwd());
-        const hasAiFlag = args.includes('--ai');
-        if (!hasAiFlag) {
-          console.log('Use: booklib sessions summarize <id> --ai');
-          process.exit(1);
-        }
-        const sessionPath = path.join(process.cwd(), '.booklib/sessions', `${args[2]}.md`);
-        if (!fs.existsSync(sessionPath)) {
-          console.error(`Session not found: ${args[2]}`);
-          process.exit(1);
-        }
-        const content = fs.readFileSync(sessionPath, 'utf8');
-        const parseSessionContent = (c) => {
-          const extract = (tag) => {
-            const regex = new RegExp(`<${tag}>([\\s\\S]*?)</${tag}>`);
-            const match = c.match(regex);
-            return match ? match[1].trim() : '';
-          };
-          return { session_id: extract('session_id'), goal: extract('goal') };
-        };
-        const summary = parseSessionContent(content);
-        const rec = ai.recommendSkills(summary.goal);
-        console.log(`\n📝 Session: ${summary.session_id}`);
-        console.log(`Goal: ${summary.goal}`);
-        console.log(`\n💡 Suggested Skills:`);
-        rec.recommendations.forEach(r => {
-          console.log(`  • ${r.skill} (${r.confidence}%): ${r.reason}`);
-        });
       }
       break;
     }
@@ -592,26 +562,6 @@ async function main() {
       break;
     }
 
-    case 'extension-data': {
-      const ai = new BookLibAIFeatures(process.cwd());
-      const data = ai.getExtensionData();
-      console.log(JSON.stringify(data, null, 2));
-      break;
-    }
-
-    case 'github-integration': {
-      const ai = new BookLibAIFeatures(process.cwd());
-      const data = ai.getGitHubIntegrationData(args[1]);
-      console.log(JSON.stringify(data, null, 2));
-      break;
-    }
-
-    case 'slack-integration': {
-      const ai = new BookLibAIFeatures(process.cwd());
-      const data = ai.getSlackIntegrationData(args[1]);
-      console.log(JSON.stringify(data, null, 2));
-      break;
-    }
 
     case 'init': {
       // Backwards-compat: if legacy flags are passed, run old init flow
