@@ -15,3 +15,13 @@ __pycache__/
 .booklib/
 .worktrees/
 docs/superpowers/
+
+# Generated MCP configs (per-machine, created by booklib init)
+.cursor/mcp.json
+.cursor/rules/booklib-standards.mdc
+.vscode/mcp.json
+.vscode/settings.json
+.gemini/settings.json
+
+# Caches
+.ruff_cache/
