@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
+import { fileURLToPath } from 'node:url';
 import { writeMCPConfig, MCP_CAPABLE } from '../lib/mcp-config-writer.js';
 
 function tmpDir() {
@@ -56,4 +57,15 @@ test('MCP_CAPABLE includes 10 tools', () => {
   assert.ok(MCP_CAPABLE.has('copilot'));
   assert.ok(MCP_CAPABLE.has('roo-code'));
   assert.ok(!MCP_CAPABLE.has('junie'));
+});
+
+test('MCP server version reads from package.json, not hardcoded', () => {
+  const pkgDir = path.resolve(fileURLToPath(import.meta.url), '..', '..');
+  const pkg = JSON.parse(fs.readFileSync(path.join(pkgDir, 'package.json'), 'utf8'));
+  const mcpSource = fs.readFileSync(path.join(pkgDir, 'bin', 'booklib-mcp.js'), 'utf8');
+
+  // Should NOT contain a hardcoded version string
+  assert.ok(!mcpSource.includes('version: "3.'), 'MCP server should not hardcode version');
+  // Should reference package.json dynamically
+  assert.ok(mcpSource.includes('__pkg.version'), 'MCP server should read version from package.json');
 });

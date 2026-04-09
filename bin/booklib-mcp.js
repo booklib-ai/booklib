@@ -29,6 +29,9 @@ import { extractFromResults } from '../lib/engine/principle-extractor.js';
 import { prioritizeLookupResults } from '../lib/engine/lookup-priority.js';
 import { ContextMapBuilder } from '../lib/engine/context-map.js';
 
+const __pkgDir = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
+const __pkg = JSON.parse(fs.readFileSync(path.join(__pkgDir, 'package.json'), 'utf8'));
+
 const { skillsPath } = resolveBookLibPaths();
 const searcher = new BookLibSearcher();
 const auditor = new BookLibAuditor();
@@ -37,7 +40,7 @@ const handoff = new BookLibHandoff();
 const server = new Server(
   {
     name: "booklib-engine",
-    version: "3.0.0",
+    version: __pkg.version,
   },
   {
     capabilities: {
