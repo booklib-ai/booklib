@@ -254,6 +254,7 @@ async function main() {
       break;
     }
 
+    case 'lookup':
     case 'search': {
       const autoFetch = args.includes('--auto-fetch');
       const useGraph = args.includes('--graph');
