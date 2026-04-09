@@ -43,7 +43,7 @@
     "url": "git+https://github.com/booklib-ai/booklib.git"
   },
   "scripts": {
-    "test": "node --test 'tests/**/*.test.js'"
+    "test": "find tests -name '*.test.js' | xargs node --test"
   },
   "engines": {
     "node": ">=18"
