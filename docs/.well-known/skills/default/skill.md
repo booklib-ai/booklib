@@ -21,7 +21,7 @@ booklib install <skill-name>
 ## Available Skills (23)
 
 - **animation-at-work**: Apply web animation principles from Animation at Work by Rachel Nabors. Covers human perception of motion, 12 principles
-- **booklib-mcp-guide**: Reference for BookLib MCP tools. Covers when to call each tool, parameters, common workflows, and anti-patterns for AI c
+- **booklib-mcp-guide**: Use when working with BookLib MCP tools. Reference for lookup, review, remember, verify, guard — parameters, workflows, 
 - **clean-code-reviewer**: Reviews code against Robert C. Martin's Clean Code principles. Use when users share code for review, ask for refactoring
 - **data-intensive-patterns**: Generate and review data-intensive application code using patterns from Martin Kleppmann's "Designing Data-Intensive App
 - **data-pipelines**: Apply Data Pipelines Pocket Reference practices (James Densmore). Covers Infrastructure (Ch 1-2: warehouses, lakes, clou
