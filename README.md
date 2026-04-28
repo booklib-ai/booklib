@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/booklib-ai-booklib-badge.png)](https://mseep.ai/app/booklib-ai-booklib)
+
 <p align="center">
   <img src="assets/logo.svg" width="140" alt="booklib"/>
 </p>
